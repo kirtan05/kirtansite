@@ -1,0 +1,118 @@
+---
+import BentoCard from './BentoCard.astro';
+import Hero from './Hero.astro';
+import { projects } from '../data/projects';
+import { papers } from '../data/papers';
+import { experiences } from '../data/experience';
+---
+
+<section class="mx-auto max-w-6xl px-6 py-12 md:py-20">
+  <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+    {/* 1. Hero — span full */}
+    <BentoCard span="full" class="min-h-[280px]">
+      <Hero />
+    </BentoCard>
+
+    {/* 2. Photo — half */}
+    <BentoCard span="half" class="min-h-[280px]">
+      <div class="flex h-full flex-col items-center justify-center gap-4">
+        <div class="flex h-28 w-28 items-center justify-center rounded-full border border-border/50 bg-bg/50">
+          <span class="text-3xl text-text-secondary">KJ</span>
+        </div>
+        <span class="text-sm text-text-secondary">photo coming soon</span>
+      </div>
+    </BentoCard>
+
+    {/* 3. Projects — half, linked */}
+    <BentoCard span="half" href="/projects">
+      <span class="text-xs font-medium tracking-wider text-accent uppercase">Projects</span>
+      <h3 class="mt-2 font-display text-lg font-semibold text-text">{projects[0].title}</h3>
+      <p class="mt-1 text-sm text-text-secondary">{projects[0].description}</p>
+      <span class="mt-4 inline-block text-sm text-accent">View all &rarr;</span>
+    </BentoCard>
+
+    {/* 4. Now — half */}
+    <BentoCard span="half">
+      <span class="text-xs font-medium tracking-wider text-accent uppercase">Now</span>
+      <h3 class="mt-2 font-display text-lg font-semibold text-text">{experiences[0].role}</h3>
+      <p class="mt-1 text-sm text-text-secondary">{experiences[0].company}</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        {['Android Framework', 'OneUI', 'Samsung DeX'].map((tag) => (
+          <span class="rounded-full bg-bg/60 px-3 py-1 text-xs text-text-secondary border border-border/50">
+            {tag}
+          </span>
+        ))}
+      </div>
+    </BentoCard>
+
+    {/* 5. Research — half, linked */}
+    <BentoCard span="half" href="/research">
+      <span class="text-xs font-medium tracking-wider text-accent uppercase">Research</span>
+      <div class="mt-2 flex flex-wrap gap-2">
+        {papers.map((paper) => (
+          <span class="rounded-full bg-bg/60 px-3 py-1 text-xs font-medium text-text border border-border/50">
+            {paper.venue} '{String(paper.year).slice(-2)}
+          </span>
+        ))}
+      </div>
+      <p class="mt-2 text-sm text-text-secondary">Multimodal AI &amp; NLP</p>
+      <span class="mt-3 inline-block text-sm text-accent">Read papers &rarr;</span>
+    </BentoCard>
+
+    {/* 6. Stats — half */}
+    <BentoCard span="half">
+      <span class="text-xs font-medium tracking-wider text-accent uppercase">Stats</span>
+      <div class="mt-3 space-y-3">
+        <div>
+          <span class="font-display text-2xl font-bold text-text">1805</span>
+          <span class="ml-2 text-sm text-text-secondary">Codeforces</span>
+        </div>
+        <div>
+          <span class="font-display text-sm font-semibold text-text">ICPC Regional Finalist</span>
+        </div>
+        <div>
+          <span class="font-display text-2xl font-bold text-text">2000+</span>
+          <span class="ml-2 text-sm text-text-secondary">OneIITP users</span>
+        </div>
+      </div>
+    </BentoCard>
+
+    {/* 7. Connect — span full */}
+    <BentoCard span="full">
+      <span class="text-xs font-medium tracking-wider text-accent uppercase">Connect</span>
+      <div class="mt-3 flex flex-wrap items-center gap-4">
+        <a
+          href="https://github.com/kirtan05"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+        >
+          GitHub
+        </a>
+        <a
+          href="https://linkedin.com/in/kirtan-jain"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+        >
+          LinkedIn
+        </a>
+        <a
+          href="mailto:kirtanjain0504@gmail.com"
+          class="text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+        >
+          Email
+        </a>
+        <a
+          href="/resume.pdf"
+          download
+          class="text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+        >
+          Resume &darr;
+        </a>
+      </div>
+    </BentoCard>
+
+  </div>
+</section>

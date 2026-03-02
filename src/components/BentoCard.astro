@@ -1,0 +1,33 @@
+---
+interface Props {
+  href?: string;
+  class?: string;
+  span?: 'full' | 'half';
+}
+
+const { href, class: className = '', span } = Astro.props;
+
+const Tag = href ? 'a' : 'div';
+
+const spanClass = span === 'full' ? 'md:col-span-2' : span === 'half' ? 'md:col-span-1' : '';
+
+const baseClasses = [
+  'relative rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl',
+  'transition-all duration-300',
+  'hover:border-accent/20 hover:shadow-[0_0_30px_-5px_rgba(245,158,11,0.1)]',
+  spanClass,
+  className,
+].filter(Boolean).join(' ');
+---
+
+<Tag
+  href={href}
+  class={baseClasses}
+  style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+  data-animate
+  data-tilt
+>
+  <div class="opacity-0 translate-y-6">
+    <slot />
+  </div>
+</Tag>

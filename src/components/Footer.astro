@@ -1,0 +1,28 @@
+---
+const socialLinks = [
+  { label: 'GitHub', href: 'https://github.com/kirtan05' },
+  { label: 'LinkedIn', href: 'https://linkedin.com/in/kirtan-jain' },
+  { label: 'Email', href: 'mailto:kirtanjain0504@gmail.com' },
+];
+---
+
+<footer class="border-t border-border py-8">
+  <div class="mx-auto flex max-w-6xl items-center justify-between px-6">
+    <span class="text-sm text-text-secondary">Kirtan Jain</span>
+
+    <ul class="flex items-center gap-5">
+      {socialLinks.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            target={link.href.startsWith('mailto:') ? undefined : '_blank'}
+            rel={link.href.startsWith('mailto:') ? undefined : 'noopener noreferrer'}
+            class="text-sm text-text-secondary transition-colors duration-200 hover:text-accent"
+          >
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</footer>

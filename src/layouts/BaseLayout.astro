@@ -1,0 +1,71 @@
+---
+import { ClientRouter } from 'astro:transitions';
+import GrainOverlay from '../components/GrainOverlay.astro';
+import Navbar from '../components/Navbar.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'Kirtan Jain',
+  description = 'Builder. Engineer. Researcher. Quizzer.',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://kirtanjain.com');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <meta name="author" content="Kirtan Jain" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalURL.href} />
+
+    <!-- Preload critical fonts -->
+    <link
+      rel="preload"
+      href="/fonts/ClashDisplay-Semibold.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/Satoshi-Regular.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>{title}</title>
+
+    <ClientRouter />
+  </head>
+  <body class="min-h-screen bg-bg text-text">
+    <GrainOverlay />
+    <Navbar />
+
+    <main class="pt-20">
+      <slot />
+    </main>
+
+    <Footer />
+
+    <script>
+      import '../scripts/animations';
+    </script>
+  </body>
+</html>

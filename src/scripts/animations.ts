@@ -3,9 +3,16 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+// Store cleanup functions for non-ScrollTrigger listeners
+let cleanupFns: (() => void)[] = [];
+
 function initAnimations(): void {
-  // Kill old ScrollTrigger instances to prevent duplicates after View Transitions
+  // Kill old ScrollTrigger instances
   ScrollTrigger.getAll().forEach((t) => t.kill());
+
+  // Clean up old event listeners from previous page
+  cleanupFns.forEach((fn) => fn());
+  cleanupFns = [];
 
   // 1. Card stagger entrance
   const animateEls = document.querySelectorAll('[data-animate]');
@@ -22,26 +29,10 @@ function initAnimations(): void {
         delay: 0.1,
       },
     );
-
-    // Also animate the inner content divs
-    const innerDivs = document.querySelectorAll('[data-animate] > div');
-    gsap.fromTo(
-      innerDivs,
-      { opacity: 0, y: 24 },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        stagger: 0.08,
-        ease: 'power3.out',
-        delay: 0.2,
-      },
-    );
   }
 
   // 2. 3D card tilt on mousemove
-  const tiltEls = document.querySelectorAll<HTMLElement>('[data-tilt]');
-  tiltEls.forEach((el) => {
+  document.querySelectorAll<HTMLElement>('[data-tilt]').forEach((el) => {
     const handleMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -72,6 +63,11 @@ function initAnimations(): void {
 
     el.addEventListener('mousemove', handleMouseMove);
     el.addEventListener('mouseleave', handleMouseLeave);
+
+    cleanupFns.push(() => {
+      el.removeEventListener('mousemove', handleMouseMove);
+      el.removeEventListener('mouseleave', handleMouseLeave);
+    });
   });
 
   // 3. Hero tagline word cycling
@@ -110,19 +106,20 @@ function initAnimations(): void {
         }
       }, 800);
 
-      // Cycle on hero card hover (mouseenter on parent BentoCard)
+      cleanupFns.push(() => clearInterval(loadInterval));
+
+      // Cycle on hero card hover
       const heroCard = taglineEl.closest('[data-tilt]');
       if (heroCard) {
-        heroCard.addEventListener('mouseenter', () => {
-          cycleWord();
-        });
+        const handleHeroEnter = () => cycleWord();
+        heroCard.addEventListener('mouseenter', handleHeroEnter);
+        cleanupFns.push(() => heroCard.removeEventListener('mouseenter', handleHeroEnter));
       }
     }
   }
 
   // 4. ScrollTrigger reveals for [data-scroll-animate] elements
-  const scrollEls = document.querySelectorAll('[data-scroll-animate]');
-  scrollEls.forEach((el) => {
+  document.querySelectorAll('[data-scroll-animate]').forEach((el) => {
     gsap.fromTo(
       el,
       { opacity: 0, y: 30 },

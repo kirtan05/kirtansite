@@ -1,1 +1,83 @@
 @import "tailwindcss";
+
+/* === Font Faces === */
+@font-face {
+  font-family: 'ClashDisplay';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ClashDisplay-Semibold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'ClashDisplay';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/ClashDisplay-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Satoshi-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Satoshi-Medium.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Satoshi';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Satoshi-Bold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'JetBrainsMono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMono-Regular.woff2') format('woff2');
+}
+
+/* === Tailwind CSS 4 Theme === */
+@theme {
+  --font-sans: 'Satoshi', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'ClashDisplay', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrainsMono', ui-monospace, monospace;
+
+  --color-bg: #0A0A0A;
+  --color-surface: #141414;
+  --color-border: #1A1A1A;
+  --color-text: #EDEDED;
+  --color-text-secondary: #888888;
+  --color-accent: #F59E0B;
+  --color-accent-hover: #FBBF24;
+}
+
+/* === Base Styles === */
+html {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--color-accent);
+  color: var(--color-bg);
+}

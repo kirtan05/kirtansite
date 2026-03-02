@@ -1,0 +1,36 @@
+---
+import { experiences } from '../data/experience';
+---
+
+<div class="space-y-8">
+  {experiences.map((exp) => (
+    <div class="relative pl-8 border-l border-border/50" data-scroll-animate>
+      {/* Dot indicator */}
+      <div
+        class:list={[
+          'absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full',
+          exp.current ? 'bg-accent' : 'bg-text-secondary',
+        ]}
+      />
+
+      <h3 class="font-display text-lg font-bold text-text">{exp.company}</h3>
+
+      <p class="mt-0.5 font-mono text-sm text-text-secondary">{exp.period}</p>
+
+      <p class="mt-1 text-text-secondary">
+        {exp.role} &middot; {exp.location}
+      </p>
+
+      {exp.description.length > 0 && (
+        <ul class="mt-3 space-y-1.5">
+          {exp.description.map((item) => (
+            <li class="flex gap-2 text-sm leading-relaxed text-text-secondary">
+              <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-text-secondary" />
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  ))}
+</div>

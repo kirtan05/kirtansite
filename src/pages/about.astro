@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Timeline from '../components/Timeline.astro';
+import { education, achievements } from '../data/experience';
+---
+
+<BaseLayout title="About — Kirtan Jain">
+  <section class="mx-auto max-w-4xl px-6 py-12 md:py-20">
+
+    {/* --- Intro --- */}
+    <div data-scroll-animate>
+      <h1 class="font-display text-4xl font-bold md:text-5xl">About</h1>
+
+      <div class="mt-6 space-y-4 text-lg leading-relaxed text-text-secondary">
+        <p>
+          I'm Kirtan Jain -- an engineer at Samsung Research, where I work on the Android
+          framework powering multi-window, Picture-in-Picture, and Samsung DeX across
+          foldable flagships. Before that, I built OneIITP, the campus companion app used
+          by 2,000+ students at IIT Patna, and led Alloc8, a room-allocation portal that
+          assigns 3,000 students to 1,400 rooms in minutes.
+        </p>
+        <p>
+          On the research side, I've published at CIKM and EMNLP on multimodal machine
+          learning, video understanding, and hate-speech detection. Outside of work, I'm
+          an ICPC regionalist, Codeforces Expert, and a competitive quizzer who has
+          represented IIT Patna nationally. I graduated with a B.Tech in Computer Science
+          from IIT Patna in 2025.
+        </p>
+      </div>
+    </div>
+
+    {/* --- Experience --- */}
+    <div class="mt-16" data-scroll-animate>
+      <h2 class="font-display text-2xl font-bold">Experience</h2>
+    </div>
+    <div class="mt-6">
+      <Timeline />
+    </div>
+
+    {/* --- Education --- */}
+    <div class="mt-16" data-scroll-animate>
+      <h2 class="font-display text-2xl font-bold">Education</h2>
+
+      <div
+        class="mt-6 rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl"
+        style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+      >
+        <h3 class="font-display text-lg font-bold text-text">{education.institution}</h3>
+        <p class="mt-1 text-text-secondary">{education.degree}</p>
+        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-sm text-text-secondary">
+          <span>{education.period}</span>
+          <span>CPI: {education.cpi}</span>
+        </div>
+      </div>
+    </div>
+
+    {/* --- Achievements --- */}
+    <div class="mt-16" data-scroll-animate>
+      <h2 class="font-display text-2xl font-bold">Achievements</h2>
+
+      <ul class="mt-6 space-y-3">
+        {achievements.map((a) => (
+          <li class="flex gap-3 leading-relaxed text-text-secondary">
+            <span class="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent" />
+            <span set:html={
+              a.highlight
+                ? a.text.replace(
+                    a.highlight,
+                    `<span class="text-text font-medium">${a.highlight}</span>`
+                  )
+                : a.text
+            } />
+          </li>
+        ))}
+      </ul>
+    </div>
+
+  </section>
+</BaseLayout>

@@ -41,4 +41,17 @@ export const projects: Project[] = [
     links: [],
     featured: true,
   },
+  {
+    title: 'Quiz Finder India',
+    description:
+      'AI-powered quiz aggregator — monitors 75+ sources across India with GPT-4o extraction.',
+    longDescription:
+      'Aggregates quiz announcements from WhatsApp groups and Instagram pages across 35+ cities. GPT-4o reads posters and captions to extract event details. Features city filtering, eligibility tags, push notifications, and one-click calendar integration.',
+    tech: ['Next.js', 'GPT-4o', 'Vercel'],
+    links: [
+      { label: 'Website', href: 'https://quizfinderindia.vercel.app' },
+      { label: 'GitHub', href: 'https://github.com/kirtan05/quizfinderindia' },
+    ],
+    featured: true,
+  },
 ];

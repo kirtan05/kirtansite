@@ -12,7 +12,7 @@ const Tag = href ? 'a' : 'div';
 const spanClass = span === 'full' ? 'md:col-span-2' : span === 'half' ? 'md:col-span-1' : '';
 
 const baseClasses = [
-  'relative rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl',
+  'relative overflow-hidden rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl',
   'transition-all duration-300',
   'hover:border-accent/20 hover:shadow-[0_0_30px_-5px_rgba(245,158,11,0.1)]',
   spanClass,

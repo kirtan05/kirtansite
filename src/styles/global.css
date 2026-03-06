@@ -77,11 +77,56 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  isolation: isolate;
 }
 
 ::selection {
   background-color: var(--color-accent);
   color: var(--color-bg);
+}
+
+/* === Ambient Background Glow === */
+.ambient-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.ambient-glow::before,
+.ambient-glow::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+}
+
+.ambient-glow::before {
+  top: -20%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
+  animation: orb1 20s ease-in-out infinite alternate;
+}
+
+.ambient-glow::after {
+  bottom: -20%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.04) 0%, transparent 70%);
+  animation: orb2 25s ease-in-out infinite alternate;
+}
+
+@keyframes orb1 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(10%, 15%); }
+}
+
+@keyframes orb2 {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(-8%, -12%); }
 }
 
 /* Hero character animation — hidden until GSAP reveals */
@@ -95,7 +140,38 @@ body {
   opacity: 0;
 }
 
-/* Cursor-tracking glow on cards */
+/* === Animated Shimmer Top Border on Cards === */
+[data-tilt]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 158, 11, 0.3),
+    rgba(245, 158, 11, 0.7),
+    rgba(245, 158, 11, 0.3),
+    transparent
+  );
+  background-size: 200% 100%;
+  animation: shimmer 4s linear infinite;
+  z-index: 2;
+}
+
+/* Stagger shimmer timing across cards */
+[data-tilt]:nth-child(even)::before {
+  animation-delay: -2s;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* === Cursor / Touch Glow on Cards === */
 [data-tilt]::after {
   content: '';
   pointer-events: none;
@@ -105,8 +181,8 @@ body {
   opacity: 0;
   transition: opacity 0.4s ease;
   background: radial-gradient(
-    600px circle at var(--glow-x, 50%) var(--glow-y, 50%),
-    rgba(245, 158, 11, 0.08),
+    500px circle at var(--glow-x, 50%) var(--glow-y, 50%),
+    rgba(245, 158, 11, 0.12),
     transparent 40%
   );
 }

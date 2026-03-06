@@ -63,8 +63,9 @@ function initAnimations(): void {
     );
   }
 
-  // 4. 3D card tilt + cursor glow tracking
+  // 4. 3D card tilt + cursor glow + mobile touch glow
   document.querySelectorAll<HTMLElement>('[data-tilt]').forEach((el) => {
+    // Desktop: mouse tracking for tilt + glow
     const handleMouseMove = (e: MouseEvent) => {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -83,7 +84,6 @@ function initAnimations(): void {
         ease: 'power2.out',
       });
 
-      // Update glow position via CSS custom properties
       el.style.setProperty('--glow-x', `${x}px`);
       el.style.setProperty('--glow-y', `${y}px`);
       el.classList.add('is-hovering');
@@ -107,6 +107,20 @@ function initAnimations(): void {
       el.removeEventListener('mousemove', handleMouseMove);
       el.removeEventListener('mouseleave', handleMouseLeave);
     });
+
+    // Mobile: touch-triggered glow pulse
+    const handleTouch = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty('--glow-x', `${touch.clientX - rect.left}px`);
+      el.style.setProperty('--glow-y', `${touch.clientY - rect.top}px`);
+      el.classList.add('is-hovering');
+
+      setTimeout(() => el.classList.remove('is-hovering'), 1000);
+    };
+
+    el.addEventListener('touchstart', handleTouch, { passive: true });
+    cleanupFns.push(() => el.removeEventListener('touchstart', handleTouch));
   });
 
   // 5. Hero tagline word cycling — continuous loop

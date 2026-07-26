@@ -1,0 +1,463 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Data comes from the spine Worker at /api/reading — a Workers route on this same
+// hostname, in front of Pages. Fetched client-side because this page is
+// prerendered and the reading position changes several times a day.
+---
+
+<BaseLayout
+  title="Reading — Kirtan Jain"
+  description="What I'm reading, what I've finished, and how much of the record is measured rather than estimated."
+>
+  <section class="mx-auto max-w-4xl px-6 py-12 md:py-20">
+    <div data-scroll-animate>
+      <h1 class="font-display text-4xl font-bold md:text-5xl">Reading</h1>
+      <p class="mt-3 text-lg text-text-secondary">
+        Positions sync from KOReader across my devices. Measured time comes from each
+        device's own page timings; estimated time comes from a model, and is drawn
+        hatched wherever it appears so the two are never added together.
+      </p>
+    </div>
+
+    {/* --- Now --- */}
+    <div class="mt-16" data-scroll-animate>
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="font-display text-2xl font-bold">Now</h2>
+        <span class="font-mono text-xs uppercase tracking-widest text-accent" id="now-count"></span>
+      </div>
+
+      <div
+        class="mt-4 rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl hover:border-accent/20 hover:shadow-[0_0_30px_-5px_rgba(245,158,11,0.1)] transition-all duration-300"
+        style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+        data-tilt
+      >
+        <div id="now" class="divide-y divide-border/50">
+          <p class="font-mono text-sm text-text-secondary">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    {/* --- Finished --- */}
+    <div class="mt-16" data-scroll-animate>
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="font-display text-2xl font-bold">Finished</h2>
+        <span class="font-mono text-xs uppercase tracking-widest text-text-secondary" id="finished-window"></span>
+      </div>
+
+      <div
+        class="mt-4 rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl hover:border-accent/20 hover:shadow-[0_0_30px_-5px_rgba(245,158,11,0.1)] transition-all duration-300"
+        style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+        data-tilt
+      >
+        <div id="finished" class="divide-y divide-border/50">
+          <p class="font-mono text-sm text-text-secondary">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    {/* --- The record. No data-tilt: a chart that wobbles under the cursor is
+           harder to read, and this is the one thing on the page worth reading
+           carefully. --- */}
+    <div class="mt-16" data-scroll-animate>
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="font-display text-2xl font-bold">The record</h2>
+        <span class="font-mono text-xs uppercase tracking-widest text-text-secondary">Asia/Kolkata</span>
+      </div>
+
+      <div
+        class="mt-4 rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl transition-all duration-300"
+        style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+      >
+        <div id="strip" class="reading-strip" role="img" aria-label="Daily reading over the recent window"></div>
+        <div class="mt-2 flex justify-between font-mono text-[0.625rem] uppercase tracking-widest text-text-secondary" id="strip-axis">
+          <span id="strip-start"></span>
+          <span>Today</span>
+        </div>
+
+        <dl class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3" id="totals"></dl>
+      </div>
+
+      <p class="mt-4 font-mono text-xs leading-relaxed text-text-secondary" id="colophon"></p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  /*
+    is:global is required, not stylistic. Astro scopes <style> by adding a
+    data-astro-* attribute to elements in the template, and the strip columns,
+    provenance marks and progress spines are all created in JS after render — so
+    scoped rules would never match them and they would silently disappear.
+    Every class here is `reading-` prefixed to keep the global scope safe.
+
+    Provenance is carried by texture, not by a second colour. Measured time is
+    solid amber; estimated time is the same amber, hatched. An estimated number
+    is not a different category of thing — it is the same thing, less certain —
+    and giving it its own hue would claim otherwise.
+  */
+  .reading-strip {
+    display: flex;
+    align-items: flex-end;
+    gap: 1px;
+    height: 88px;
+    padding-bottom: 1px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .reading-strip[data-empty='true'] {
+    height: auto;
+    min-height: 3.5rem;
+    align-items: center;
+    padding: 1rem 0;
+  }
+
+  .reading-day {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: 100%;
+  }
+
+  .reading-measured {
+    background: var(--color-accent);
+  }
+
+  .reading-estimated {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(245, 158, 11, 0.55) 0 1.5px,
+      transparent 1.5px 4px
+    );
+    border-top: 1px solid rgba(245, 158, 11, 0.4);
+  }
+
+  .reading-mark {
+    width: 9px;
+    height: 9px;
+    flex: none;
+    border: 1px solid var(--color-accent);
+  }
+
+  .reading-mark-measured {
+    background: var(--color-accent);
+  }
+
+  .reading-mark-estimated {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(245, 158, 11, 0.55) 0 1.5px,
+      transparent 1.5px 4px
+    );
+  }
+
+  /* A book seen edge-on: the spine, filled to where the reading has got to. */
+  .reading-spine {
+    height: 3px;
+    background: var(--color-border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reading-spine::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--fill, 0%);
+    background: var(--color-accent);
+    transform-origin: left;
+    animation: reading-draw 900ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  @keyframes reading-draw {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reading-spine::after { animation: none; }
+  }
+
+  @media (max-width: 30rem) {
+    .reading-strip { height: 64px; }
+  }
+</style>
+
+<script>
+  const ENDPOINT = '/api/reading';
+  const IST_OFFSET = 19800; // Asia/Kolkata, UTC+5:30 year-round. No DST to handle.
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function istDay(unixSeconds: number): string {
+    return new Date((unixSeconds + IST_OFFSET) * 1000).toISOString().slice(0, 10);
+  }
+
+  function dayNumber(day: string): number {
+    return Math.floor(Date.parse(`${day}T00:00:00Z`) / 86400000);
+  }
+
+  function duration(seconds: number): string {
+    if (!seconds) return '—';
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.round((seconds % 3600) / 60);
+    if (!hours) return `${minutes}m`;
+    return hours + 'h' + (minutes ? ` ${minutes}m` : '');
+  }
+
+  function shortDate(day: string): string {
+    if (!day) return '';
+    const [, month, date] = day.split('-');
+    return `${parseInt(date, 10)} ${MONTHS[parseInt(month, 10) - 1]}`;
+  }
+
+  /** "Steven Erikson · Malazan 2" — omitting whichever parts are unknown. */
+  function byline(book: any): string {
+    const bits: string[] = [];
+    if (book.authors) bits.push(String(book.authors).split('\n')[0]);
+    if (book.series) {
+      bits.push(book.series_index != null ? `${book.series} ${book.series_index}` : book.series);
+    }
+    return bits.join(' · ');
+  }
+
+  function bookRow(book: any, figure: string, aside: string, percent: number | null): HTMLElement {
+    const row = document.createElement('div');
+    row.className = 'py-4 first:pt-0 last:pb-0';
+
+    const head = document.createElement('div');
+    head.className = 'flex items-baseline justify-between gap-4';
+
+    const title = document.createElement('h3');
+    // A hash with no catalogue row renders as "Unknown" rather than being hidden —
+    // it means an ingest step was missed, and that is worth seeing.
+    title.className = 'font-display text-lg font-bold text-text';
+    title.textContent = book.title || 'Unknown';
+    head.appendChild(title);
+
+    const fig = document.createElement('span');
+    fig.className = 'shrink-0 font-mono text-sm text-accent';
+    fig.textContent = figure;
+    head.appendChild(fig);
+    row.appendChild(head);
+
+    const meta = byline(book);
+    if (meta || aside) {
+      const sub = document.createElement('div');
+      sub.className = 'mt-1 flex items-baseline justify-between gap-4 font-mono text-xs text-text-secondary';
+      const left = document.createElement('span');
+      left.textContent = meta;
+      const right = document.createElement('span');
+      right.className = 'shrink-0';
+      right.textContent = aside;
+      sub.append(left, right);
+      row.appendChild(sub);
+    }
+
+    if (percent != null) {
+      const spine = document.createElement('div');
+      spine.className = 'reading-spine mt-3';
+      spine.style.setProperty('--fill', `${Math.max(0, Math.min(100, percent))}%`);
+      row.appendChild(spine);
+    }
+    return row;
+  }
+
+  function fillList(node: HTMLElement, books: any[], build: (b: any) => HTMLElement, emptyMessage: string) {
+    node.textContent = '';
+    if (!books || !books.length) {
+      const empty = document.createElement('p');
+      empty.className = 'font-mono text-sm text-text-secondary';
+      empty.textContent = emptyMessage;
+      node.appendChild(empty);
+      return;
+    }
+    books.forEach((book) => node.appendChild(build(book)));
+  }
+
+  function total(data: any, kind: string): number {
+    return data?.stats?.[kind]?.total_seconds || 0;
+  }
+
+  /**
+   * One column per IST day across the window. The measured portion is solid and
+   * sits at the bottom; the estimated portion is hatched and sits on top of it.
+   */
+  function renderStrip(data: any) {
+    const strip = document.getElementById('strip')!;
+    const axis = document.getElementById('strip-axis')!;
+    const windowDays = data.window_days || 90;
+    const lastDay = dayNumber(istDay(data.generated_at));
+
+    const byDay: Record<string, { measured: number; estimated: number }> = {};
+    for (const kind of ['measured', 'estimated'] as const) {
+      for (const entry of data?.stats?.[kind]?.days || []) {
+        byDay[entry.day] ||= { measured: 0, estimated: 0 };
+        byDay[entry.day][kind] += entry.seconds || 0;
+      }
+    }
+
+    let peak = 0;
+    for (const day of Object.keys(byDay)) {
+      peak = Math.max(peak, byDay[day].measured + byDay[day].estimated);
+    }
+
+    strip.textContent = '';
+    if (peak === 0) {
+      strip.dataset.empty = 'true';
+      strip.className = 'reading-strip font-mono text-sm text-text-secondary';
+      strip.textContent = 'No reading recorded yet. Sessions arrive when a device’s statistics are imported.';
+      strip.setAttribute('aria-label', 'No reading recorded yet');
+      axis.hidden = true;
+      return;
+    }
+    delete strip.dataset.empty;
+    strip.className = 'reading-strip';
+    axis.hidden = false;
+
+    let firstDay = '';
+    for (let offset = windowDays - 1; offset >= 0; offset--) {
+      const day = new Date((lastDay - offset) * 86400000).toISOString().slice(0, 10);
+      if (!firstDay) firstDay = day;
+
+      const column = document.createElement('div');
+      column.className = 'reading-day';
+      column.title = shortDate(day);
+      const totals = byDay[day];
+
+      if (totals) {
+        // A floor of 3% keeps a genuinely short session visible rather than
+        // rounding it away into an apparently empty day.
+        for (const [kind, cls] of [['estimated', 'reading-estimated'], ['measured', 'reading-measured']] as const) {
+          const share = totals[kind] / peak;
+          if (share > 0) {
+            const bar = document.createElement('div');
+            bar.className = cls;
+            bar.style.height = `${Math.max(3, share * 100)}%`;
+            column.appendChild(bar);
+          }
+        }
+      }
+      strip.appendChild(column);
+    }
+
+    document.getElementById('strip-start')!.textContent = shortDate(firstDay);
+    strip.setAttribute(
+      'aria-label',
+      `Daily reading from ${shortDate(firstDay)} to today. ` +
+        `${duration(total(data, 'measured'))} measured, ${duration(total(data, 'estimated'))} estimated.`,
+    );
+  }
+
+  function renderTotals(data: any) {
+    const node = document.getElementById('totals')!;
+    node.textContent = '';
+
+    const specs = [
+      { kind: 'measured', label: 'Measured', note: 'timed on-device' },
+      { kind: 'estimated', label: 'Estimated', note: 'produced by a model' },
+    ];
+
+    for (const spec of specs) {
+      const stats = data?.stats?.[spec.kind] || {};
+      const group = document.createElement('div');
+
+      const term = document.createElement('dt');
+      term.className = 'flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-text-secondary';
+      const mark = document.createElement('span');
+      mark.className = `reading-mark reading-mark-${spec.kind}`;
+      term.append(mark, document.createTextNode(spec.label));
+      group.appendChild(term);
+
+      const value = document.createElement('dd');
+      value.className = 'mt-2 font-display text-2xl font-bold text-text';
+      value.textContent = duration(stats.total_seconds || 0);
+      const sub = document.createElement('span');
+      sub.className = 'mt-1 block font-mono text-xs font-normal text-text-secondary';
+      sub.textContent = spec.note;
+      value.appendChild(sub);
+      group.appendChild(value);
+      node.appendChild(group);
+    }
+
+    const streak = data?.stats?.measured?.streak || {};
+    const group = document.createElement('div');
+    const term = document.createElement('dt');
+    term.className = 'font-mono text-xs uppercase tracking-widest text-text-secondary';
+    term.textContent = 'Streak';
+    group.appendChild(term);
+    const value = document.createElement('dd');
+    value.className = 'mt-2 font-display text-2xl font-bold text-text';
+    value.textContent = `${streak.current || 0} ${streak.current === 1 ? 'day' : 'days'}`;
+    const sub = document.createElement('span');
+    sub.className = 'mt-1 block font-mono text-xs font-normal text-text-secondary';
+    sub.textContent = `longest ${streak.longest || 0}`;
+    value.appendChild(sub);
+    group.appendChild(value);
+    node.appendChild(group);
+  }
+
+  function render(data: any) {
+    const now = data.currently_reading || [];
+    const finished = data.recently_finished || [];
+
+    fillList(
+      document.getElementById('now')!,
+      now,
+      (book) => bookRow(book, `${book.percent}%`, `read ${shortDate(book.last_read)}`, book.percent),
+      'Nothing open. A book appears here once it is closed on a device.',
+    );
+
+    fillList(
+      document.getElementById('finished')!,
+      finished,
+      (book) => bookRow(book, shortDate(book.finished), book.times_read > 1 ? `read ${book.times_read}×` : '', null),
+      'Nothing finished in this window.',
+    );
+
+    document.getElementById('now-count')!.textContent = now.length
+      ? `${now.length} ${now.length === 1 ? 'book' : 'books'}`
+      : '';
+    document.getElementById('finished-window')!.textContent = `last ${data.window_days} days`;
+
+    renderStrip(data);
+    renderTotals(data);
+
+    const rolled = data.rollup_last_run
+      ? `Totals rolled up ${shortDate(istDay(data.rollup_last_run))}.`
+      : 'Totals have not been rolled up yet.';
+    document.getElementById('colophon')!.textContent =
+      `${rolled} Days start at midnight in Asia/Kolkata. Measured and estimated time are counted separately and never summed.`;
+  }
+
+  function failed() {
+    document.getElementById('colophon')!.textContent =
+      'The reading data did not load. It will be back when the sync server is reachable.';
+    for (const id of ['now', 'finished']) {
+      const node = document.getElementById(id)!;
+      node.textContent = '';
+      const p = document.createElement('p');
+      p.className = 'font-mono text-sm text-text-secondary';
+      p.textContent = 'Unavailable.';
+      node.appendChild(p);
+    }
+    document.getElementById('strip')!.closest('div.rounded-2xl')?.setAttribute('hidden', '');
+  }
+
+  function load() {
+    // Bail if this is not the reading page — astro:page-load fires on every route.
+    if (!document.getElementById('strip')) return;
+    fetch(ENDPOINT, { headers: { accept: 'application/json' } })
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(render)
+      .catch(failed);
+  }
+
+  // ClientRouter is enabled in BaseLayout, so a client-side navigation to this
+  // page never fires DOMContentLoaded. astro:page-load covers both cases.
+  document.addEventListener('astro:page-load', load);
+</script>

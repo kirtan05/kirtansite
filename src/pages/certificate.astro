@@ -1,0 +1,312 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Certificate — Kirtan Jain" description="Internal jewelry certificate generator.">
+  <section class="mx-auto max-w-5xl px-6 py-12 md:py-16">
+
+    {/* --- Password gate --- */}
+    <div id="gate" class="mx-auto max-w-md rounded-2xl border border-border/50 bg-surface/80 p-8 backdrop-blur-xl">
+      <h1 class="font-display text-2xl font-bold">Enter password</h1>
+      <p class="mt-2 text-sm text-text-secondary">Private tool. Ask Kirtan for the passphrase.</p>
+      <form id="gate-form" class="mt-6 space-y-3">
+        <input
+          id="gate-input"
+          type="password"
+          autocomplete="off"
+          placeholder="password"
+          class="w-full rounded-lg border border-border/60 bg-bg/60 px-4 py-3 font-mono text-sm outline-none focus:border-text/40"
+        />
+        <button
+          type="submit"
+          class="w-full rounded-lg border border-border/60 bg-bg/60 px-4 py-3 text-sm font-medium hover:bg-bg/80"
+        >Unlock</button>
+        <p id="gate-error" class="hidden text-sm text-red-400">Wrong password.</p>
+      </form>
+    </div>
+
+    {/* --- Generator (hidden until unlocked) --- */}
+    <div id="app" class="hidden">
+      <h1 class="font-display text-3xl font-bold md:text-4xl">Certificate generator</h1>
+      <p class="mt-2 text-sm text-text-secondary">
+        Fill in the fields, pick an item photo, then download the PNG. Purity → KT is computed automatically.
+      </p>
+
+      <div class="mt-6 grid gap-6 md:mt-8 md:gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
+
+        {/* --- Form --- */}
+        <form id="form" class="order-2 space-y-4 md:order-1">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Date</span>
+              <input id="f-date" type="text" value="19.09.2026" class="mt-1 w-full rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Client name</span>
+              <input id="f-client" type="text" value="K:S" class="mt-1 w-full rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Ref code</span>
+              <div class="mt-1 flex gap-2">
+                <input id="f-ref" type="text" value="SS428" class="flex-1 rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+                <button type="button" id="f-ref-rand" class="rounded-lg border border-border/60 bg-bg/60 px-3 py-2 text-xs">random</button>
+              </div>
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Sample name</span>
+              <input id="f-sample" type="text" value="BANGLES" class="mt-1 w-full rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Weight</span>
+              <div class="mt-1 flex gap-2">
+                <input id="f-weight" type="text" value="51.07" class="min-w-0 flex-1 rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+                <select id="f-weight-unit" class="rounded-lg border border-border/60 bg-bg/60 px-2 py-2 font-mono text-sm">
+                  <option value="">—</option>
+                  <option value="G">G</option>
+                  <option value="MG">MG</option>
+                </select>
+              </div>
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Purity (%)</span>
+              <input id="f-percent" type="text" value="75.82" class="mt-1 w-full rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Result in KT (auto)</span>
+              <input id="f-kt" type="text" value="18.1968" readonly class="mt-1 w-full rounded-lg border border-border/60 bg-bg/40 px-3 py-2 font-mono text-sm text-text-secondary" />
+            </label>
+            <label class="block">
+              <span class="text-xs uppercase tracking-wide text-text-secondary">Verified by</span>
+              <input id="f-verified" type="text" value="PBR" class="mt-1 w-full rounded-lg border border-border/60 bg-bg/60 px-3 py-2 font-mono text-sm" />
+            </label>
+          </div>
+
+          <label class="block">
+            <span class="text-xs uppercase tracking-wide text-text-secondary">Item photo (jpg/png)</span>
+            <input id="f-image" type="file" accept="image/*" class="mt-1 w-full rounded-lg border border-border/60 bg-bg/60 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-bg file:px-3 file:py-1 file:text-xs file:text-text" />
+          </label>
+
+          <div class="flex flex-col gap-2 pt-2 sm:flex-row sm:flex-wrap sm:gap-3">
+            <button type="button" id="btn-render" class="rounded-lg border border-border/60 bg-bg/60 px-4 py-3 text-sm font-medium hover:bg-bg/80">Render</button>
+            <button type="button" id="btn-download" class="rounded-lg border border-border/60 bg-bg/60 px-4 py-3 text-sm font-medium hover:bg-bg/80">Download PNG</button>
+            <span id="status" class="self-center font-mono text-xs text-text-secondary"></span>
+          </div>
+        </form>
+
+        {/* --- Preview --- */}
+        <div class="order-1 rounded-2xl border border-border/50 bg-surface/80 p-3 backdrop-blur-xl md:order-2">
+          <canvas
+            id="cv"
+            width="768"
+            height="1388"
+            class="mx-auto block w-full max-w-[280px] rounded-md bg-white md:h-[600px] md:w-auto md:max-w-none"
+          ></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // ============================================================
+    // Password (change here). Not a security control — just a gate
+    // so the URL is not casually browsable.
+    // ============================================================
+    const PASSWORD = 'shri';
+
+    // Layout constants copied from the Python builder that produced karimani/bangles/etc.
+    const FIELDS = {
+      date:     { xrange: [608, 629], y: 297, color: '#000000',        italic: false },
+      client:   { xrange: [545, 566], y: 297, color: 'rgb(155,90,95)', italic: false },
+      ref:      { xrange: [477, 499], y: 297, color: 'rgb(155,90,95)', italic: false },
+      sample:   { xrange: [409, 431], y: 297, color: '#000000',        italic: false },
+      weight:   { xrange: [340, 362], y: 297, color: '#000000',        italic: false },
+      kt:       { xrange: [266, 287], y: 297, color: 'rgb(45,100,165)', italic: false },
+      percent:  { xrange: [194, 218], y: 297, color: 'rgb(155,90,95)', italic: false },
+      verified: { xrange: [84,  107], y: 278, color: 'rgb(220,140,60)', italic: true  },
+    };
+    const FONT_SIZE = 28;
+    const PHOTO_BOX = { x0: 125, y0: 765, x1: 645, y1: 1230 };
+
+    const el = (id: string) => document.getElementById(id) as HTMLInputElement;
+    const gate = document.getElementById('gate')!;
+    const app = document.getElementById('app')!;
+
+    // ---- password gate ----
+    document.getElementById('gate-form')!.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = (el('gate-input').value || '').trim();
+      if (val === PASSWORD) {
+        gate.classList.add('hidden');
+        app.classList.remove('hidden');
+        try { sessionStorage.setItem('cert-ok', '1'); } catch {}
+        void render();
+      } else {
+        document.getElementById('gate-error')!.classList.remove('hidden');
+      }
+    });
+    // remember unlock across navigations within the session
+    try { if (sessionStorage.getItem('cert-ok') === '1') { gate.classList.add('hidden'); app.classList.remove('hidden'); } } catch {}
+
+    // ---- purity → KT ----
+    const recomputeKT = () => {
+      const p = parseFloat(el('f-percent').value);
+      if (isFinite(p)) {
+        const kt = (24 * p) / 100;
+        el('f-kt').value = kt.toFixed(4);
+      }
+    };
+    el('f-percent').addEventListener('input', recomputeKT);
+
+    // ---- random ref code ----
+    const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    el('f-ref-rand' as any).addEventListener?.('click', () => {
+      const a = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      const b = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      const n = Math.floor(100 + Math.random() * 900);
+      el('f-ref').value = `${a}${b}${n}`;
+    });
+    document.getElementById('f-ref-rand')!.addEventListener('click', () => {
+      const a = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      const b = LETTERS[Math.floor(Math.random() * LETTERS.length)];
+      const n = Math.floor(100 + Math.random() * 900);
+      el('f-ref').value = `${a}${b}${n}`;
+    });
+
+    // ---- template + item image state ----
+    let templateImg: HTMLImageElement | null = null;
+    let itemBitmap: ImageBitmap | null = null;
+
+    const loadTemplate = () => new Promise<HTMLImageElement>((res, rej) => {
+      const im = new Image();
+      im.onload = () => res(im);
+      im.onerror = rej;
+      im.src = '/certificate/template.png';
+    });
+
+    // Same brightening recipe used by the Python builder
+    const brightenItem = async (file: File): Promise<ImageBitmap> => {
+      const src = await createImageBitmap(file);
+      const iw = src.width, ih = src.height;
+      // crop off top 5% / bottom 15% / sides 5% (matches Python)
+      const cx = Math.floor(iw * 0.05), cy = Math.floor(ih * 0.05);
+      const cw = Math.floor(iw * 0.90), ch = Math.floor(ih * 0.80);
+      const off = new OffscreenCanvas(cw, ch);
+      const octx = off.getContext('2d')!;
+      octx.drawImage(src, cx, cy, cw, ch, 0, 0, cw, ch);
+
+      // brightness/contrast/saturation via canvas filter (fast, good enough)
+      const tmp = new OffscreenCanvas(cw, ch);
+      const tctx = tmp.getContext('2d')!;
+      tctx.filter = 'brightness(1.55) contrast(1.35) saturate(1.55)';
+      tctx.drawImage(off, 0, 0);
+
+      // whiten light backgrounds (pixel-wise, threshold like Python)
+      const img = tctx.getImageData(0, 0, cw, ch);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const m = (d[i] + d[i + 1] + d[i + 2]) / 3;
+        if (m > 155) {
+          const t = Math.min(1, (m - 150) / 45);
+          d[i] = d[i] + (255 - d[i]) * t;
+          d[i + 1] = d[i + 1] + (255 - d[i + 1]) * t;
+          d[i + 2] = d[i + 2] + (255 - d[i + 2]) * t;
+        }
+      }
+      tctx.putImageData(img, 0, 0);
+      return await createImageBitmap(tmp);
+    };
+
+    el('f-image').addEventListener('change', async () => {
+      const file = (el('f-image').files || [])[0];
+      if (!file) return;
+      setStatus('brightening image…');
+      itemBitmap = await brightenItem(file);
+      setStatus('');
+      await render();
+    });
+
+    const setStatus = (s: string) => { document.getElementById('status')!.textContent = s; };
+
+    // ---- draw one field ----
+    const drawField = (ctx: CanvasRenderingContext2D, key: keyof typeof FIELDS, text: string) => {
+      const spec = FIELDS[key];
+      const [x0, x1] = spec.xrange;
+      const cx = (x0 + x1) / 2;
+      const style = `${spec.italic ? 'italic ' : ''}bold ${FONT_SIZE}px Arial, "Liberation Sans", sans-serif`;
+      ctx.save();
+      ctx.fillStyle = spec.color;
+      ctx.font = style;
+      ctx.textBaseline = 'top';
+      ctx.textAlign = 'left';
+      // Rotate 90° CW so text reads top-to-bottom
+      ctx.translate(cx + FONT_SIZE / 2, spec.y);
+      ctx.rotate(Math.PI / 2);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    };
+
+    // ---- render ----
+    const render = async () => {
+      if (!templateImg) {
+        setStatus('loading template…');
+        templateImg = await loadTemplate();
+      }
+      const canvas = document.getElementById('cv') as HTMLCanvasElement;
+      const ctx = canvas.getContext('2d')!;
+      ctx.drawImage(templateImg, 0, 0);
+
+      // photo
+      if (itemBitmap) {
+        const bw = PHOTO_BOX.x1 - PHOTO_BOX.x0;
+        const bh = PHOTO_BOX.y1 - PHOTO_BOX.y0;
+        // white out photo region first
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(PHOTO_BOX.x0, PHOTO_BOX.y0, bw, bh);
+        const scale = Math.min(bw / itemBitmap.width, bh / itemBitmap.height);
+        const nw = itemBitmap.width * scale;
+        const nh = itemBitmap.height * scale;
+        ctx.drawImage(
+          itemBitmap,
+          PHOTO_BOX.x0 + (bw - nw) / 2,
+          PHOTO_BOX.y0 + (bh - nh) / 2,
+          nw,
+          nh
+        );
+      }
+
+      // text
+      drawField(ctx, 'date',     el('f-date').value);
+      drawField(ctx, 'client',   el('f-client').value);
+      drawField(ctx, 'ref',      el('f-ref').value);
+      drawField(ctx, 'sample',   el('f-sample').value);
+      const wUnit = (el('f-weight-unit') as unknown as HTMLSelectElement).value;
+      const wVal = el('f-weight').value;
+      drawField(ctx, 'weight',   wUnit ? `${wVal}${wUnit}` : wVal);
+      drawField(ctx, 'kt',       el('f-kt').value);
+      drawField(ctx, 'percent',  el('f-percent').value);
+      drawField(ctx, 'verified', el('f-verified').value);
+
+      setStatus('ready');
+    };
+
+    document.getElementById('btn-render')!.addEventListener('click', () => { void render(); });
+    ['f-date','f-client','f-ref','f-sample','f-weight','f-percent','f-verified']
+      .forEach((id) => el(id).addEventListener('input', () => { if (id === 'f-percent') recomputeKT(); void render(); }));
+    (document.getElementById('f-weight-unit') as HTMLSelectElement)
+      .addEventListener('change', () => { void render(); });
+
+    document.getElementById('btn-download')!.addEventListener('click', async () => {
+      await render();
+      const canvas = document.getElementById('cv') as HTMLCanvasElement;
+      const url = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      const name = (el('f-sample').value || 'certificate').toLowerCase().replace(/[^a-z0-9]+/g, '-') + '.png';
+      a.href = url;
+      a.download = name;
+      a.click();
+    });
+
+    // Kick off initial render if already unlocked
+    if (!app.classList.contains('hidden')) void render();
+  </script>
+</BaseLayout>

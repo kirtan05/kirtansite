@@ -1,4 +1,6 @@
 User-agent: *
+Disallow: /learning
+Disallow: /certificate
 Allow: /
 
 Sitemap: https://kirtanjain.com/sitemap-index.xml

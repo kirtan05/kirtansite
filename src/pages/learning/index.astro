@@ -1,0 +1,84 @@
+---
+export const prerender = false;
+
+import LearningLayout from '../../layouts/LearningLayout.astro';
+import { cookieName, cookieOptions, issueCookie, readCookie, verifyPassword, type Role } from '../../lib/learning/auth';
+import { audit, bindings, currentEpoch, hostAllowed } from '../../lib/learning/guard';
+
+// On any hostname other than the real one — a preview build, a *.pages.dev
+// URL — this route does not exist. That, and not robots.txt, is what stops a
+// second unauthenticated front door appearing next to the first.
+if (!hostAllowed(Astro)) return new Response('Not found', { status: 404 });
+
+const { env, db } = bindings(Astro);
+if (!db) return new Response('The learning area is not configured on this deployment.', { status: 503 });
+
+const secret = env.LEARNING_COOKIE_KEY;
+
+/** Only ever bounce back to a path inside /learning. */
+function safeNext(raw: string | null): string | null {
+  if (!raw || !raw.startsWith('/learning')) return null;
+  if (raw.startsWith('//') || raw.includes('\\')) return null;
+  return raw;
+}
+
+const next = safeNext(Astro.url.searchParams.get('next'));
+
+// Already signed in? Go where you were going.
+if (secret) {
+  const existing = await readCookie(secret, Astro.cookies.get(cookieName)?.value);
+  if (existing && existing.e === (await currentEpoch(db, existing.r))) {
+    return Astro.redirect(next ?? (existing.r === 'coach' ? '/learning/coach' : '/learning/today'));
+  }
+}
+
+let error: string | null = null;
+
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const password = String(form.get('password') ?? '');
+
+  // Both hashes are always checked, so a wrong password costs the same work
+  // whichever role it nearly matched.
+  const [isKid, isCoach] = await Promise.all([
+    verifyPassword(env.LEARNING_PW_KID, password),
+    verifyPassword(env.LEARNING_PW_COACH, password),
+  ]);
+
+  const role: Role | null = isCoach ? 'coach' : isKid ? 'kid' : null;
+
+  if (!role || !secret) {
+    await audit(db, 'anon', 'login_failed');
+    error = 'That is not the password.';
+  } else {
+    const { value, maxAge } = await issueCookie(secret, role, await currentEpoch(db, role));
+    Astro.cookies.set(cookieName, value, cookieOptions(maxAge));
+    await audit(db, role, 'login');
+    return Astro.redirect(safeNext(String(form.get('next') ?? '')) ?? (role === 'coach' ? '/learning/coach' : '/learning/today'));
+  }
+}
+---
+
+<LearningLayout title="Circle">
+  <p class="text-text-secondary">A record of the work. Ask for the password.</p>
+
+  <form method="post" class="mt-8 space-y-3">
+    {next && <input type="hidden" name="next" value={next} />}
+    <input
+      type="password"
+      name="password"
+      autocomplete="current-password"
+      autofocus
+      required
+      placeholder="password"
+      class="tap w-full rounded-xl border border-border bg-surface px-4 py-3 font-mono text-base outline-none focus:border-accent/50"
+    />
+    <button
+      type="submit"
+      class="tap w-full rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 font-medium text-accent transition-colors hover:bg-accent/15"
+    >
+      Open
+    </button>
+    {error && <p class="pt-1 font-mono text-sm text-red-400">{error}</p>}
+  </form>
+</LearningLayout>

@@ -16,6 +16,11 @@ pnpm-debug.log*
 # environment variables
 .env
 .env.production
+# Cloudflare local secrets. Never committed: this file holds the real password
+# hashes and the cookie signing key during local development.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 
 # macOS-specific files
 .DS_Store

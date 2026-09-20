@@ -1,0 +1,406 @@
+---
+export const prerender = false;
+
+/**
+ * His screen.
+ *
+ * Three rules, all of them from the review, all of them load-bearing:
+ *
+ *  1. No streak. A completion-contingent reward breaks the first week life
+ *     interrupts, and takes the motivation with it. This has to last years.
+ *  2. Nothing on this page can go down. "Cracked", "alone" and "evenings" are
+ *     cumulative counts; carry-overs are called "still alive" and are framed
+ *     as work in progress, because the first draft of this screen showed him
+ *     only what he owed, which is a debt ledger.
+ *  3. His marks are claims, not the record. They are stored in a different
+ *     column from his father's grading and never overwritten by it — the
+ *     disagreement between the two is the most interesting number here.
+ */
+import LearningLayout from '../../layouts/LearningLayout.astro';
+import { requireRole } from '../../lib/learning/guard';
+import { kidTotals } from '../../lib/learning/engine';
+import { attemptsFor, currentSession, openEntryFor, openProblems, problemsFor, tasksFor, uploadsFor } from '../../lib/learning/queries';
+import { human, today, weekday } from '../../lib/learning/dates';
+
+const gate = await requireRole(Astro, 'any');
+if (!gate.ok) return gate.response;
+const { role, db } = gate.ctx;
+
+const on = today();
+
+// The two tracks advance independently, and both appear on this screen. The
+// computer rung is here rather than on a page of its own precisely because a
+// separate page is a page that stops being opened in November.
+const [session, computer] = await Promise.all([currentSession(db, 'math'), currentSession(db, 'computer')]);
+const entry = session ? await openEntryFor(db, session.id) : null;
+
+const [problems, attempts, uploads, totals, alive, tasks] = await Promise.all([
+  session ? problemsFor(db, session.id) : Promise.resolve([]),
+  entry ? attemptsFor(db, entry.id) : Promise.resolve([]),
+  entry ? uploadsFor(db, entry.id) : Promise.resolve([]),
+  kidTotals(db),
+  openProblems(db, 12),
+  computer ? tasksFor(db, computer.id) : Promise.resolve([]),
+]);
+
+const markOf = new Map(attempts.map((a) => [a.problem_id, a.kid_mark]));
+
+// Carry-overs from earlier sheets are shown separately from this week's work;
+// mixing them makes a short sheet look like a long one.
+const aliveElsewhere = alive.filter((p) => !problems.some((q) => q.id === p.problem_id));
+
+const MARKS = [
+  ['got_it', 'Got it'],
+  ['tried', 'Tried'],
+  ['not_yet', 'Not yet'],
+] as const;
+---
+
+<LearningLayout title="Today" role={role} subtitle={`${weekday(on)}, ${human(on)}`}>
+  {
+    !session ? (
+      <p class="rounded-xl border border-border bg-surface p-5 text-text-secondary">
+        Nothing queued. Every sheet so far is finished — ask your dad for the next one.
+      </p>
+    ) : (
+      <>
+        {/* ── what today is ─────────────────────────────────────────── */}
+        <section class="rounded-2xl border border-border bg-surface p-5">
+          <p class="font-mono text-[11px] uppercase tracking-widest text-accent">
+            {session.course_name} · sheet {session.seq}
+          </p>
+          <h2 class="mt-2 font-display text-xl font-bold">{session.title}</h2>
+          <p class="mt-1 text-sm text-text-secondary">About 75 minutes. You are not expected to finish.</p>
+
+          {session.sheet_slug && (
+            <a
+              href={`/learning/sheet/${session.sheet_slug}-STUDENT.pdf`}
+              class="tap mt-4 inline-flex items-center rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-accent"
+            >
+              Open the sheet →
+            </a>
+          )}
+        </section>
+
+        {/* ── the problems ──────────────────────────────────────────── */}
+        <section class="mt-8">
+          <h3 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+            Mark what you did
+          </h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            This is your own note to yourself. What counts as solved gets decided on Saturday, when you
+            explain it.
+          </p>
+
+          <ul class="mt-4 space-y-2" data-marks data-session={session.id}>
+            {problems.map((p) => (
+              <li class="rounded-xl border border-border bg-surface px-4 py-3">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="font-mono text-sm">
+                    {p.ref}
+                    {p.label && <span class="ml-2 text-text-secondary">{p.label}</span>}
+                    {p.kind === 'warmup' && <span class="ml-2 text-[11px] text-text-secondary">warm-up</span>}
+                    {p.kind === 'starred' && <span class="ml-1 text-accent">*</span>}
+                  </span>
+                </div>
+                <div class="mt-3 grid grid-cols-3 gap-2">
+                  {MARKS.map(([value, label]) => (
+                    <button
+                      type="button"
+                      class="tap rounded-lg border border-border px-2 py-2 text-xs transition-colors data-[on]:border-accent/50 data-[on]:bg-accent/10 data-[on]:text-accent"
+                      data-mark={value}
+                      data-problem={p.id}
+                      data-on={markOf.get(p.id) === value ? '' : null}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-3 font-mono text-[11px] text-text-secondary" data-mark-status></p>
+        </section>
+
+        {/* ── evidence ──────────────────────────────────────────────── */}
+        <section class="mt-8">
+          <h3 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Proof it happened</h3>
+          <p class="mt-2 text-sm text-text-secondary">
+            Photograph the sheet. If the picture is bad, take another — the old one gets put away, not
+            deleted.
+          </p>
+
+          <div class="mt-4 rounded-2xl border border-dashed border-border bg-surface/50 p-5">
+            <label class="tap flex cursor-pointer items-center justify-center rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 text-sm font-medium text-accent">
+              <input type="file" accept="image/*,application/pdf" capture="environment" class="hidden" data-file />
+              Add a photo
+            </label>
+            <select
+              data-kind
+              class="tap mt-3 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm text-text-secondary"
+            >
+              <option value="sheet_photo">the sheet</option>
+              <option value="notebook_photo">rough work</option>
+              <option value="typing_screenshot">typing score</option>
+              <option value="folder_screenshot">a folder on the laptop</option>
+              <option value="file">a file I made</option>
+              <option value="other">something else</option>
+            </select>
+            <p class="mt-3 font-mono text-[11px] text-text-secondary" data-upload-status></p>
+          </div>
+
+          {uploads.length > 0 && (
+            <ul class="mt-4 space-y-1">
+              {uploads.map((u) => (
+                <li class="flex items-center justify-between gap-3 rounded-lg border border-border/60 px-3 py-2">
+                  <a href={`/learning/api/file/${u.id}`} class="truncate font-mono text-xs text-text-secondary hover:text-accent">
+                    {u.filename}
+                  </a>
+                  <span class="shrink-0 font-mono text-[11px] text-text-secondary">
+                    {Math.round(u.bytes / 1024)} kB
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* ── finish ────────────────────────────────────────────────── */}
+        {entry && !entry.closed_at && (
+          <form method="post" action="/learning/api/entry" class="mt-8 rounded-2xl border border-border bg-surface p-5">
+            <input type="hidden" name="action" value="close" />
+            <input type="hidden" name="entry_id" value={entry.id} />
+            <h3 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Finishing up</h3>
+
+            <label class="mt-4 block text-sm">
+              <span class="text-text-secondary">Which problem did you like most?</span>
+              <select name="favourite_problem_id" class="tap mt-2 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm">
+                <option value="">—</option>
+                {problems.map((p) => (
+                  <option value={p.id}>
+                    {p.ref} {p.label ?? ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label class="mt-4 block text-sm">
+              <span class="text-text-secondary">Anything you want to say about tonight?</span>
+              <textarea
+                name="kid_note"
+                rows="3"
+                class="mt-2 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm"
+                placeholder="optional"
+              />
+            </label>
+
+            <button class="tap mt-4 w-full rounded-xl border border-border px-4 py-3 text-sm font-medium hover:border-accent/40 hover:text-accent">
+              Done for today
+            </button>
+          </form>
+        )}
+      </>
+    )
+  }
+
+  {/* ── the other track ─────────────────────────────────────────── */}
+  {
+    computer && tasks.length > 0 && (
+      <section class="mt-10" data-tasks>
+        <h3 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+          Computer — {computer.title}
+        </h3>
+        <p class="mt-2 text-sm text-text-secondary">
+          Tick it when you've actually done it. Your dad checks these the same way he checks the maths.
+        </p>
+        <ul class="mt-4 space-y-2">
+          {tasks.map((t) => (
+            <li class="flex items-start gap-3 rounded-xl border border-border bg-surface px-4 py-3">
+              <button
+                type="button"
+                data-task={t.id}
+                data-state={t.state ?? 'todo'}
+                class:list={[
+                  'tap mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded border text-xs',
+                  t.state === 'done'
+                    ? 'border-emerald-500/50 bg-emerald-500/15 text-emerald-400'
+                    : t.state === 'claimed'
+                      ? 'border-accent/50 bg-accent/10 text-accent'
+                      : 'border-border text-transparent',
+                ]}
+                aria-label={t.title}
+              >
+                ✓
+              </button>
+              <div class="min-w-0">
+                <div class="text-sm">{t.title}</div>
+                <div class="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-text-secondary">
+                  {t.kind}
+                  {t.evidence_kind !== 'none' && ` · needs a ${t.evidence_kind.replace('_', ' ')}`}
+                  {t.state === 'done' && ' · confirmed'}
+                  {t.state === 'claimed' && ' · waiting to be checked'}
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p class="mt-3 font-mono text-[11px] text-text-secondary" data-task-status></p>
+      </section>
+    )
+  }
+
+  {/* ── still alive ─────────────────────────────────────────────── */}
+  {
+    aliveElsewhere.length > 0 && (
+      <section class="mt-10">
+        <h3 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Still alive</h3>
+        <p class="mt-2 text-sm text-text-secondary">
+          Problems from earlier sheets you haven't cracked yet. They don't expire.
+        </p>
+        <ul class="mt-3 flex flex-wrap gap-2">
+          {aliveElsewhere.map((p) => (
+            <li class="rounded-lg border border-border px-3 py-1.5 font-mono text-xs text-text-secondary">
+              S{p.seq}·{p.ref}
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  {/* ── the only numbers he sees, and none of them can fall ─────── */}
+  <section class="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    {[
+      [totals.cracked, 'problems cracked'],
+      [totals.alone, 'with no help'],
+      [totals.evenings, 'evenings'],
+      [totals.uploads, 'things kept'],
+    ].map(([n, label]) => (
+      <div class="rounded-xl border border-border bg-surface px-4 py-4">
+        <div class="font-mono text-2xl text-accent">{n}</div>
+        <div class="mt-1 text-[11px] leading-tight text-text-secondary">{label}</div>
+      </div>
+    ))}
+  </section>
+</LearningLayout>
+
+<script>
+  /**
+   * Marking and uploading, without a framework.
+   *
+   * The upload path re-encodes through a canvas before sending. That single
+   * step fixes four separate phone problems at once: HEIC becomes JPEG, an
+   * 8 MB camera file becomes a few hundred kB, EXIF orientation is baked into
+   * the pixels, and the EXIF block — including the GPS coordinates of the
+   * house — is gone, because a canvas export has nowhere to put it.
+   */
+  const root = document.querySelector<HTMLElement>('[data-marks]');
+  const status = document.querySelector<HTMLElement>('[data-mark-status]');
+
+  root?.addEventListener('click', async (ev) => {
+    const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-mark]');
+    if (!btn) return;
+
+    const problem = btn.dataset.problem!;
+    const mark = btn.dataset.mark!;
+    const group = btn.parentElement!;
+    const wasOn = btn.hasAttribute('data-on');
+
+    for (const b of group.querySelectorAll('[data-mark]')) b.removeAttribute('data-on');
+    if (!wasOn) btn.setAttribute('data-on', '');
+
+    try {
+      const res = await fetch('/learning/api/mark', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          session_id: root.dataset.session,
+          problem_id: problem,
+          mark: wasOn ? null : mark,
+        }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      if (status) status.textContent = 'saved';
+    } catch (err) {
+      // Never fail silently: a mark that looks saved and is not is worse than
+      // one that visibly did not save.
+      for (const b of group.querySelectorAll('[data-mark]')) b.removeAttribute('data-on');
+      if (wasOn) btn.setAttribute('data-on', '');
+      if (status) status.textContent = 'could not save — try again';
+    }
+  });
+
+  document.querySelector<HTMLElement>('[data-tasks]')?.addEventListener('click', async (ev) => {
+    const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-task]');
+    if (!btn) return;
+    // He can only ever move a rung between "not done" and "I did this". The
+    // confirmed state belongs to his father and this button will not set it.
+    if (btn.dataset.state === 'done') return;
+    const next = btn.dataset.state === 'claimed' ? 'todo' : 'claimed';
+    const out = document.querySelector<HTMLElement>('[data-task-status]');
+    try {
+      const res = await fetch('/learning/api/task', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ task_id: btn.dataset.task, state: next }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      btn.dataset.state = next;
+      btn.className = btn.className.replace(
+        /border-\S+ (bg-\S+ )?text-\S+$/,
+        next === 'claimed' ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-transparent',
+      );
+      if (out) out.textContent = 'saved';
+    } catch (err) {
+      if (out) out.textContent = `could not save: ${(err as Error).message}`;
+    }
+  });
+
+  const fileInput = document.querySelector<HTMLInputElement>('[data-file]');
+  const kindSelect = document.querySelector<HTMLSelectElement>('[data-kind]');
+  const upStatus = document.querySelector<HTMLElement>('[data-upload-status]');
+
+  const MAX_EDGE = 2000;
+
+  async function shrink(file: File): Promise<Blob> {
+    if (!file.type.startsWith('image/')) return file;
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bitmap.width * scale);
+      canvas.height = Math.round(bitmap.height * scale);
+      canvas.getContext('2d')!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.85));
+      return blob ?? file;
+    } catch {
+      // Older browser, or a format canvas cannot decode. The server sniffs and
+      // strips EXIF too, so the raw file is a safe fallback.
+      return file;
+    }
+  }
+
+  fileInput?.addEventListener('change', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    if (upStatus) upStatus.textContent = 'preparing…';
+
+    const blob = await shrink(file);
+    const body = new FormData();
+    body.set('file', blob, file.name.replace(/\.(heic|heif)$/i, '.jpg'));
+    body.set('kind', kindSelect?.value ?? 'other');
+
+    if (upStatus) upStatus.textContent = `sending ${Math.round(blob.size / 1024)} kB…`;
+
+    try {
+      const res = await fetch('/learning/api/upload', { method: 'POST', body });
+      if (!res.ok) throw new Error(await res.text());
+      if (upStatus) upStatus.textContent = 'saved — reloading';
+      location.reload();
+    } catch (err) {
+      if (upStatus) upStatus.textContent = `did not send: ${(err as Error).message}`;
+    } finally {
+      fileInput.value = '';
+    }
+  });
+</script>

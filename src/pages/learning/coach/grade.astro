@@ -1,0 +1,295 @@
+---
+export const prerender = false;
+
+/**
+ * The grade queue: one evening, four taps per problem.
+ *
+ * Everything on this page is in service of keeping it under two minutes. The
+ * answers are printed inline so there is nothing to look up; his own claim sits
+ * beside each row so the disagreement is visible at the moment of judging; and
+ * the taps save individually as they are pressed, so the page can be abandoned
+ * half-done without losing anything.
+ *
+ * The self-assessment at the bottom is the only measurement in the system that
+ * is about the coach. It is there because the plan's own biggest risk is the
+ * coach talking too much, and nobody else is ever going to notice it.
+ */
+import LearningLayout from '../../../layouts/LearningLayout.astro';
+import { requireRole } from '../../../lib/learning/guard';
+import { attemptsFor, coachProblemsFor, coachVerifyQueue, uploadsFor } from '../../../lib/learning/queries';
+import { human } from '../../../lib/learning/dates';
+
+const gate = await requireRole(Astro, 'coach');
+if (!gate.ok) return gate.response;
+const { db } = gate.ctx;
+
+const queue = await coachVerifyQueue(db);
+const wanted = Astro.url.searchParams.get('entry');
+const chosen = (wanted ? queue.find((e: any) => e.id === wanted) : queue[0]) as any;
+
+let problems: any[] = [];
+let attempts: any[] = [];
+let uploads: any[] = [];
+let session: any = null;
+
+if (chosen) {
+  session = await db
+    .prepare('SELECT s.id, s.seq, s.title, s.sheet_slug FROM entry e JOIN session s ON s.id = e.session_id WHERE e.id = ?')
+    .bind(chosen.id)
+    .first();
+  [problems, attempts, uploads] = await Promise.all([
+    coachProblemsFor(db, session.id),
+    attemptsFor(db, chosen.id),
+    uploadsFor(db, chosen.id),
+  ]);
+}
+
+const byProblem = new Map(attempts.map((a) => [a.problem_id, a]));
+
+const OUTCOMES = [
+  ['solved_alone', 'Alone', 'got it with no help'],
+  ['solved_with_hint', 'Hint', 'got it after a question from you'],
+  ['stuck', 'Stuck', 'did not get it — stays alive'],
+  ['not_attempted', 'Skipped', 'ran out of time; not a signal'],
+] as const;
+
+const KID_WORDS: Record<string, string> = { got_it: 'he said: got it', tried: 'he said: tried', not_yet: 'he said: not yet' };
+---
+
+<LearningLayout
+  title="Grade"
+  role="coach"
+  subtitle={chosen ? `Sheet ${session.seq} — ${session.title} · ${human(chosen.on_date)}` : undefined}
+  wide
+>
+  {
+    !chosen ? (
+      <p class="rounded-xl border border-border bg-surface p-5 text-text-secondary">
+        Nothing waiting to be graded.
+      </p>
+    ) : (
+      <>
+        {queue.length > 1 && (
+          <nav class="mb-6 flex flex-wrap gap-2">
+            {queue.map((e: any) => (
+              <a
+                href={`/learning/coach/grade?entry=${e.id}`}
+                class:list={[
+                  'rounded-lg border px-3 py-1.5 font-mono text-[11px]',
+                  e.id === chosen.id ? 'border-accent/50 bg-accent/10 text-accent' : 'border-border text-text-secondary',
+                ]}
+              >
+                S{e.seq} · {human(e.on_date)}
+              </a>
+            ))}
+          </nav>
+        )}
+
+        {session.sheet_slug && (
+          <p class="mb-6 flex flex-wrap gap-4 font-mono text-[11px] uppercase tracking-widest">
+            <a href={`/learning/sheet/${session.sheet_slug}-COACH.pdf`} class="text-accent hover:underline">
+              coach notes ↗
+            </a>
+            <a href={`/learning/sheet/${session.sheet_slug}-STUDENT.pdf`} class="text-text-secondary hover:text-text">
+              his sheet ↗
+            </a>
+          </p>
+        )}
+
+        {uploads.length > 0 && (
+          <section class="mb-8">
+            <h2 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">What he sent</h2>
+            <div class="mt-3 flex flex-wrap gap-3">
+              {uploads.map((u) => (
+                <a href={`/learning/api/file/${u.id}`} target="_blank" rel="noreferrer" class="group">
+                  {u.mime.startsWith('image/') ? (
+                    <img
+                      src={`/learning/api/file/${u.id}`}
+                      alt={u.filename}
+                      loading="lazy"
+                      class="h-28 w-28 rounded-lg border border-border object-cover transition-opacity group-hover:opacity-80"
+                    />
+                  ) : (
+                    <span class="flex h-28 w-28 items-center justify-center rounded-lg border border-border font-mono text-[11px] text-text-secondary">
+                      {u.filename.split('.').pop()}
+                    </span>
+                  )}
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ── four taps per problem ───────────────────────────────── */}
+        <section data-grade data-entry={chosen.id}>
+          <h2 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Outcomes</h2>
+          <ul class="mt-3 space-y-3">
+            {problems.map((p) => {
+              const a = byProblem.get(p.id);
+              return (
+                <li
+                  class:list={[
+                    'rounded-xl border bg-surface p-4',
+                    a?.voided_at ? 'border-border/40 opacity-50' : 'border-border',
+                  ]}
+                >
+                  <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span class="font-mono text-sm">{p.ref}</span>
+                    {p.label && <span class="text-sm text-text-secondary">{p.label}</span>}
+                    {p.kind === 'warmup' && <span class="font-mono text-[10px] uppercase text-text-secondary">warm-up</span>}
+                    {p.kind === 'starred' && <span class="text-accent">*</span>}
+                    {a?.kind === 'retest' && (
+                      <span class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] uppercase text-accent">re-test</span>
+                    )}
+                    {a?.kind === 'carryover' && (
+                      <span class="rounded bg-border px-1.5 py-0.5 font-mono text-[10px] uppercase text-text-secondary">
+                        carry-over
+                      </span>
+                    )}
+                    {a?.kid_mark && (
+                      <span class="ml-auto font-mono text-[11px] text-text-secondary">{KID_WORDS[a.kid_mark]}</span>
+                    )}
+                  </div>
+
+                  {p.answer && <p class="mt-2 font-mono text-xs text-text-secondary">answer: {p.answer}</p>}
+                  {p.topics && <p class="mt-1 font-mono text-[10px] uppercase tracking-wider text-text-secondary">{p.topics}</p>}
+
+                  <div class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {OUTCOMES.map(([value, label, why]) => (
+                      <button
+                        type="button"
+                        title={why}
+                        data-outcome={value}
+                        data-problem={p.id}
+                        data-on={a?.outcome === value ? '' : null}
+                        class="tap rounded-lg border border-border px-2 py-2 text-xs transition-colors data-[on]:border-accent/50 data-[on]:bg-accent/10 data-[on]:text-accent"
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {a && (
+                    <div class="mt-2 flex justify-end gap-4">
+                      <button
+                        type="button"
+                        data-void={a.id}
+                        data-voided={a.voided_at ? '' : null}
+                        class="font-mono text-[10px] uppercase tracking-widest text-text-secondary hover:text-red-400"
+                      >
+                        {a.voided_at ? 'un-void' : 'void'}
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <p class="mt-3 font-mono text-[11px] text-text-secondary" data-grade-status></p>
+        </section>
+
+        {/* ── the five minutes after he leaves ────────────────────── */}
+        <form method="post" action="/learning/api/grade" class="mt-10 rounded-2xl border border-border bg-surface p-5">
+          <input type="hidden" name="action" value="verify" />
+          <input type="hidden" name="entry_id" value={chosen.id} />
+
+          <h2 class="font-display text-lg font-bold">Five minutes for you</h2>
+          <p class="mt-1 text-sm text-text-secondary">
+            The only numbers here that are about you rather than about him.
+          </p>
+
+          <div class="mt-4 space-y-2">
+            {[
+              ['took_pencil', 'I took the pencil'],
+              ['answered_fast', 'I answered too fast'],
+              ['lectured', 'I lectured'],
+            ].map(([name, label]) => (
+              <label class="tap flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm">
+                <input type="checkbox" name={name} value="1" class="h-4 w-4 accent-[#F59E0B]" />
+                {label}
+              </label>
+            ))}
+          </div>
+
+          <label class="mt-4 block text-sm">
+            <span class="text-text-secondary">How long did it run?</span>
+            <input
+              type="number"
+              name="minutes"
+              min="0"
+              max="300"
+              value={chosen.minutes ?? ''}
+              placeholder="minutes"
+              class="tap mt-2 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm"
+            />
+          </label>
+
+          <label class="mt-4 block text-sm">
+            <span class="text-text-secondary">Anything that surprised you</span>
+            <textarea name="coach_note" rows="4" class="mt-2 w-full rounded-xl border border-border bg-bg px-3 py-2 text-sm" />
+          </label>
+
+          <button class="tap mt-4 w-full rounded-xl border border-accent/30 bg-accent/10 px-4 py-3 font-medium text-accent">
+            Mark this evening graded
+          </button>
+        </form>
+      </>
+    )
+  }
+</LearningLayout>
+
+<script>
+  const root = document.querySelector<HTMLElement>('[data-grade]');
+  const status = document.querySelector<HTMLElement>('[data-grade-status]');
+  const entry = root?.dataset.entry;
+
+  async function post(body: Record<string, unknown>) {
+    const res = await fetch('/learning/api/grade', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+
+  root?.addEventListener('click', async (ev) => {
+    const target = ev.target as HTMLElement;
+
+    const outcomeBtn = target.closest<HTMLButtonElement>('[data-outcome]');
+    if (outcomeBtn) {
+      const group = outcomeBtn.parentElement!;
+      const previous = group.querySelector('[data-on]');
+      for (const b of group.querySelectorAll('[data-outcome]')) b.removeAttribute('data-on');
+      outcomeBtn.setAttribute('data-on', '');
+      if (status) status.textContent = 'saving…';
+      try {
+        await post({
+          action: 'grade',
+          entry_id: entry,
+          problem_id: outcomeBtn.dataset.problem,
+          outcome: outcomeBtn.dataset.outcome,
+        });
+        if (status) status.textContent = 'saved';
+      } catch (err) {
+        outcomeBtn.removeAttribute('data-on');
+        previous?.setAttribute('data-on', '');
+        if (status) status.textContent = `not saved: ${(err as Error).message}`;
+      }
+      return;
+    }
+
+    const voidBtn = target.closest<HTMLButtonElement>('[data-void]');
+    if (voidBtn) {
+      const voided = voidBtn.hasAttribute('data-voided');
+      const reason = voided ? '' : prompt('Why should this attempt not count?') ?? '';
+      if (!voided && !reason) return;
+      try {
+        await post({ action: voided ? 'unvoid' : 'void', attempt_id: voidBtn.dataset.void, reason });
+        location.reload();
+      } catch (err) {
+        if (status) status.textContent = `not saved: ${(err as Error).message}`;
+      }
+    }
+  });
+</script>

@@ -1,0 +1,12 @@
+# Copy to .dev.vars for local development. .dev.vars is gitignored and must
+# stay that way: it holds the live cookie signing key if you paste one in.
+#
+# Generate the two hashes with:
+#   node scripts/learning-hash.mjs 'some pass phrase'
+#
+# Use throwaway local passwords. Do not copy production values down here.
+
+LEARNING_HOST = "localhost"
+LEARNING_PW_KID = "pbkdf2$10000$REPLACE$REPLACE"
+LEARNING_PW_COACH = "pbkdf2$10000$REPLACE$REPLACE"
+LEARNING_COOKIE_KEY = "a-long-random-string-for-local-use-only"

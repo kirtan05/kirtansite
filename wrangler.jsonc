@@ -1,0 +1,55 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "kirtansite",
+  "pages_build_output_dir": "./dist",
+  "compatibility_date": "2026-09-20",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // NOTE: once this file exists, it is the source of truth for the Pages
+  // project and the dashboard's bindings/vars panel is ignored. Secrets are
+  // still managed separately, with `wrangler pages secret put`.
+
+  "vars": {
+    // /learning refuses to serve on any other hostname. This is what closes
+    // the *.pages.dev and preview-branch exposure, which no amount of
+    // robots.txt can.
+    "LEARNING_HOST": "kirtanjain.com"
+  },
+
+  // Astro's session store. Nothing in /learning uses Astro sessions, but the
+  // Cloudflare adapter wires them up by default and errors at runtime if the
+  // binding it expects is missing, so it is cheaper to provide one than to
+  // find out which code path needs it.
+  "kv_namespaces": [
+    {
+      "binding": "SESSION",
+      "id": "bd66b23481b941de8496a8215556344b"
+    }
+  ],
+
+  "d1_databases": [
+    {
+      "binding": "LEARNING_DB",
+      "database_name": "learning",
+      "database_id": "a7142589-d293-4233-aad7-d816bdfa3333"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "LEARNING_FILES",
+      "bucket_name": "learning-uploads"
+    }
+  ],
+
+  "env": {
+    // Preview deployments get NO bindings on purpose. /learning degrades to a
+    // "not available here" page rather than pointing a second, unauthenticated
+    // front door at the real database.
+    "preview": {
+      "vars": {
+        "LEARNING_HOST": "disabled"
+      }
+    }
+  }
+}

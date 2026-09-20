@@ -59,11 +59,25 @@ const nav =
           <h1 class="font-display text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
           {
             role && (
-              <form method="post" action="/learning/api/logout">
-                <button class="font-mono text-[11px] uppercase tracking-widest text-text-secondary hover:text-text">
-                  sign out
-                </button>
-              </form>
+              <div class="flex shrink-0 items-baseline gap-4">
+                {/* Which of the two of you is looking at this. The two roles
+                    see different pages and different data, and at a glance the
+                    screens are easy to confuse — so the answer is always on
+                    screen rather than inferred from the navigation. */}
+                <span
+                  class:list={[
+                    'rounded px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest',
+                    role === 'coach' ? 'bg-accent/15 text-accent' : 'bg-border text-text-secondary',
+                  ]}
+                >
+                  {role === 'coach' ? 'parent' : 'student'}
+                </span>
+                <form method="post" action="/learning/api/logout">
+                  <button class="font-mono text-[11px] uppercase tracking-widest text-text-secondary hover:text-text">
+                    sign out
+                  </button>
+                </form>
+              </div>
             )
           }
         </div>

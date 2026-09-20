@@ -17,19 +17,32 @@ there is nothing to stop someone submitting passwords in a loop. Adding a
 counter in D1 would slow a naive script and would not slow anyone else, at the
 cost of a write on every login. It has not been added.
 
-The honest mitigation is the password itself: the shared passphrases are three
-or four random words, which is far beyond what an unthrottled online guessing
-attack reaches. If that ever stops feeling sufficient, put the site behind
-Cloudflare Access — it is free for up to 50 users and it is a real answer,
-where a login counter is not.
+**The passwords are single common words**, chosen for a child to type on a
+phone without help. That is a deliberate trade and it should be written down
+rather than quietly assumed: a one-word password plus no rate limiting means an
+unthrottled dictionary attack would find it, and the only thing standing in the
+way is that nobody has any reason to point one at this URL.
+
+That is an acceptable trade for a private record of school maths. It would not
+be acceptable for anything else, and if the contents ever change character the
+answer is **Cloudflare Access**, which is free up to 50 users and is a real
+control — where a login counter in D1 would be theatre. Raising the password to
+three random words is the cheaper half-measure and takes one command:
+
+```bash
+node scripts/learning-hash.mjs 'three random words' \
+  | npx wrangler pages secret put LEARNING_PW_KID --project-name kirtansite
+```
 
 ## The threat that actually matters
 
 It is not a stranger. It is the eleven-year-old, who will at some point sit at
 a laptop where his father was last signed in, and who has every ordinary
-incentive to look at the grading.
+incentive to look at the grading. He also knows his own password, so the two
+must not be guessable from one another — `circle` and `saturday` are unrelated
+words for that reason, not by accident.
 
-Three things address it:
+Four things address it:
 
 1. **The coach cookie lasts 12 hours.** His lasts 90 days. Grading happens in
    one sitting; there is no reason for that cookie to survive the week.
@@ -41,6 +54,10 @@ Three things address it:
    back one that already has a role attached. Answers live in a separate table
    that no kid-path query references. The separation is at the query layer, not
    in the templates.
+4. **Every page says which role is looking at it**, as a badge in the header —
+   `student` or `parent`. The two sets of screens are easy to confuse at a
+   glance, and "am I still signed in as him?" is a question that should never
+   have to be answered by inspecting the navigation.
 
 ## Password storage
 

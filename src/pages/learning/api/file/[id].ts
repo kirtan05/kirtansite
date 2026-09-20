@@ -33,8 +33,7 @@ export const GET: APIRoute = async (ctx) => {
     headers: {
       'content-type': row.mime,
       'content-disposition': `inline; filename="${row.filename.replace(/"/g, '')}"`,
-      // Private, and short: a shared laptop should not keep these in its cache.
-      'cache-control': 'private, max-age=60',
+      // Cache-Control is set for every /learning response in src/middleware.ts.
       'x-content-type-options': 'nosniff',
       // A stored image is untrusted content served from our own origin.
       'content-security-policy': "default-src 'none'; img-src 'self'; object-src 'none'; sandbox",

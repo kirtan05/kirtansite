@@ -29,7 +29,7 @@ export const GET: APIRoute = async (ctx) => {
     headers: {
       'content-type': obj.httpMetadata?.contentType ?? 'application/pdf',
       'content-disposition': `inline; filename="${name}"`,
-      'cache-control': 'private, max-age=300',
+      // Cache-Control is set for every /learning response in src/middleware.ts.
       'x-content-type-options': 'nosniff',
     },
   });

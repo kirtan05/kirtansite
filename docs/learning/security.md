@@ -126,6 +126,25 @@ Coach sheets carry every answer and differ from student sheets by one word in
 the filename. They are role-gated in `sheet/[...name].ts`, and the filename is
 validated against a strict pattern so it cannot escape the `sheets/` prefix.
 
+## Caching
+
+**Nothing under `/learning` may enter a shared cache.** `src/middleware.ts`
+sets `Cache-Control: private, no-store`, `Vary: Cookie` and
+`X-Robots-Tag: noindex` on every response from every `/learning` route —
+pages, endpoints, redirects, 404s and errors alike.
+
+This was found in production rather than in review, and it is worth recording
+how. A request for `S02-COACH.pdf` made while signed in as the boy correctly
+returned 404 — and Cloudflare cached it, because `.pdf` is on its default
+cacheable-extension list and that response carried no `Cache-Control` at all.
+The coach then asked for the same URL and was served the cached denial.
+
+The harmless direction. The dangerous one is the same mechanism caching a
+*successful* response and serving it to whoever asks next, and it did not
+happen only because the success paths already set `private` — which is exactly
+the kind of protection that should not depend on remembering it once per
+response. Hence the middleware.
+
 ## Secrets
 
 | name | where |

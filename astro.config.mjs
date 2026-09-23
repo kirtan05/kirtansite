@@ -24,7 +24,7 @@ export default defineConfig({
       // /learning is private. It must never appear in the sitemap, and the
       // sitemap is generated from prerendered routes — so this filter and the
       // build-time prerender guard below are two halves of the same defence.
-      filter: (page) => !new URL(page).pathname.startsWith('/learning')
+      filter: (page) => !/^\/(learning|gree)(\/|$)/.test(new URL(page).pathname)
     }),
     learningGuard()
   ]

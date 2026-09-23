@@ -16,7 +16,8 @@
  * but is somehow in the sitemap, and a sitemap config with no filter at all.
  */
 
-const PREFIX = '/learning';
+// /gree (the GRE trainer) is private in exactly the same way.
+const PREFIXES = ['/learning', '/gree'];
 
 function pathOf(route) {
   return route.pattern ?? route.route ?? route.pathname ?? '';
@@ -37,7 +38,7 @@ function check(routes, logger) {
 
   for (const route of routes ?? []) {
     const path = pathOf(route);
-    if (!path.startsWith(PREFIX)) continue;
+    if (!PREFIXES.some((p) => path === p || path.startsWith(p + '/'))) continue;
     // Redirects and 404s have no server code to protect.
     if (route.type === 'redirect' || route.type === 'fallback') continue;
     seen++;
@@ -61,7 +62,7 @@ function check(routes, logger) {
     );
   }
 
-  logger.info(`${seen} /learning route${seen === 1 ? '' : 's'} confirmed on-demand`);
+  logger.info(`${seen} private route${seen === 1 ? '' : 's'} (/learning, /gree) confirmed on-demand`);
 }
 
 export default function learningGuard() {

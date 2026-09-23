@@ -25,7 +25,8 @@ import { defineMiddleware } from 'astro:middleware';
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const response = await next();
 
-  if (ctx.url.pathname.startsWith('/learning')) {
+  // /gree is private in the same way and gets the same treatment.
+  if (/^\/(learning|gree)(\/|$)/.test(ctx.url.pathname)) {
     response.headers.set('cache-control', 'private, no-store, max-age=0, must-revalidate');
     response.headers.set('vary', 'Cookie');
     // Belt and braces alongside the meta tag in LearningLayout: a PDF or a

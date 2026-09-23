@@ -10,3 +10,7 @@ LEARNING_HOST = "localhost"
 LEARNING_PW_KID = "pbkdf2$10000$REPLACE$REPLACE"
 LEARNING_PW_COACH = "pbkdf2$10000$REPLACE$REPLACE"
 LEARNING_COOKIE_KEY = "a-long-random-string-for-local-use-only"
+
+# /gree
+GREE_PW = "pbkdf2$10000$REPLACE$REPLACE"
+GREE_COOKIE_KEY = "another-long-random-string-for-local-use-only"

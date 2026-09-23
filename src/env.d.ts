@@ -20,6 +20,13 @@ interface Env {
 
   /** Random 32+ byte base64 string used to sign session cookies. */
   LEARNING_COOKIE_KEY?: string;
+
+  /** /gree — GRE/TOEFL English trainer. One user, one password. */
+  GREE_DB?: D1Database;
+  GREE_HOST?: string;
+  /** pbkdf2 record, same format as LEARNING_PW_* */
+  GREE_PW?: string;
+  GREE_COOKIE_KEY?: string;
 }
 
 type Runtime = import('@astrojs/cloudflare').Runtime<Env>;

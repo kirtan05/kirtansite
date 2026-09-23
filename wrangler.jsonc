@@ -13,7 +13,9 @@
     // /learning refuses to serve on any other hostname. This is what closes
     // the *.pages.dev and preview-branch exposure, which no amount of
     // robots.txt can.
-    "LEARNING_HOST": "kirtanjain.com"
+    "LEARNING_HOST": "kirtanjain.com",
+    // Same rule for /gree, the GRE/TOEFL English trainer.
+    "GREE_HOST": "kirtanjain.com"
   },
 
   // Astro's session store. Nothing in /learning uses Astro sessions, but the
@@ -32,6 +34,12 @@
       "binding": "LEARNING_DB",
       "database_name": "learning",
       "database_id": "a7142589-d293-4233-aad7-d816bdfa3333"
+    },
+    {
+      // /gree progress. Its own database so none of it mixes with /learning.
+      "binding": "GREE_DB",
+      "database_name": "gree",
+      "database_id": "701da37f-7785-435d-b395-aa3b64004865"
     }
   ],
 
@@ -48,7 +56,8 @@
     // front door at the real database.
     "preview": {
       "vars": {
-        "LEARNING_HOST": "disabled"
+        "LEARNING_HOST": "disabled",
+        "GREE_HOST": "disabled"
       }
     }
   }

@@ -27,6 +27,13 @@ interface Env {
   /** pbkdf2 record, same format as LEARNING_PW_* */
   GREE_PW?: string;
   GREE_COOKIE_KEY?: string;
+
+  /** /major — quiz revision. One password, files in R2, no database. */
+  MAJOR_FILES?: R2Bucket;
+  MAJOR_HOST?: string;
+  /** pbkdf2 record, same format as LEARNING_PW_* */
+  MAJOR_PW?: string;
+  MAJOR_COOKIE_KEY?: string;
 }
 
 type Runtime = import('@astrojs/cloudflare').Runtime<Env>;

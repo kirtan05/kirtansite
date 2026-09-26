@@ -25,9 +25,18 @@ import { defineMiddleware } from 'astro:middleware';
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const response = await next();
 
-  // /gree is private in the same way and gets the same treatment.
-  if (/^\/(learning|gree)(\/|$)/.test(ctx.url.pathname)) {
-    response.headers.set('cache-control', 'private, no-store, max-age=0, must-revalidate');
+  // /gree and /major are private in the same way and get the same treatment.
+  if (/^\/(learning|gree|major)(\/|$)/.test(ctx.url.pathname)) {
+    // One exception: a /major slide that was actually served (200) keeps its
+    // own `private, max-age` so the browser can reuse it. `private` still
+    // keeps it out of any shared cache, which is the property that matters.
+    const keepSlideCache =
+      ctx.url.pathname.startsWith('/major/slides/') &&
+      response.status === 200 &&
+      response.headers.get('cache-control')?.startsWith('private');
+    if (!keepSlideCache) {
+      response.headers.set('cache-control', 'private, no-store, max-age=0, must-revalidate');
+    }
     response.headers.set('vary', 'Cookie');
     // Belt and braces alongside the meta tag in LearningLayout: a PDF or a
     // JSON export has no <head> to put a robots meta tag in.

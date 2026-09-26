@@ -15,7 +15,9 @@
     // robots.txt can.
     "LEARNING_HOST": "kirtanjain.com",
     // Same rule for /gree, the GRE/TOEFL English trainer.
-    "GREE_HOST": "kirtanjain.com"
+    "GREE_HOST": "kirtanjain.com",
+    // And for /major, the quiz revision deck.
+    "MAJOR_HOST": "kirtanjain.com"
   },
 
   // Astro's session store. Nothing in /learning uses Astro sessions, but the
@@ -47,6 +49,12 @@
     {
       "binding": "LEARNING_FILES",
       "bucket_name": "learning-uploads"
+    },
+    {
+      // /major: slide images, data.json and playbook.md. Private bucket, no
+      // public URL; everything is served through the signed-in routes.
+      "binding": "MAJOR_FILES",
+      "bucket_name": "major-prep"
     }
   ],
 
@@ -57,7 +65,8 @@
     "preview": {
       "vars": {
         "LEARNING_HOST": "disabled",
-        "GREE_HOST": "disabled"
+        "GREE_HOST": "disabled",
+        "MAJOR_HOST": "disabled"
       }
     }
   }

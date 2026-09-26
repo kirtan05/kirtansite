@@ -1,0 +1,462 @@
+---
+export const prerender = false;
+
+/**
+ * /major — revision deck for Major Chandrakant Nair's quizzes.
+ *
+ * Signed out: the password form. Signed in: the app shell, which fetches the
+ * questions from /major/api/data, the notes from /major/api/playbook and the
+ * slide images from /major/slides/* (all R2, all behind the same cookie).
+ * Progress ("knew it" / "missed") stays on the device in localStorage.
+ */
+import '../../styles/global.css';
+import { COOKIE, cookieOptions, env as getEnv, hostAllowed, issueCookie, signedIn as isSignedIn, verifyPassword } from '../../lib/major/guard';
+
+if (!hostAllowed(Astro)) return new Response('Not found', { status: 404 });
+
+const env = getEnv(Astro);
+const secret = env.MAJOR_COOKIE_KEY;
+if (!env.MAJOR_FILES || !secret) return new Response('/major is not configured on this deployment.', { status: 503 });
+
+let signedIn = await isSignedIn(Astro);
+
+let error: string | null = null;
+if (!signedIn && Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  if (await verifyPassword(env.MAJOR_PW, String(form.get('password') ?? ''))) {
+    const { value, maxAge } = await issueCookie(secret);
+    Astro.cookies.set(COOKIE, value, cookieOptions(maxAge));
+    return Astro.redirect('/major');
+  }
+  error = 'Wrong password. Try again.';
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="referrer" content="same-origin" />
+    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/ClashDisplay-Semibold.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/Satoshi-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <title>major</title>
+  </head>
+  <body>
+    <div class="ambient-glow" aria-hidden="true"></div>
+    {
+      signedIn ? (
+        <div id="app">
+          <header class="top">
+            <span class="brand-sm">major</span>
+            <span id="stat" class="muted small"></span>
+          </header>
+          <nav class="tabs" aria-label="Sections">
+            <a href="#cards" data-tab="cards">Cards</a>
+            <a href="#list" data-tab="list">List</a>
+            <a href="#repeats" data-tab="repeats">Repeats</a>
+            <a href="#playbook" data-tab="playbook">Playbook</a>
+          </nav>
+          <div id="filters" class="filters">
+            <button type="button" id="filterToggle" class="btn filter-toggle" aria-expanded="false">Filters</button>
+            <div class="filter-body">
+              <select id="fQuiz" aria-label="Quiz"><option value="">All quizzes</option></select>
+              <select id="fRound" aria-label="Round">
+                <option value="">All rounds</option>
+                <option value="prelims">Prelims</option>
+                <option value="written">Written (theme) rounds</option>
+                <option value="cw">Clockwise / Anticlockwise</option>
+              </select>
+              <select id="fTopic" aria-label="Topic"><option value="">All topics</option></select>
+              <select id="fState" aria-label="Show">
+                <option value="">All cards</option>
+                <option value="new">Not seen yet</option>
+                <option value="miss">Missed</option>
+                <option value="rep">Repeats only</option>
+              </select>
+              <input type="search" id="fText" placeholder="Search questions and answers" aria-label="Search" />
+              <label class="check"><input type="checkbox" id="fShuffle" checked /> Shuffle</label>
+            </div>
+          </div>
+          <main id="view" tabindex="-1">
+            <p class="muted loading">Loading questions…</p>
+          </main>
+          <div id="zoom" hidden><img alt="" /></div>
+        </div>
+      ) : (
+        <main class="login">
+          <h1 class="brand">major</h1>
+          <p class="muted">Revision for Major's quizzes.</p>
+          <form method="post">
+            <input type="password" name="password" autocomplete="current-password" autofocus required placeholder="Password" aria-label="Password" />
+            <button type="submit" class="btn primary">Open</button>
+            {error && <p class="err">{error}</p>}
+          </form>
+        </main>
+      )
+    }
+
+    <style is:global>
+      :root {
+        /* the site theme (src/styles/global.css), under this page's names */
+        --paper: var(--color-bg);
+        --card: rgb(20 20 20 / 0.8);
+        --ink: var(--color-text);
+        --ink-2: var(--color-text-secondary);
+        --rule: rgb(245 158 11 / 0.12);
+        --line: rgb(255 255 255 / 0.07);
+        --hi: var(--color-accent);
+        --hi-2: var(--color-accent-hover);
+        --hi-ink: var(--color-bg);
+        --ok: #34d399;
+        --ok-bg: rgb(52 211 153 / 0.1);
+        --bad: #f87171;
+        --bad-bg: rgb(248 113 113 / 0.1);
+        --rep: var(--color-accent-hover);
+        --focus: var(--color-accent);
+        --display: var(--font-display);
+        --sans: var(--font-sans);
+        --mono: var(--font-mono);
+        --tabbar: 56px;
+        color-scheme: dark;
+      }
+      * { box-sizing: border-box; }
+      /* global.css sets overflow-x: hidden on html and body, which turns them into
+         scroll containers and silently breaks position: sticky (the tab bar and
+         the answer buttons). clip stops sideways scroll the same way without that. */
+      html, body { margin: 0; overflow-x: clip; }
+      body {
+        background: var(--paper);
+        color: var(--ink);
+        font: 16px/1.55 var(--sans);
+        -webkit-text-size-adjust: 100%;
+        -webkit-tap-highlight-color: transparent;
+      }
+      :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+      button, input, select, textarea { font: inherit; color: inherit; }
+      a { color: inherit; }
+      .muted { color: var(--ink-2); }
+      .small { font-size: 0.875rem; }
+      .err { color: var(--bad); margin: 0.5rem 0 0; }
+      [hidden] { display: none !important; }
+
+      /* ── login */
+      .login { max-width: 22rem; margin: 18vh auto 0; padding: 0 16px; }
+      .login form { display: grid; gap: 0.75rem; margin-top: 2rem; }
+      .login input { padding: 0.8rem 1rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+      .brand { font: 700 3.25rem/1 var(--display); letter-spacing: -0.02em; margin: 0; }
+
+      /* ── shell: fluid from phone to laptop */
+      #app {
+        max-width: 76rem; margin: 0 auto;
+        padding: 0 clamp(12px, 3vw, 32px) calc(var(--tabbar) + 16px + env(safe-area-inset-bottom));
+      }
+      .top { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; padding: 0.9rem 0 0.4rem; }
+      .brand-sm { font: 700 1.5rem/1 var(--display); letter-spacing: -0.02em; }
+      .tabs {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+        display: grid; grid-template-columns: repeat(4, 1fr);
+        background: rgb(10 10 10 / 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+        border-top: 1px solid var(--rule);
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .tabs a { text-decoration: none; text-align: center; padding: 0.95rem 0.25rem; font: 400 0.75rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-2); }
+      .tabs a[aria-current='page'] { color: var(--hi); box-shadow: inset 0 2px 0 var(--hi); }
+      @media (min-width: 720px) {
+        #app { padding-bottom: 4rem; }
+        .tabs {
+          position: sticky; top: 0; bottom: auto; background: rgb(10 10 10 / 0.85);
+          border-top: 0; border-bottom: 1px solid var(--rule);
+          display: flex; gap: 0.5rem; margin: 0;
+        }
+        .tabs a { padding: 0.8rem 1rem; }
+        .tabs a[aria-current='page'] { box-shadow: inset 0 -2px 0 var(--hi); }
+      }
+
+      /* filters: a toggle on narrow screens, always-open row on wide ones */
+      .filters { padding: 0.6rem 0; border-bottom: 1px solid var(--line); }
+      .filter-body { display: none; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-top: 0.6rem; }
+      .filters.open .filter-body { display: flex; }
+      .filter-body select, .filter-body input[type='search'] {
+        padding: 0.55rem 0.7rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--card);
+        min-height: 44px; flex: 1 1 11rem; min-width: 0;
+      }
+      .filter-body input[type='search'] { flex-basis: 16rem; }
+      .check { display: inline-flex; gap: 0.4rem; align-items: center; color: var(--ink-2); min-height: 44px; }
+      @media (min-width: 900px) {
+        .filters .filter-toggle { display: none; }
+        .filter-body { display: flex; margin-top: 0; }
+        .filter-body select, .filter-body input[type='search'] { flex: 0 1 auto; }
+        .filter-body input[type='search'] { flex: 1 1 14rem; }
+      }
+
+      main#view { padding-top: 1.1rem; outline: none; }
+      .loading { padding-top: 3rem; }
+      p { margin: 0.4rem 0; }
+
+      .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+        border: 1px solid var(--rule); background: var(--card); border-radius: 12px;
+        padding: 0.7rem 1.1rem; font-weight: 500; transition: border-color 0.2s, background 0.2s; cursor: pointer; text-decoration: none; min-height: 44px;
+      }
+      .btn.primary { background: var(--hi); color: var(--hi-ink); border-color: var(--hi); font-weight: 700; }
+      .btn.primary:hover { background: var(--hi-2); }
+      .btn.ok { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+      .btn.bad { border-color: var(--bad); background: var(--bad-bg); color: var(--bad); }
+
+      /* ── card */
+      .meta { display: flex; flex-wrap: wrap; gap: 0.4rem 0.6rem; align-items: center; font: 400 0.72rem/1.5 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); margin-bottom: 0.8rem; }
+      .pill { border: 1px solid var(--rule); border-radius: 99px; padding: 0.05rem 0.6rem; white-space: nowrap; }
+      .pill.rep { border-color: var(--hi); color: var(--hi); }
+      .pill.low { border-color: var(--bad); color: var(--bad); }
+      .pill.hi { background: var(--hi); color: var(--hi-ink); border-color: var(--hi); }
+      .progressline { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; margin: 0 0 1rem; }
+      .progressline i { display: block; height: 100%; background: var(--hi); transition: width 250ms; box-shadow: 0 0 12px rgb(245 158 11 / 0.6); }
+
+      .card { display: grid; gap: 1.2rem; align-items: start; }
+      @media (min-width: 1000px) {
+        .card { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: 2rem; }
+        .card .slides { position: sticky; top: 4.5rem; }
+      }
+      .q { font: 400 clamp(1.1rem, 1rem + 0.6vw, 1.35rem)/1.6 var(--sans); margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+      .ans { margin-top: 1.2rem; padding-top: 1rem; border-top: 1px dashed var(--rule); }
+      .ans .a { font: 600 clamp(1.3rem, 1.1rem + 1vw, 1.8rem)/1.3 var(--display); word-spacing: 0.12em; }
+      .ans .a { color: var(--hi); }
+      .ans .note { color: var(--ink-2); margin-top: 0.5rem; }
+
+      .slides { display: grid; gap: 0.6rem; }
+      .slides figure { margin: 0; }
+      .slides figcaption { font: 400 0.68rem var(--mono); color: var(--hi); margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.12em; }
+      .slides img {
+        display: block; width: 100%; height: auto; max-height: 72vh; min-height: 8rem; object-fit: contain;
+        background: #000; border: 1px solid var(--line); border-radius: 0.75rem; cursor: zoom-in;
+      }
+
+      .actions {
+        display: grid; grid-template-columns: auto 1fr auto; gap: 0.5rem; align-items: center;
+        position: sticky; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom)); z-index: 5;
+        background: rgb(10 10 10 / 0.9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 0.7rem 0; margin-top: 1rem; border-top: 1px solid var(--line);
+      }
+      .actions .mid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+      .actions .mid .btn.primary { grid-column: 1 / -1; }
+      @media (min-width: 720px) { .actions { bottom: 0; } }
+      .hint { font-size: 0.8rem; color: var(--ink-2); margin-top: 0.4rem; }
+      @media (hover: none) { .hint.keys { display: none; } }
+      @media (hover: hover) { .hint.swipe { display: none; } }
+
+      /* ── list + repeats */
+      .items { display: grid; gap: 0.7rem; }
+      @media (min-width: 1100px) { .items.cols { grid-template-columns: 1fr 1fr; } }
+      .item { background: var(--card); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--line); border-radius: 1rem; padding: 1rem 1.15rem; min-width: 0; transition: border-color 0.3s, box-shadow 0.3s; }
+      .item:hover { border-color: rgb(245 158 11 / 0.2); box-shadow: 0 0 30px -5px rgb(245 158 11 / 0.1); }
+      .item .q { font-size: 1.02rem; }
+      .item .a { font: 600 1.1rem/1.35 var(--display); word-spacing: 0.12em; margin-top: 0.5rem; color: var(--hi); }
+      .item .note { color: var(--ink-2); font-size: 0.92rem; margin-top: 0.25rem; }
+      details summary { cursor: pointer; color: var(--ink-2); font-size: 0.88rem; margin-top: 0.5rem; min-height: 32px; display: flex; align-items: center; }
+      details .slides { margin-top: 0.4rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr)); }
+      .grp { margin: 0 0 1.8rem; }
+      .grp h3 { font: 600 1.2rem/1.3 var(--display); word-spacing: 0.1em; margin: 0 0 0.2rem; }
+      .grp .why { color: var(--ink-2); font-size: 0.92rem; margin-bottom: 0.6rem; }
+      .grp.same h3::before { content: 'Repeated question'; display: inline-block; font: 400 0.68rem var(--mono); text-transform: uppercase; letter-spacing: 0.1em; background: var(--hi); color: var(--hi-ink); border-radius: 6px; padding: 0.15rem 0.45rem; margin-right: 0.5rem; vertical-align: 0.2em; }
+      .lead { color: var(--ink-2); max-width: 46rem; }
+
+      /* ── playbook */
+      .pb { max-width: 46rem; margin: 0 auto; font-size: 1.02rem; }
+      .pb h1 { font: 700 clamp(1.7rem, 1.3rem + 2vw, 2.4rem)/1.15 var(--display); word-spacing: 0.1em; margin: 0.4rem 0 0.8rem; }
+      .pb h2 { font: 600 1.5rem/1.25 var(--display); word-spacing: 0.1em; margin: 2.4rem 0 0.6rem; color: var(--hi); }
+      .pb h3 { font: 600 1.08rem/1.3 var(--sans); margin: 1.5rem 0 0.4rem; }
+      .pb hr { border: 0; border-top: 1px solid var(--line); margin: 2rem 0; }
+      .pb li { margin: 0.3rem 0; }
+      .pb strong { font-weight: 600; }
+      .pb code { background: var(--card); padding: 0.05rem 0.3rem; border-radius: 4px; }
+      .pb .tablewrap { overflow-x: auto; }
+      .pb table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+      .pb th, .pb td { border-bottom: 1px solid var(--line); padding: 0.5rem 0.6rem; text-align: left; vertical-align: top; }
+
+      .empty { color: var(--ink-2); text-align: center; padding: 3rem 1rem; }
+
+      #zoom { position: fixed; inset: 0; z-index: 30; background: rgb(0 0 0 / 0.94); display: flex; align-items: center; justify-content: center; cursor: zoom-out; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+      #zoom img { max-width: 100vw; max-height: 100dvh; object-fit: contain; }
+    </style>
+
+    {signedIn && (
+      <>
+        <script is:inline src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+        <script is:inline>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+  const slide = (p) => (p ? '/major/' + p : null);
+
+  let DATA = [], pool = [], idx = 0, shown = false, view = 'cards', PB = null;
+  let prog = {};
+  try { prog = JSON.parse(localStorage.getItem('majorProg') || '{}'); } catch {}
+  const save = () => { try { localStorage.setItem('majorProg', JSON.stringify(prog)); } catch {} };
+
+  const roundKind = (q) => {
+    const r = (q.round || '').toLowerCase();
+    if (r.includes('prelim')) return 'prelims';
+    if (r.includes('written')) return 'written';
+    if (r.includes('clockwise')) return 'cw';
+    return !r && q.n <= 20 ? 'prelims' : '';
+  };
+
+  function figs(list) {
+    return list.filter((x) => x.src).map((x) =>
+      `<figure>${x.cap ? `<figcaption>${esc(x.cap)}</figcaption>` : ''}<img loading="lazy" decoding="async" src="${esc(slide(x.src))}" alt="${esc(x.cap || 'slide')}"></figure>`).join('');
+  }
+  function meta(q) {
+    return `<div class="meta"><span>${esc(q.quiz)}${q.round ? ' · ' + esc(q.round) : ''} · Q${q.n ?? '?'}</span>
+      <span class="pill">${esc(q.topic)}</span>
+      ${q.rep ? `<span class="pill rep">${q.reptier === 'same' ? 'Repeated question' : 'Recurring subject'} · ${q.repn} quizzes</span>` : ''}
+      ${q.conf === 'low' ? `<span class="pill low">Answer unsure, check slide</span>` : ''}
+      ${prog[q.key] ? `<span class="pill">${prog[q.key] === 'ok' ? 'Knew it' : 'Missed'}</span>` : ''}</div>`;
+  }
+
+  function filtered() {
+    const qz = $('#fQuiz').value, rd = $('#fRound').value, tp = $('#fTopic').value, st = $('#fState').value;
+    const tx = $('#fText').value.toLowerCase().trim();
+    return DATA.filter((q) => (!qz || q.deck === qz) && (!rd || roundKind(q) === rd) && (!tp || q.topic === tp)
+      && (!st || (st === 'new' && !prog[q.key]) || (st === 'miss' && prog[q.key] === 'bad') || (st === 'rep' && q.rep))
+      && (!tx || (q.question + ' ' + q.answer + ' ' + q.note).toLowerCase().includes(tx)));
+  }
+  function rebuild() {
+    pool = filtered();
+    if ($('#fShuffle').checked) for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    idx = 0; shown = false; render();
+  }
+  function stat() {
+    const vals = Object.values(prog);
+    $('#stat').textContent = `${pool.length} shown · seen ${vals.length}/${DATA.length} · knew ${vals.filter((v) => v === 'ok').length}`;
+  }
+
+  function renderCards() {
+    if (!pool.length) return `<p class="empty">Nothing matches these filters.</p>`;
+    const q = pool[idx];
+    const pct = ((idx + 1) / pool.length) * 100;
+    const qSlides = [{ src: q.qimg, cap: 'Question' }, ...q.ximg.map((s) => ({ src: s, cap: '' }))];
+    return `<div class="progressline"><i style="width:${pct}%"></i></div>
+      ${meta(q)}
+      <div class="card" id="card">
+        <div>
+          <p class="q">${esc(q.question)}</p>
+          ${shown ? `<div class="ans"><div class="a"><span class="mark">${esc(q.answer)}</span></div>${q.note ? `<p class="note">${esc(q.note)}</p>` : ''}</div>` : ''}
+        </div>
+        <div class="slides">${figs(shown ? [...qSlides, { src: q.aimg, cap: 'Answer' }] : qSlides)}</div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-act="prev" aria-label="Previous">←</button>
+        <div class="mid">${shown
+          ? `<button class="btn ok" data-act="ok">Knew it</button><button class="btn bad" data-act="bad">Missed</button>`
+          : `<button class="btn primary" data-act="reveal">Show answer</button>`}</div>
+        <button class="btn" data-act="next" aria-label="Next">→</button>
+      </div>
+      <p class="hint keys">${idx + 1} / ${pool.length} · Space reveals · J knew · F missed · ← → move · click a slide to zoom</p>
+      <p class="hint swipe">${idx + 1} / ${pool.length} · swipe to move · tap a slide to zoom</p>`;
+  }
+  function itemHTML(q) {
+    return `<div class="item">${meta(q)}<p class="q">${esc(q.question)}</p>
+      <div class="a">${esc(q.answer)}</div>${q.note ? `<p class="note">${esc(q.note)}</p>` : ''}
+      <details><summary>Slides</summary><div class="slides">${figs([{ src: q.qimg, cap: 'Question' }, ...q.ximg.map((s) => ({ src: s })), { src: q.aimg, cap: 'Answer' }])}</div></details></div>`;
+  }
+  function renderList() {
+    if (!pool.length) return `<p class="empty">Nothing matches these filters.</p>`;
+    const cap = 300;
+    return `<div class="items cols">${pool.slice(0, cap).map(itemHTML).join('')}</div>` +
+      (pool.length > cap ? `<p class="empty">Showing ${cap} of ${pool.length}. Narrow it with a filter or search.</p>` : '');
+  }
+  function renderRepeats() {
+    const g = {};
+    pool.filter((q) => q.rep).forEach((q) => (g[q.rep] ||= []).push(q));
+    const gs = Object.values(g).sort((a, b) => (a[0].reptier === 'same' ? 0 : 1) - (b[0].reptier === 'same' ? 0 : 1) || b[0].repn - a[0].repn);
+    if (!gs.length) return `<p class="empty">No cross-quiz repeats in this view.</p>`;
+    return `<p class="lead">${gs.length} subjects Major came back to in more than one quiz. The first ones are the same fact asked again; the rest are his recurring favourites.</p>` +
+      gs.map((qs) => `<section class="grp ${qs[0].reptier === 'same' ? 'same' : ''}"><h3>${esc(qs[0].replabel)} · ${qs[0].repn} quizzes</h3>
+        ${qs[0].repwhy ? `<p class="why">${esc(qs[0].repwhy)}</p>` : ''}<div class="items">${qs.map(itemHTML).join('')}</div></section>`).join('');
+  }
+  function renderPlaybook() {
+    if (PB === null) {
+      fetch('/major/api/playbook').then((r) => (r.ok ? r.text() : '')).then((t) => { PB = t; if (view === 'playbook') render(); });
+      return `<p class="muted loading">Loading…</p>`;
+    }
+    if (!PB) return `<p class="empty">Couldn't load the playbook.</p>`;
+    const html = window.marked ? marked.parse(PB) : `<pre>${esc(PB)}</pre>`;
+    return `<article class="pb">${html.replace(/<table>/g, '<div class="tablewrap"><table>').replace(/<\/table>/g, '</table></div>')}</article>`;
+  }
+
+  function render() {
+    stat();
+    $('#filters').hidden = view === 'playbook';
+    $('#view').innerHTML = view === 'cards' ? renderCards() : view === 'list' ? renderList() : view === 'repeats' ? renderRepeats() : renderPlaybook();
+    document.querySelectorAll('.tabs a').forEach((a) => (a.dataset.tab === view ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current')));
+  }
+  const reveal = () => { shown = true; render(); };
+  const go = (d) => { if (!pool.length) return; idx = (idx + d + pool.length) % pool.length; shown = false; render(); window.scrollTo({ top: 0 }); };
+  const mark = (v) => { if (!pool.length) return; prog[pool[idx].key] = v; save(); go(1); };
+
+  function setView(v) {
+    view = ['cards', 'list', 'repeats', 'playbook'].includes(v) ? v : 'cards';
+    render(); window.scrollTo({ top: 0 });
+  }
+  window.addEventListener('hashchange', () => setView(location.hash.slice(1)));
+
+  document.addEventListener('click', (e) => {
+    const act = e.target.closest('[data-act]')?.dataset.act;
+    if (act === 'reveal') reveal();
+    else if (act === 'next') go(1);
+    else if (act === 'prev') go(-1);
+    else if (act === 'ok' || act === 'bad') mark(act);
+    else if (e.target.matches('.slides img')) { $('#zoom img').src = e.target.src; $('#zoom').hidden = false; }
+    else if (e.target.closest('#zoom')) $('#zoom').hidden = true;
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { $('#zoom').hidden = true; return; }
+    if (view !== 'cards' || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
+    if (e.key === ' ') { e.preventDefault(); shown ? go(1) : reveal(); }
+    else if (e.key === 'ArrowRight') go(1);
+    else if (e.key === 'ArrowLeft') go(-1);
+    else if (shown && (e.key === 'j' || e.key === 'J')) mark('ok');
+    else if (shown && (e.key === 'f' || e.key === 'F')) mark('bad');
+  });
+
+  // swipe between cards on touch screens
+  let tx0 = null, ty0 = null;
+  document.addEventListener('touchstart', (e) => {
+    if (view !== 'cards' || !e.target.closest('#card')) { tx0 = null; return; }
+    tx0 = e.touches[0].clientX; ty0 = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', (e) => {
+    if (tx0 === null) return;
+    const dx = e.changedTouches[0].clientX - tx0, dy = e.changedTouches[0].clientY - ty0;
+    tx0 = null;
+    if (Math.abs(dx) > 70 && Math.abs(dx) > 1.5 * Math.abs(dy)) go(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  $('#filterToggle').addEventListener('click', () => {
+    const f = $('#filters'); f.classList.toggle('open');
+    $('#filterToggle').setAttribute('aria-expanded', f.classList.contains('open'));
+  });
+  ['#fQuiz', '#fRound', '#fTopic', '#fState', '#fShuffle'].forEach((s) => $(s).addEventListener('change', rebuild));
+  let t; $('#fText').addEventListener('input', () => { clearTimeout(t); t = setTimeout(rebuild, 200); });
+
+  fetch('/major/api/data').then((r) => {
+    if (r.status === 401) { location.reload(); throw new Error('signed out'); }
+    return r.json();
+  }).then((d) => {
+    DATA = d;
+    const quizzes = [...new Map(d.map((q) => [q.deck, q.quiz])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+    $('#fQuiz').insertAdjacentHTML('beforeend', quizzes.map(([k, v]) => `<option value="${esc(k)}">${esc(v)}</option>`).join(''));
+    $('#fTopic').insertAdjacentHTML('beforeend', [...new Set(d.map((q) => q.topic))].sort().map((x) => `<option>${esc(x)}</option>`).join(''));
+    view = ['cards', 'list', 'repeats', 'playbook'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'cards';
+    rebuild();
+  }).catch((err) => { if (err.message !== 'signed out') $('#view').innerHTML = `<p class="empty">Couldn't load questions.</p>`; });
+})();
+        </script>
+      </>
+    )}
+  </body>
+</html>

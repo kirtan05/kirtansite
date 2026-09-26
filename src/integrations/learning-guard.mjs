@@ -17,7 +17,7 @@
  */
 
 // /gree (the GRE trainer) is private in exactly the same way.
-const PREFIXES = ['/learning', '/gree'];
+const PREFIXES = ['/learning', '/gree', '/major'];
 
 function pathOf(route) {
   return route.pattern ?? route.route ?? route.pathname ?? '';
@@ -62,7 +62,7 @@ function check(routes, logger) {
     );
   }
 
-  logger.info(`${seen} private route${seen === 1 ? '' : 's'} (/learning, /gree) confirmed on-demand`);
+  logger.info(`${seen} private route${seen === 1 ? '' : 's'} (/learning, /gree, /major) confirmed on-demand`);
 }
 
 export default function learningGuard() {

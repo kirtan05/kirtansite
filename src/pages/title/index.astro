@@ -1,0 +1,204 @@
+---
+/**
+ * /title: the pitch page for Title File, a records-and-drafting service for
+ * advocates preparing bank title reports in Kheda and Anand.
+ * Spec: docs/superpowers/specs/2026-10-01-title-pitch-page-design.md
+ *
+ * Static, no client JS. Every Gujarati run sits under lang="gu" so it gets the
+ * Gujarati face; scripts/check-title.mjs enforces that after each build. The
+ * sample excerpt comes from src/data/title-sample.json, which
+ * scripts/title-sample/build.py writes.
+ */
+import '../../styles/title.css';
+import sample from '../../data/title-sample.json';
+
+export const prerender = true;
+
+const SITE = 'https://kirtanjain.com';
+const PHONE = '+916360357636';
+const PHONE_SHOWN = '63603 57636';
+const EMAIL = 'kirtanjain0504@gmail.com';
+const template = [
+  'District:', 'Taluka:', 'Village:', 'Survey / block no.:',
+  'Bank format (Bank of Baroda / SBI / Canara / housing finance / other):',
+  'Your name:', 'Mobile:',
+].join('\r\n') + '\r\n';
+const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent('Title file request')}&body=${encodeURIComponent(template)}`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Title File: 30-year revenue file for a survey number</title>
+    <meta name="description" content="For advocates preparing bank title reports in Kheda and Anand. Give a survey number today; get the 30-year revenue file and a draft chain of title by tomorrow evening. ₹199 per survey number, first 3 free." />
+    <link rel="canonical" href={`${SITE}/title/`} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={`${SITE}/title/`} />
+    <meta property="og:title" content="Title File: 30-year revenue file for a survey number, ₹199" />
+    <meta property="og:description" content="આજે સરવે નંબર આપો. આવતીકાલ સાંજ સુધીમાં ૩૦ વર્ષની રેવન્યુ ફાઇલ અને ટાઇટલ ચેઇનનો ડ્રાફ્ટ." />
+    <meta property="og:image" content={`${SITE}/title/og.png`} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#FBFCFB" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#151B1E" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href="/fonts/title/space-grotesk.woff2" as="font" type="font/woff2" crossorigin />
+  </head>
+  <body>
+    <header class="mast">
+      <div class="wrap">
+        <span class="brand">Title File<span lang="gu">ટાઇટલ ફાઇલ</span></span>
+        <p class="for">For advocates preparing bank title reports in Kheda and Anand</p>
+      </div>
+    </header>
+
+    <main>
+      <section>
+        <div class="wrap">
+          <h1>Give a survey number today. Get the 30-year revenue file and a draft chain of title by tomorrow evening.</h1>
+          <p class="lead-gu" lang="gu">આજે સરવે નંબર આપો. આવતીકાલ સાંજ સુધીમાં ૩૦ વર્ષની રેવન્યુ ફાઇલ અને ટાઇટલ ચેઇનનો ડ્રાફ્ટ મેળવો.</p>
+          <p class="when">Requests in by 8 pm are delivered by 8 pm the next day.</p>
+          <div class="cta">
+            <a class="btn primary" href={`tel:${PHONE}`}>Call <span class="num">{PHONE_SHOWN}</span></a>
+            <a class="btn secondary" href={mailto}>Email a request</a>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">For each survey number</p>
+          <h2>What you get</h2><span class="sub" lang="gu">શું મળશે</span>
+          <div class="tiles">
+            <div class="tile">
+              <h3>Revenue file</h3>
+              <p class="kind">One indexed PDF</p>
+              <ul>
+                <li>Current 7/12 and 8-A</li>
+                <li>Every Village Form 6 entry, typed and handwritten, with number, date, type and status</li>
+                <li>Old 7/12 scans back to the earliest year on record</li>
+                <li>135-D notices and revenue court cases</li>
+                <li>Registered transactions from 2007 onward</li>
+              </ul>
+            </div>
+            <div class="tile">
+              <h3>English draft</h3>
+              <p class="kind">Word file for your letterhead</p>
+              <ul>
+                <li>The record-based items of your bank's format, filled in</li>
+                <li>Chain of title written entry by entry: "Effect is shown in revenue records by Entry No. … dated …, certified on …"</li>
+                <li>Description, area, tenure and co-owners from the current record</li>
+              </ul>
+            </div>
+            <div class="tile">
+              <h3>Points to check</h3>
+              <p class="kind">One page</p>
+              <ul>
+                <li>New or restricted tenure</li>
+                <li>Charges (<span lang="gu">બોજો</span>) with no recorded release</li>
+                <li>Pending or rejected entries, open 135-D notices</li>
+                <li>Revenue cases and tenant entries</li>
+                <li>Heirs who do not appear in the record</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <p class="eyebrow">Sample</p>
+          <h2>A real file</h2><span class="sub" lang="gu">નમૂનો</span>
+          <p>Real record. Names, village and survey number changed.</p>
+          <div class="card">
+            <div class="card-head">
+              <span>Survey <span lang="gu">{sample.survey}</span>, <span lang="gu">{sample.village}</span>, Ta. <span lang="gu">{sample.taluka}</span></span>
+              <span>Records as of <span class="num">{sample.as_of}</span></span>
+            </div>
+            <div class="card-block">
+              <p class="eyebrow">Item 15 · Tracing of chain of title</p>
+              <p class="quote">{sample.chain_excerpt}</p>
+            </div>
+            <table class="entries">
+              <thead><tr><th>Entry</th><th>Date</th><th>Type</th><th>What it records</th></tr></thead>
+              <tbody>
+                {sample.rows.map((r) => (
+                  <tr>
+                    <td class="num">{r.number}</td>
+                    <td class="num">{r.date}</td>
+                    <td><span lang="gu">{r.type}</span> · <span class={r.status_en === 'Rejected' ? 'rejected' : ''}>{r.status_en}</span></td>
+                    <td>{r.summary}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <div class="card-block">
+              <p class="eyebrow">Points to check</p>
+              <ul class="points">
+                {sample.points.map((p) => <li><b>{p.title}</b>{p.detail}</li>)}
+              </ul>
+            </div>
+            <div class="card-block files">
+              <a href="/title/title-file-sample.pdf">Full sample (PDF, {sample.pdf_pages} pages)</a>
+              <a href="/title/title-file-sample-draft.docx">Word draft (.docx)</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <h2>In your bank's format</h2><span class="sub" lang="gu">તમારી બેંકના ફોર્મેટમાં</span>
+          <dl class="formats">
+            <dt>Bank of Baroda: Title Opinion Report</dt>
+            <dd>Items 1, 2, 5–9, 14 and 15 come filled in.</dd>
+            <dt>SBI: Report of Investigation of Title</dt>
+            <dd>Property description, documents scrutinised, chain of title, revenue records and mutation.</dd>
+            <dt>Canara Bank: Legal Scrutiny Report</dt>
+            <dd>Description, tracing of title for 13 or 30 years, and the UPIN.</dd>
+            <dt>Housing finance lenders</dt>
+            <dd>Property details and devolution of title for the 13-year search.</dd>
+          </dl>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <h2>What stays with you</h2><span class="sub" lang="gu">તમારી પાસે રહેશે</span>
+          <ul class="stays">
+            <li>The sub-registrar search for years before 2007</li>
+            <li>Checking the original documents</li>
+            <li>The opinion, the certificate and your signature</li>
+          </ul>
+          <div class="promise">
+            <p>I never contact the bank or the borrower. The file comes only to you.</p>
+            <p lang="gu">હું બેંક કે લોન લેનારનો સંપર્ક કરતો નથી. ફાઇલ ફક્ત તમને જ મળે છે.</p>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <h2>Price</h2><span class="sub" lang="gu">કિંમત</span>
+          <p class="price">₹199 <span class="for">per survey number</span></p>
+          <p class="price-note">First 3 survey numbers free. Then ₹199 per survey number, paid by UPI after you get the file.</p>
+          <p class="price-note" lang="gu">પહેલા ૩ સરવે નંબર મફત. પછી દરેક સરવે નંબરના ₹૧૯૯, ફાઇલ મળ્યા પછી UPI થી.</p>
+          <div class="cta">
+            <a class="btn primary" href={`tel:${PHONE}`}>Call <span class="num">{PHONE_SHOWN}</span></a>
+            <a class="btn secondary" href={mailto}>Email a request</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <p>Kirtan Jain · <a href={`tel:${PHONE}`}>{PHONE_SHOWN}</a> · <a href={`mailto:${EMAIL}`}>{EMAIL}</a></p>
+        <p>Copies are taken from Government of Gujarat online land records. This is a records and drafting service, not legal advice.</p>
+      </div>
+    </footer>
+  </body>
+</html>

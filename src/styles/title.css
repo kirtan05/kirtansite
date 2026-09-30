@@ -1,0 +1,100 @@
+/* /title. "Cadastre" tokens from the land app's design notes.
+   Contrast: ochre text is used only on --surface (4.9:1). On --bg it falls to 4.2:1,
+   so there the accent is limited to borders and fills. --ink3 is never used for text. */
+@font-face { font-family: 'Space Grotesk'; src: url('/fonts/title/space-grotesk.woff2') format('woff2'); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('/fonts/title/ibm-plex-mono-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'IBM Plex Mono'; src: url('/fonts/title/ibm-plex-mono-500.woff2') format('woff2'); font-weight: 500; font-display: swap; }
+@font-face { font-family: 'Noto Sans Gujarati'; src: url('/fonts/title/noto-sans-gujarati-400.woff2') format('woff2'); font-weight: 400; font-display: swap; }
+@font-face { font-family: 'Noto Sans Gujarati'; src: url('/fonts/title/noto-sans-gujarati-600.woff2') format('woff2'); font-weight: 600 700; font-display: swap; }
+
+:root {
+  --bg: #E9EEEC; --surface: #FBFCFB; --surface-alt: #DFE6E4;
+  --ink: #0F1614; --ink2: #4B5754; --ink3: #7C8785;
+  --line: #C9D3D0; --hair: #DCE3E1;
+  --accent: #B4531B; --accent-soft: #F7E7DA; --on-accent: #FFF9F4;
+  --sans: 'Space Grotesk', 'Noto Sans Gujarati', system-ui, sans-serif;
+  --gu: 'Noto Sans Gujarati', 'Space Grotesk', sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --serif: Georgia, 'Times New Roman', serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0D1214; --surface: #151B1E; --surface-alt: #1E2629;
+    --ink: #E9EEEE; --ink2: #A2AFB0; --ink3: #6F7C7E;
+    --line: #283336; --hair: #212A2D;
+    --accent: #E58A55; --accent-soft: #2A1C13; --on-accent: #150D07;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 17px/1.55 var(--sans); }
+:lang(gu) { font-family: var(--gu); line-height: 1.7; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.num { font-family: var(--mono); font-weight: 500; }
+
+.mast { background: var(--surface); border-bottom: 1px solid var(--line); }
+.mast .wrap { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 16px; padding-top: 14px; padding-bottom: 14px; }
+.brand { font-weight: 700; letter-spacing: -0.01em; }
+.brand [lang=gu] { font-weight: 600; color: var(--ink2); margin-left: 6px; }
+.for { font-size: 14px; color: var(--ink2); margin: 0; }
+
+section { padding: 36px 0; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 500 12px/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink2); margin: 0 0 12px; }
+h1 { font-size: clamp(28px, 7.4vw, 42px); line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 14px; }
+.lead-gu { font-size: 19px; margin: 0 0 10px; }
+.when { color: var(--ink2); margin: 0 0 22px; font-size: 15px; }
+h2 { font-size: 23px; line-height: 1.25; margin: 0; }
+h2 + .sub { display: block; color: var(--ink2); font-weight: 600; margin: 2px 0 0; }
+
+.cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 10px;
+       font-weight: 600; text-decoration: none; border: 1px solid var(--accent); }
+.btn.primary { background: var(--accent); color: var(--on-accent); }
+.btn.secondary { background: var(--surface); color: var(--accent); }
+
+.tiles { display: grid; gap: 14px; margin-top: 18px; }
+@media (min-width: 720px) { .tiles { grid-template-columns: repeat(3, 1fr); } }
+.tile { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px; }
+.tile::after { content: ''; position: absolute; inset: 5px; border: 1px dashed var(--hair); border-radius: 8px; pointer-events: none; }
+.tile h3 { margin: 0; font-size: 17px; }
+.tile .kind { font: 400 13px/1.4 var(--mono); color: var(--ink2); margin: 2px 0 10px; }
+.tile ul { margin: 0; padding-left: 18px; font-size: 15px; }
+.tile li + li { margin-top: 6px; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; overflow: hidden; }
+.card-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 12px; padding: 12px 16px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--ink2); }
+.card-block { padding: 16px; border-bottom: 1px solid var(--line); }
+.card-block:last-child { border-bottom: 0; }
+.quote { font: 16px/1.65 var(--serif); margin: 8px 0 0; }
+table.entries { width: 100%; border-collapse: collapse; font-size: 14px; }
+.entries th, .entries td { text-align: left; vertical-align: top; padding: 10px 16px; border-bottom: 1px solid var(--hair); }
+.entries th { font: 500 12px/1.2 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink2); }
+.entries .rejected { color: var(--accent); font-weight: 600; }
+@media (max-width: 560px) {
+  .entries thead { display: none; }
+  .entries tr { display: block; padding: 10px 16px; border-bottom: 1px solid var(--hair); }
+  .entries td { display: block; padding: 1px 0; border: 0; }
+}
+.points { margin: 0; padding: 0; list-style: none; }
+.points li + li { margin-top: 12px; }
+.points b { display: block; }
+.files { display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.files a { color: var(--accent); font-weight: 600; }
+
+.formats { margin: 16px 0 0; }
+.formats dt { font-weight: 700; margin-top: 14px; }
+.formats dd { margin: 2px 0 0; color: var(--ink2); }
+.stays { margin: 14px 0 0; padding-left: 20px; }
+.stays li + li { margin-top: 6px; }
+.promise { margin: 16px 0 0; padding: 14px 16px; border-left: 3px solid var(--accent); background: var(--surface); }
+.promise p { margin: 0; }
+.price { font: 500 30px/1.2 var(--mono); margin: 12px 0 6px; }
+.price-note { margin: 0 0 22px; color: var(--ink2); }
+
+footer { padding: 28px 0 40px; font-size: 14px; color: var(--ink2); }
+footer p { margin: 0 0 6px; }
+footer a { text-decoration: none; }

@@ -136,7 +136,8 @@ has:
    - summary and points to check;
    - English draft laid out as Bank of Baroda items 1, 2, 5–9, 14 and 15;
    - annexures:
-     - the 7/12, re-rendered from the stored HTML with the names substituted;
+     - the current record (7/12 fields, holders, charges) as a plain extract table, not a copy
+       of the government page's layout;
      - an entries table with a one-line English summary of each entry;
      - the full text of each typed entry (Gujarati, names changed);
      - blurred old scans;

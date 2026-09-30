@@ -29,3 +29,8 @@ pnpm-debug.log*
 .idea/
 # cloudflare
 .wrangler/
+
+# /title sample builder: the name map pairs real people with a real record (public repo)
+scripts/title-sample/names.private.json
+scripts/title-sample/build/
+scripts/title-sample/**/__pycache__/

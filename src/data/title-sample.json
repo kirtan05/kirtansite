@@ -1,0 +1,69 @@
+{
+ "survey": "૪૧૨/ પૈકી ૧",
+ "village": "નમૂના ગામ",
+ "taluka": "ઉમરેઠ",
+ "district": "આણંદ",
+ "as_of": "03/03/2026",
+ "pdf_pages": 12,
+ "chain_excerpt": "Effect was sought by Entry No. 11385 dated 01/03/2022; it was rejected by the Deputy Collector's order of 23/05/2022. On revision, the Collector's order dated 17/02/2025 set that order aside, and effect is shown in revenue records by Entry No. 13191 dated 21/03/2025, certified on 07/04/2025.",
+ "rows": [
+  {
+   "number": "5191",
+   "date": "28/05/2010",
+   "type": "બોજો દાખલ",
+   "status": "પ્રમાણિત",
+   "status_en": "Certified",
+   "summary": "Bank of Baroda, Amul Dairy Road, charge of Rs. 17,00,000 against Hasmukhbhai Govindbhai Patel and others. Certified 27/12/2010."
+  },
+  {
+   "number": "7548",
+   "date": "31/10/2015",
+   "type": "બોજા મુક્તિ",
+   "status": "પ્રમાણિત",
+   "status_en": "Certified",
+   "summary": "Release of the Bank of Baroda charge of Entry 5191, on the holders' application and the bank's certificate of 20/10/2015. Certified 19/01/2016."
+  },
+  {
+   "number": "11385",
+   "date": "01/03/2022",
+   "type": "વેચાણ",
+   "status": "નામંજૂર",
+   "status_en": "Rejected",
+   "summary": "Sale by Nikunjbhai Yogeshbhai Patel to Sumitkumar Ramanbhai Patel and Hiteshkumar Kanubhai Patel under a registered document of 24/02/2022, Rs. 7,53,900. Rejected on the Deputy Collector's order of 23/05/2022."
+  },
+  {
+   "number": "13138",
+   "date": "29/01/2025",
+   "type": "હયાતીમા હક દાખલ",
+   "status": "પ્રમાણિત",
+   "status_en": "Certified",
+   "summary": "Four family members of the holder of khata 603 (his wife, a daughter and two sons) are entered as heirs during his lifetime. Certified 15/03/2025."
+  },
+  {
+   "number": "13191",
+   "date": "21/03/2025",
+   "type": "હુકમથી",
+   "status": "પ્રમાણિત",
+   "status_en": "Certified",
+   "summary": "Collector's revision order of 17/02/2025 sets aside the Deputy Collector's rejection and certifies Entry 11385. The result of any pending civil suit binds all parties. Certified 07/04/2025."
+  },
+  {
+   "number": "13439",
+   "date": "24/11/2025",
+   "type": "હક કમી",
+   "status": "પ્રમાણિત",
+   "status_en": "Certified",
+   "summary": "Relinquishment: Sumitkumar Ramanbhai Patel gives up an undivided share of 0-34-90 H-A-Sq.m in favour of Hiteshkumar Kanubhai Patel, by registered document of 18/11/2025. Certified 31/12/2025."
+  }
+ ],
+ "points": [
+  {
+   "title": "Sale rejected in 2022, certified by the Collector in 2025",
+   "detail": "Entry 11385 (sale of 01/03/2022) still shows Rejected in the register. Entry 13191 says the Collector set the rejection aside and certified it, subject to the result of any pending civil suit. Ask for the Collector's order and check for a suit."
+  },
+  {
+   "title": "Older charges with no recorded release",
+   "detail": "Nine handwritten entries (894 to 3674) stand in the charges column of the 7/12. Only Entry 2536 is shown released, by Entry 5164. Read the scans for the bank, the amount and any release."
+  }
+ ]
+}

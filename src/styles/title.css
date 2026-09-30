@@ -51,7 +51,7 @@ h2 { font-size: 23px; line-height: 1.25; margin: 0; }
 h2 + .sub { display: block; color: var(--ink2); font-weight: 600; margin: 2px 0 0; }
 
 .cta { display: flex; flex-wrap: wrap; gap: 10px; }
-.btn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 10px;
+.btn { display: inline-flex; align-items: center; gap: 6px; justify-content: center; min-height: 48px; padding: 0 20px; border-radius: 10px;
        font-weight: 600; text-decoration: none; border: 1px solid var(--accent); }
 .btn.primary { background: var(--accent); color: var(--on-accent); }
 .btn.secondary { background: var(--surface); color: var(--accent); }

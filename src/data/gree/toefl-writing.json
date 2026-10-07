@@ -1,0 +1,1212 @@
+[
+ {
+  "id": "bas-001",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Why are you carrying so many books?",
+  "chunks": [
+   "I",
+   "have to return",
+   "them",
+   "to the library."
+  ],
+  "answer": "I have to return them to the library.",
+  "explain": "Infinitive after modal-like verb; object pronoun placement."
+ },
+ {
+  "id": "bas-002",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Where did you find your jacket?",
+  "chunks": [
+   "I",
+   "found it",
+   "under",
+   "the table."
+  ],
+  "answer": "I found it under the table.",
+  "explain": "Prepositional phrase of place after the object pronoun."
+ },
+ {
+  "id": "bas-003",
+  "type": "bas",
+  "diff": "easy",
+  "context": "How was the chemistry exam?",
+  "chunks": [
+   "It was",
+   "much harder",
+   "than",
+   "I expected."
+  ],
+  "answer": "It was much harder than I expected.",
+  "explain": "Comparative with than-clause."
+ },
+ {
+  "id": "bas-004",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Who is your roommate this year?",
+  "chunks": [
+   "My roommate",
+   "is a student",
+   "from",
+   "Brazil."
+  ],
+  "answer": "My roommate is a student from Brazil.",
+  "explain": "Noun phrase + be + prepositional phrase."
+ },
+ {
+  "id": "bas-005",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Can you join us for dinner?",
+  "chunks": [
+   "I would love to,",
+   "but I",
+   "have",
+   "a lab report",
+   "to finish."
+  ],
+  "answer": "I would love to, but I have a lab report to finish.",
+  "explain": "Contrast with but; infinitive modifying a noun."
+ },
+ {
+  "id": "bas-006",
+  "type": "bas",
+  "diff": "easy",
+  "context": "What did the professor say about the deadline?",
+  "chunks": [
+   "She said",
+   "that it",
+   "had been",
+   "extended."
+  ],
+  "answer": "She said that it had been extended.",
+  "explain": "Reported speech with past perfect passive."
+ },
+ {
+  "id": "bas-007",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Is the library still open?",
+  "chunks": [
+   "No, it",
+   "closes",
+   "at",
+   "ten o'clock."
+  ],
+  "answer": "No, it closes at ten o'clock.",
+  "explain": "Simple present with a fixed time preposition."
+ },
+ {
+  "id": "bas-008",
+  "type": "bas",
+  "diff": "easy",
+  "context": "What are you studying this semester?",
+  "chunks": [
+   "I am",
+   "taking",
+   "three",
+   "history courses."
+  ],
+  "answer": "I am taking three history courses.",
+  "explain": "Present continuous with quantity + compound noun."
+ },
+ {
+  "id": "bas-009",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Did you buy the textbook?",
+  "chunks": [
+   "No, I",
+   "borrowed",
+   "it from",
+   "my friend."
+  ],
+  "answer": "No, I borrowed it from my friend.",
+  "explain": "Past simple; pronoun object before from-phrase."
+ },
+ {
+  "id": "bas-010",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Why is the cafeteria so crowded?",
+  "chunks": [
+   "Everyone",
+   "is waiting",
+   "for",
+   "the pizza."
+  ],
+  "answer": "Everyone is waiting for the pizza.",
+  "explain": "Present continuous with wait for."
+ },
+ {
+  "id": "bas-011",
+  "type": "bas",
+  "diff": "easy",
+  "context": "What time does the bus leave?",
+  "chunks": [
+   "The next bus",
+   "leaves",
+   "in",
+   "ten minutes."
+  ],
+  "answer": "The next bus leaves in ten minutes.",
+  "explain": "Subject-verb agreement; in + time span."
+ },
+ {
+  "id": "bas-012",
+  "type": "bas",
+  "diff": "easy",
+  "context": "How did you get such a good grade?",
+  "chunks": [
+   "I studied",
+   "with",
+   "a group",
+   "of classmates."
+  ],
+  "answer": "I studied with a group of classmates.",
+  "explain": "Prepositional phrases with of."
+ },
+ {
+  "id": "bas-013",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Where is the biology lab?",
+  "chunks": [
+   "It is",
+   "on the second floor",
+   "of the",
+   "science building."
+  ],
+  "answer": "It is on the second floor of the science building.",
+  "explain": "Location phrases with of."
+ },
+ {
+  "id": "bas-014",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Do you like your new apartment?",
+  "chunks": [
+   "Yes, it",
+   "is much",
+   "closer to",
+   "campus."
+  ],
+  "answer": "Yes, it is much closer to campus.",
+  "explain": "Comparative adjective with intensifier."
+ },
+ {
+  "id": "bas-015",
+  "type": "bas",
+  "diff": "easy",
+  "context": "What happened to your phone?",
+  "chunks": [
+   "I",
+   "dropped it",
+   "on the",
+   "stairs."
+  ],
+  "answer": "I dropped it on the stairs.",
+  "explain": "Past simple with phrasal object pronoun."
+ },
+ {
+  "id": "bas-016",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Have you met the new advisor?",
+  "chunks": [
+   "Yes, she",
+   "was very",
+   "helpful",
+   "to me."
+  ],
+  "answer": "Yes, she was very helpful to me.",
+  "explain": "Adjective with intensifier + to-phrase."
+ },
+ {
+  "id": "bas-017",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Which class is your favorite?",
+  "chunks": [
+   "My favorite",
+   "class",
+   "is",
+   "art history."
+  ],
+  "answer": "My favorite class is art history.",
+  "explain": "Noun phrase + linking verb."
+ },
+ {
+  "id": "bas-018",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Why were you late for class?",
+  "chunks": [
+   "My alarm",
+   "clock",
+   "did not",
+   "ring."
+  ],
+  "answer": "My alarm clock did not ring.",
+  "explain": "Negation with did not + base verb."
+ },
+ {
+  "id": "bas-019",
+  "type": "bas",
+  "diff": "easy",
+  "context": "What should I bring to the study session?",
+  "chunks": [
+   "Please",
+   "bring",
+   "your notes",
+   "and a pen."
+  ],
+  "answer": "Please bring your notes and a pen.",
+  "explain": "Polite imperative with coordinated objects."
+ },
+ {
+  "id": "bas-020",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Is this seat taken?",
+  "chunks": [
+   "No, you",
+   "can sit",
+   "here",
+   "if you want."
+  ],
+  "answer": "No, you can sit here if you want.",
+  "explain": "Modal + if-clause."
+ },
+ {
+  "id": "bas-021",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Did you finish the reading?",
+  "chunks": [
+   "I have",
+   "not",
+   "started",
+   "it yet."
+  ],
+  "answer": "I have not started it yet.",
+  "explain": "Present perfect negative with yet."
+ },
+ {
+  "id": "bas-022",
+  "type": "bas",
+  "diff": "easy",
+  "context": "What is your major?",
+  "chunks": [
+   "I am",
+   "majoring",
+   "in",
+   "environmental science."
+  ],
+  "answer": "I am majoring in environmental science.",
+  "explain": "Present continuous with major in."
+ },
+ {
+  "id": "bas-023",
+  "type": "bas",
+  "diff": "easy",
+  "context": "How do you get to campus?",
+  "chunks": [
+   "I ride",
+   "my bike",
+   "to",
+   "campus."
+  ],
+  "answer": "I ride my bike to campus.",
+  "explain": "Verb + object + direction preposition."
+ },
+ {
+  "id": "bas-024",
+  "type": "bas",
+  "diff": "easy",
+  "context": "Can I borrow your charger?",
+  "chunks": [
+   "Sure, but",
+   "I need",
+   "it back",
+   "before class."
+  ],
+  "answer": "Sure, but I need it back before class.",
+  "explain": "Phrasal-verb-like need it back + time clause."
+ },
+ {
+  "id": "bas-025",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Did you hear back about the internship?",
+  "chunks": [
+   "Yes, the company",
+   "offered",
+   "me",
+   "a position",
+   "in marketing."
+  ],
+  "answer": "Yes, the company offered me a position in marketing.",
+  "explain": "Ditransitive verb order (indirect before direct object)."
+ },
+ {
+  "id": "bas-026",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why did you switch your major?",
+  "chunks": [
+   "I realized",
+   "that I",
+   "enjoyed",
+   "writing more",
+   "than math."
+  ],
+  "answer": "I realized that I enjoyed writing more than math.",
+  "explain": "Noun clause with that; comparison."
+ },
+ {
+  "id": "bas-027",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What did you think of the guest lecture?",
+  "chunks": [
+   "The speaker",
+   "who",
+   "visited our class",
+   "was",
+   "really inspiring."
+  ],
+  "answer": "The speaker who visited our class was really inspiring.",
+  "explain": "Relative clause modifying the subject."
+ },
+ {
+  "id": "bas-028",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Where can I find the printing center?",
+  "chunks": [
+   "It is",
+   "next to",
+   "the room",
+   "where we",
+   "take exams."
+  ],
+  "answer": "It is next to the room where we take exams.",
+  "explain": "Relative clause with where."
+ },
+ {
+  "id": "bas-029",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why aren't you going to the party?",
+  "chunks": [
+   "I would go",
+   "if I",
+   "did not have",
+   "an early",
+   "class tomorrow."
+  ],
+  "answer": "I would go if I did not have an early class tomorrow.",
+  "explain": "Second conditional."
+ },
+ {
+  "id": "bas-030",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Is this your first year in the dorms?",
+  "chunks": [
+   "No, I",
+   "have lived",
+   "in this",
+   "building",
+   "since 2025."
+  ],
+  "answer": "No, I have lived in this building since 2025.",
+  "explain": "Present perfect with since."
+ },
+ {
+  "id": "bas-031",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What does your roommate do on weekends?",
+  "chunks": [
+   "She volunteers",
+   "at an",
+   "animal shelter",
+   "near",
+   "campus."
+  ],
+  "answer": "She volunteers at an animal shelter near campus.",
+  "explain": "Stacked prepositional phrases."
+ },
+ {
+  "id": "bas-032",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Did the store have the book you wanted?",
+  "chunks": [
+   "Yes, but",
+   "it",
+   "was",
+   "more expensive",
+   "than I thought."
+  ],
+  "answer": "Yes, but it was more expensive than I thought.",
+  "explain": "Comparative with than-clause."
+ },
+ {
+  "id": "bas-033",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why is the professor handing out surveys?",
+  "chunks": [
+   "She wants",
+   "to learn",
+   "what students",
+   "think about",
+   "the course."
+  ],
+  "answer": "She wants to learn what students think about the course.",
+  "explain": "Embedded wh-clause (statement word order)."
+ },
+ {
+  "id": "bas-034",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Could you explain how to register for the lab?",
+  "chunks": [
+   "You need",
+   "to log in",
+   "to the portal",
+   "and select",
+   "a section."
+  ],
+  "answer": "You need to log in to the portal and select a section.",
+  "explain": "Coordinated infinitive actions."
+ },
+ {
+  "id": "bas-035",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why did the seminar get canceled?",
+  "chunks": [
+   "The speaker",
+   "was",
+   "stuck",
+   "in traffic",
+   "and could not come."
+  ],
+  "answer": "The speaker was stuck in traffic and could not come.",
+  "explain": "Coordinated predicates with modal negation."
+ },
+ {
+  "id": "bas-036",
+  "type": "bas",
+  "diff": "medium",
+  "context": "How is your new part-time job?",
+  "chunks": [
+   "I like it,",
+   "although",
+   "the schedule",
+   "changes",
+   "every week."
+  ],
+  "answer": "I like it, although the schedule changes every week.",
+  "explain": "Concessive although clause."
+ },
+ {
+  "id": "bas-037",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Which dorm are you living in?",
+  "chunks": [
+   "The one",
+   "that",
+   "has",
+   "the new",
+   "study lounge."
+  ],
+  "answer": "The one that has the new study lounge.",
+  "explain": "Relative clause with that as subject."
+ },
+ {
+  "id": "bas-038",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What are you doing after graduation?",
+  "chunks": [
+   "I am planning",
+   "to apply",
+   "for jobs",
+   "in",
+   "Chicago."
+  ],
+  "answer": "I am planning to apply for jobs in Chicago.",
+  "explain": "Plan + infinitive; preposition phrases."
+ },
+ {
+  "id": "bas-039",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Did you see my message about the meeting?",
+  "chunks": [
+   "Yes, I",
+   "saw",
+   "that",
+   "it was",
+   "moved to Friday."
+  ],
+  "answer": "Yes, I saw that it was moved to Friday.",
+  "explain": "Noun clause with passive."
+ },
+ {
+  "id": "bas-040",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why do you carry a reusable bottle?",
+  "chunks": [
+   "Because",
+   "plastic",
+   "bottles",
+   "hurt",
+   "the environment."
+  ],
+  "answer": "Because plastic bottles hurt the environment.",
+  "explain": "Because-clause answer."
+ },
+ {
+  "id": "bas-041",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What kind of apartment are you looking for?",
+  "chunks": [
+   "I want",
+   "one",
+   "with",
+   "a big",
+   "kitchen."
+  ],
+  "answer": "I want one with a big kitchen.",
+  "explain": "One + with-phrase."
+ },
+ {
+  "id": "bas-042",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Have you decided where to go for spring break?",
+  "chunks": [
+   "We might",
+   "drive",
+   "to",
+   "the coast",
+   "if it is warm."
+  ],
+  "answer": "We might drive to the coast if it is warm.",
+  "explain": "Modal might + conditional clause."
+ },
+ {
+  "id": "bas-043",
+  "type": "bas",
+  "diff": "medium",
+  "context": "How did the interview go?",
+  "chunks": [
+   "I think",
+   "it went",
+   "better",
+   "than",
+   "I had hoped."
+  ],
+  "answer": "I think it went better than I had hoped.",
+  "explain": "Comparative with past perfect."
+ },
+ {
+  "id": "bas-044",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What did you do at the career fair?",
+  "chunks": [
+   "I handed",
+   "my resume",
+   "to",
+   "several",
+   "recruiters."
+  ],
+  "answer": "I handed my resume to several recruiters.",
+  "explain": "Hand + object + to-phrase."
+ },
+ {
+  "id": "bas-045",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Where were you when the fire alarm rang?",
+  "chunks": [
+   "I was",
+   "studying",
+   "on",
+   "the third",
+   "floor."
+  ],
+  "answer": "I was studying on the third floor.",
+  "explain": "Past continuous with place phrase."
+ },
+ {
+  "id": "bas-046",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Is the gym free for students?",
+  "chunks": [
+   "Yes, as long as",
+   "you show",
+   "your",
+   "student",
+   "ID."
+  ],
+  "answer": "Yes, as long as you show your student ID.",
+  "explain": "As long as conditional."
+ },
+ {
+  "id": "bas-047",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why do you look so tired?",
+  "chunks": [
+   "I stayed",
+   "up",
+   "late",
+   "finishing",
+   "my essay."
+  ],
+  "answer": "I stayed up late finishing my essay.",
+  "explain": "Phrasal verb + participle phrase."
+ },
+ {
+  "id": "bas-048",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What is the new library policy?",
+  "chunks": [
+   "Students",
+   "must",
+   "return",
+   "books",
+   "within two weeks."
+  ],
+  "answer": "Students must return books within two weeks.",
+  "explain": "Modal must + time limit."
+ },
+ {
+  "id": "bas-049",
+  "type": "bas",
+  "diff": "medium",
+  "context": "How did you hear about the club?",
+  "chunks": [
+   "A friend",
+   "who",
+   "lives",
+   "on my floor",
+   "told me."
+  ],
+  "answer": "A friend who lives on my floor told me.",
+  "explain": "Relative clause modifying subject."
+ },
+ {
+  "id": "bas-050",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why was the exam postponed?",
+  "chunks": [
+   "The professor",
+   "was",
+   "sick",
+   "with",
+   "the flu."
+  ],
+  "answer": "The professor was sick with the flu.",
+  "explain": "Be + adjective + with."
+ },
+ {
+  "id": "bas-051",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Are you excited about moving off campus?",
+  "chunks": [
+   "Yes, but",
+   "I",
+   "will miss",
+   "living",
+   "close to everything."
+  ],
+  "answer": "Yes, but I will miss living close to everything.",
+  "explain": "Gerund after miss."
+ },
+ {
+  "id": "bas-052",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Where can I find a quiet place to study?",
+  "chunks": [
+   "The reading room",
+   "on",
+   "the fourth floor",
+   "is",
+   "usually empty."
+  ],
+  "answer": "The reading room on the fourth floor is usually empty.",
+  "explain": "Postmodifier phrase; adverb before adjective."
+ },
+ {
+  "id": "bas-053",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Did you get the scholarship?",
+  "chunks": [
+   "Yes, and",
+   "I",
+   "was",
+   "so happy",
+   "that I cried."
+  ],
+  "answer": "Yes, and I was so happy that I cried.",
+  "explain": "So...that result clause."
+ },
+ {
+  "id": "bas-054",
+  "type": "bas",
+  "diff": "medium",
+  "context": "How can I improve my vocabulary?",
+  "chunks": [
+   "You should",
+   "read",
+   "a few",
+   "articles",
+   "every day."
+  ],
+  "answer": "You should read a few articles every day.",
+  "explain": "Modal should; frequency phrase."
+ },
+ {
+  "id": "bas-055",
+  "type": "bas",
+  "diff": "medium",
+  "context": "How did the team celebrate?",
+  "chunks": [
+   "They",
+   "ordered",
+   "pizza",
+   "for everyone",
+   "in the lab."
+  ],
+  "answer": "They ordered pizza for everyone in the lab.",
+  "explain": "Object followed by purpose and place phrases."
+ },
+ {
+  "id": "bas-056",
+  "type": "bas",
+  "diff": "medium",
+  "context": "How was your weekend?",
+  "chunks": [
+   "I spent",
+   "most of it",
+   "working",
+   "on",
+   "my thesis."
+  ],
+  "answer": "I spent most of it working on my thesis.",
+  "explain": "Spend + time + gerund."
+ },
+ {
+  "id": "bas-057",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Do you want to share a taxi?",
+  "chunks": [
+   "Sure, that",
+   "would",
+   "save",
+   "us",
+   "some money."
+  ],
+  "answer": "Sure, that would save us some money.",
+  "explain": "Modal would with ditransitive save."
+ },
+ {
+  "id": "bas-058",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What is the dress code for the interview?",
+  "chunks": [
+   "You should",
+   "wear",
+   "something",
+   "that looks",
+   "professional."
+  ],
+  "answer": "You should wear something that looks professional.",
+  "explain": "Relative clause after indefinite pronoun."
+ },
+ {
+  "id": "bas-059",
+  "type": "bas",
+  "diff": "medium",
+  "context": "Why are there so many people outside?",
+  "chunks": [
+   "They are",
+   "waiting",
+   "for",
+   "the doors",
+   "to open."
+  ],
+  "answer": "They are waiting for the doors to open.",
+  "explain": "Wait for + object + infinitive."
+ },
+ {
+  "id": "bas-060",
+  "type": "bas",
+  "diff": "medium",
+  "context": "What did you think of the movie?",
+  "chunks": [
+   "It was",
+   "longer",
+   "than",
+   "I",
+   "expected."
+  ],
+  "answer": "It was longer than I expected.",
+  "explain": "Comparative clause."
+ },
+ {
+  "id": "bas-061",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Do you know why the library is closed today?",
+  "chunks": [
+   "I heard",
+   "that",
+   "the building",
+   "was",
+   "closed",
+   "because of",
+   "a water leak."
+  ],
+  "answer": "I heard that the building was closed because of a water leak.",
+  "explain": "Noun clause; passive-like state; because of + noun."
+ },
+ {
+  "id": "bas-062",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Where is the registrar's office?",
+  "chunks": [
+   "I am not sure",
+   "where",
+   "it",
+   "is",
+   "located",
+   "right now."
+  ],
+  "answer": "I am not sure where it is located right now.",
+  "explain": "Embedded question uses statement word order."
+ },
+ {
+  "id": "bas-063",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Why didn't Maria come to the study group?",
+  "chunks": [
+   "She said",
+   "that",
+   "she",
+   "had not",
+   "known",
+   "about",
+   "the change."
+  ],
+  "answer": "She said that she had not known about the change.",
+  "explain": "Reported speech; past perfect negative."
+ },
+ {
+  "id": "bas-064",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Has the professor posted the grades yet?",
+  "chunks": [
+   "Not yet,",
+   "but",
+   "she",
+   "has promised",
+   "that",
+   "they will be",
+   "posted soon."
+  ],
+  "answer": "Not yet, but she has promised that they will be posted soon.",
+  "explain": "Present perfect; future passive in noun clause."
+ },
+ {
+  "id": "bas-065",
+  "type": "bas",
+  "diff": "hard",
+  "context": "What did the advisor ask you?",
+  "chunks": [
+   "She asked",
+   "me",
+   "whether",
+   "I had",
+   "already taken",
+   "the required",
+   "statistics course."
+  ],
+  "answer": "She asked me whether I had already taken the required statistics course.",
+  "explain": "Indirect yes/no question with past perfect."
+ },
+ {
+  "id": "bas-066",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Do you know what time the shuttle arrives?",
+  "chunks": [
+   "I do not",
+   "know",
+   "when",
+   "it",
+   "is supposed",
+   "to arrive."
+  ],
+  "answer": "I do not know when it is supposed to arrive.",
+  "explain": "Indirect question; be supposed to."
+ },
+ {
+  "id": "bas-067",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Why are you so relieved?",
+  "chunks": [
+   "The paper",
+   "that",
+   "I have been",
+   "writing",
+   "for weeks",
+   "is finally",
+   "finished."
+  ],
+  "answer": "The paper that I have been writing for weeks is finally finished.",
+  "explain": "Relative clause with present perfect continuous."
+ },
+ {
+  "id": "bas-068",
+  "type": "bas",
+  "diff": "hard",
+  "context": "What happened to the old science building?",
+  "chunks": [
+   "It",
+   "was torn down",
+   "after",
+   "engineers",
+   "found",
+   "that",
+   "it was unsafe."
+  ],
+  "answer": "It was torn down after engineers found that it was unsafe.",
+  "explain": "Passive main clause; after-clause with noun clause."
+ },
+ {
+  "id": "bas-069",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Did you learn anything at orientation?",
+  "chunks": [
+   "Yes, I",
+   "learned",
+   "that",
+   "students who",
+   "live off campus",
+   "can still",
+   "use the gym."
+  ],
+  "answer": "Yes, I learned that students who live off campus can still use the gym.",
+  "explain": "Noun clause containing a relative clause."
+ },
+ {
+  "id": "bas-070",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Do you know who is giving the keynote speech?",
+  "chunks": [
+   "I have",
+   "no idea",
+   "who",
+   "the university",
+   "has invited",
+   "to speak."
+  ],
+  "answer": "I have no idea who the university has invited to speak.",
+  "explain": "Embedded object question with present perfect."
+ },
+ {
+  "id": "bas-071",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Why is the lab so empty?",
+  "chunks": [
+   "Most",
+   "of the students",
+   "have gone",
+   "home",
+   "for",
+   "the holiday."
+  ],
+  "answer": "Most of the students have gone home for the holiday.",
+  "explain": "Present perfect with quantifier subject."
+ },
+ {
+  "id": "bas-072",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Can you recommend a good course?",
+  "chunks": [
+   "I would suggest",
+   "the one",
+   "that",
+   "was taught",
+   "by",
+   "Professor Lin",
+   "last year."
+  ],
+  "answer": "I would suggest the one that was taught by Professor Lin last year.",
+  "explain": "Relative clause with passive and agent."
+ },
+ {
+  "id": "bas-073",
+  "type": "bas",
+  "diff": "hard",
+  "context": "How was your presentation?",
+  "chunks": [
+   "It went",
+   "better",
+   "than",
+   "I could",
+   "have",
+   "expected."
+  ],
+  "answer": "It went better than I could have expected.",
+  "explain": "Modal perfect in comparative clause."
+ },
+ {
+  "id": "bas-074",
+  "type": "bas",
+  "diff": "hard",
+  "context": "I can't find my notebook anywhere.",
+  "chunks": [
+   "Did you",
+   "check",
+   "whether",
+   "you",
+   "left it",
+   "in the cafe?"
+  ],
+  "answer": "Did you check whether you left it in the cafe?",
+  "explain": "Indirect yes/no question inside a direct question."
+ },
+ {
+  "id": "bas-075",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Why wasn't the meeting rescheduled?",
+  "chunks": [
+   "Nobody",
+   "was",
+   "told",
+   "that",
+   "the room",
+   "was",
+   "unavailable."
+  ],
+  "answer": "Nobody was told that the room was unavailable.",
+  "explain": "Passive with noun clause."
+ },
+ {
+  "id": "bas-076",
+  "type": "bas",
+  "diff": "hard",
+  "context": "What are the requirements for the scholarship?",
+  "chunks": [
+   "Applicants",
+   "must have",
+   "completed",
+   "at least",
+   "two semesters",
+   "at this university."
+  ],
+  "answer": "Applicants must have completed at least two semesters at this university.",
+  "explain": "Modal perfect; quantity phrase."
+ },
+ {
+  "id": "bas-077",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Why is everyone talking about Dr. Patel?",
+  "chunks": [
+   "The research",
+   "that",
+   "she",
+   "published last month",
+   "has",
+   "changed",
+   "the field."
+  ],
+  "answer": "The research that she published last month has changed the field.",
+  "explain": "Relative clause with object gap."
+ },
+ {
+  "id": "bas-078",
+  "type": "bas",
+  "diff": "hard",
+  "context": "How did you find out about the schedule change?",
+  "chunks": [
+   "An email",
+   "that",
+   "the department",
+   "sent",
+   "informed",
+   "me",
+   "of the change."
+  ],
+  "answer": "An email that the department sent informed me of the change.",
+  "explain": "Relative clause modifying the subject."
+ },
+ {
+  "id": "bas-079",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Why did you decide not to take the course?",
+  "chunks": [
+   "I found out",
+   "that",
+   "it",
+   "would not",
+   "be offered",
+   "until",
+   "next fall."
+  ],
+  "answer": "I found out that it would not be offered until next fall.",
+  "explain": "Future-in-past passive with negation."
+ },
+ {
+  "id": "bas-080",
+  "type": "bas",
+  "diff": "hard",
+  "context": "Do you think she will win the award?",
+  "chunks": [
+   "She deserves",
+   "it",
+   "because",
+   "of how",
+   "hard",
+   "she has",
+   "worked."
+  ],
+  "answer": "She deserves it because of how hard she has worked.",
+  "explain": "Embedded how-clause with present perfect."
+ }
+]

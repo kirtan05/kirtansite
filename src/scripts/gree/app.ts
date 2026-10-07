@@ -8,6 +8,7 @@ import {
   type Card, type Question, type Test, type Word,
 } from './engine';
 import { TASKS, taskById, type Task } from './prompts';
+import { toeflBusy, toeflView, type Ctx as ToeflCtx, type TItem } from './toefl';
 
 // ═══════════════════════════════════════════ small helpers
 
@@ -75,6 +76,7 @@ let words: Word[] = [];
 let byId = new Map<number, Word>();
 let byLemma = new Map<string, Word>();
 let questions: Question[] = [];
+let toefl: TItem[] = [];
 const cards = new Map<number, Card>();
 const qstate = new Map<string, Card>();
 let settings: Record<string, string> = {};
@@ -203,11 +205,12 @@ async function pullState() {
 }
 
 async function loadContent(version: string) {
-  const cached = LS.get<{ version: string; words: Word[]; questions: Question[] }>('gree.content');
+  const cached = LS.get<{ version: string; words: Word[]; questions: Question[]; toefl?: TItem[] }>('gree.content');
   const c = cached?.version === version ? cached : await api('/gree/api/content');
   if (c !== cached) LS.set('gree.content', c);
   words = c.words;
   questions = c.questions;
+  toefl = c.toefl ?? [];
   byId = new Map(words.map((w) => [w.id, w]));
   byLemma = new Map(words.map((w) => [w.w.toLowerCase(), w]));
 }
@@ -245,7 +248,7 @@ document.addEventListener('visibilitychange', async () => {
     try {
       await flush();
       await pullState();
-      if (!session && !qset && !writing) render();
+      if (!session && !qset && !writing && !toeflBusy()) render();
     } catch {
       /* offline: keep working from local state */
     }
@@ -254,8 +257,8 @@ document.addEventListener('visibilitychange', async () => {
 
 // ═══════════════════════════════════════════ router
 
-type Tab = 'study' | 'practice' | 'write' | 'progress';
-const TABS: Tab[] = ['study', 'practice', 'write', 'progress'];
+type Tab = 'study' | 'practice' | 'toefl' | 'write' | 'progress';
+const TABS: Tab[] = ['study', 'practice', 'toefl', 'write', 'progress'];
 const currentTab = (): Tab => {
   const h = location.hash.slice(1).split('/')[0] as Tab;
   return TABS.includes(h) ? h : 'study';
@@ -270,6 +273,7 @@ function render() {
   });
   if (tab === 'study') session ? renderStep() : studyHome();
   else if (tab === 'practice') qset ? renderQ() : practiceHome();
+  else if (tab === 'toefl') toeflView(toeflCtx);
   else if (tab === 'write') writing ? renderEditor() : writeHome();
   else progressView();
 }
@@ -762,6 +766,29 @@ function finishQ() {
     <div class="row" style="margin-top:1.2rem"><button class="btn primary" data-home>More questions</button><a class="btn" href="#study">Words</a></div>`;
   on('[data-home]', practiceHome);
 }
+
+// ═══════════════════════════════════════════ TOEFL (see toefl.ts)
+
+const toeflCtx: ToeflCtx = {
+  view: $view,
+  items: () => toefl,
+  state: qstate,
+  today,
+  esc,
+  mmss,
+  on,
+  record: (item, mode, correct, ms) => recordAnswer('question', item, mode, correct, ms),
+  ladder: (id, right) => {
+    const prev = qstate.get(id);
+    saveQ(id, promote(prev, today(), nowIso(), right, !prev));
+  },
+  write: (task) => {
+    // Never throw away a draft in progress; finish that one first.
+    if (!writing) newDraft(task);
+    location.hash = '#write';
+  },
+  done: () => flush(),
+};
 
 // ═══════════════════════════════════════════ WRITING
 

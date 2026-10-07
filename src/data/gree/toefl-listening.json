@@ -1,0 +1,3074 @@
+[
+ {
+  "id": "lcr-001",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Excuse me, is this seat taken?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, I took it yesterday.",
+     "It's a very comfortable chair.",
+     "No, go ahead and sit down.",
+     "I usually sit near the window."
+    ],
+    "answer": 2,
+    "explain": "The reply answers the question directly. The others misuse the word taken or ignore the question."
+   }
+  ]
+ },
+ {
+  "id": "lcr-002",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "What time does the library close tonight?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "At ten, I think.",
+     "It closes the door quietly.",
+     "I closed it this morning.",
+     "The library is on the second floor."
+    ],
+    "answer": 0,
+    "explain": "The question asks for a time. The others repeat words or give a place."
+   }
+  ]
+ },
+ {
+  "id": "lcr-003",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Did you finish the chemistry homework?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, it's my favorite subject.",
+     "The chemistry building is far from here.",
+     "I finished the lab last week.",
+     "Not yet, I'll do it after dinner."
+    ],
+    "answer": 3,
+    "explain": "Only the first reply answers whether the homework is done."
+   }
+  ]
+ },
+ {
+  "id": "lcr-004",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "How was your weekend?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "It's on Saturday and Sunday.",
+     "Pretty relaxing, I mostly stayed home.",
+     "Yes, I was at home.",
+     "Two days, usually."
+    ],
+    "answer": 1,
+    "explain": "The question asks for a description of the weekend."
+   }
+  ]
+ },
+ {
+  "id": "lcr-005",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Could you pass me the salt?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I like it salty too.",
+     "Sure, here you go.",
+     "No, I paid already.",
+     "Yes, it was delicious."
+    ],
+    "answer": 1,
+    "explain": "This is a polite request, so agreeing and handing it over fits."
+   }
+  ]
+ },
+ {
+  "id": "lcr-006",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Where can I buy a bus pass?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The bus was late again.",
+     "About twenty dollars a month.",
+     "I passed the exam.",
+     "At the student services office."
+    ],
+    "answer": 3,
+    "explain": "The question asks where. The price answers a different question."
+   }
+  ]
+ },
+ {
+  "id": "lcr-007",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Would you like some coffee?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, please, with just a little milk.",
+     "I like the coffee shop downtown.",
+     "It was very good yesterday.",
+     "No, I wasn't there."
+    ],
+    "answer": 0,
+    "explain": "An offer needs an acceptance or refusal."
+   }
+  ]
+ },
+ {
+  "id": "lcr-008",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Who's teaching the economics course this semester?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, it's on Tuesdays.",
+     "I'm studying economics too.",
+     "Professor Alvarez, I believe.",
+     "At nine in the morning."
+    ],
+    "answer": 2,
+    "explain": "The question asks who, so only a name answers it."
+   }
+  ]
+ },
+ {
+  "id": "lcr-009",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "I'm sorry I'm late."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, it's very late.",
+     "I'll be there at eight.",
+     "Thanks, I'm on time.",
+     "That's okay, we just started."
+    ],
+    "answer": 3,
+    "explain": "A natural reply to an apology is to accept it."
+   }
+  ]
+ },
+ {
+  "id": "lcr-010",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "How long have you lived in this city?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I live on Maple Street.",
+     "About three years now.",
+     "It's a very big city.",
+     "I'll move next month."
+    ],
+    "answer": 1,
+    "explain": "How long asks for a length of time."
+   }
+  ]
+ },
+ {
+  "id": "lcr-011",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Do you know where the gym is?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "It opens at six in the morning.",
+     "I go there every day.",
+     "It's behind the student center.",
+     "I need new running shoes."
+    ],
+    "answer": 2,
+    "explain": "The speaker wants a location."
+   }
+  ]
+ },
+ {
+  "id": "lcr-012",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Thanks for helping me move yesterday."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "No problem, happy to help.",
+     "Yes, I moved last year.",
+     "It's moving too slowly.",
+     "Help is on the way."
+    ],
+    "answer": 0,
+    "explain": "A natural reply to thanks is you're welcome."
+   }
+  ]
+ },
+ {
+  "id": "lcr-013",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Which dorm are you living in?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Hartwell Hall, on the north side.",
+     "I'll live there in about a week.",
+     "Dorm rooms are small.",
+     "Yes, it's quite loud at night."
+    ],
+    "answer": 0,
+    "explain": "Which dorm asks for a name."
+   }
+  ]
+ },
+ {
+  "id": "lcr-014",
+  "type": "lcr",
+  "diff": "easy",
+  "audio": [
+   {
+    "s": "m",
+    "t": "When is your presentation?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "It's about renewable energy.",
+     "I presented it well.",
+     "Next Thursday afternoon.",
+     "In the conference room."
+    ],
+    "answer": 2,
+    "explain": "When asks for a time."
+   }
+  ]
+ },
+ {
+  "id": "lcr-015",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "I'm thinking about switching my major to biology."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I'm not thinking about dinner yet.",
+     "Really? What made you decide that?",
+     "The biology building is across the street.",
+     "Yes, my major was exciting last year."
+    ],
+    "answer": 1,
+    "explain": "A statement of a plan invites a follow-up question or comment."
+   }
+  ]
+ },
+ {
+  "id": "lcr-016",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Would you mind turning down the music a little?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The music class meets on Fridays.",
+     "I turned in the paper already.",
+     "Down the hall to the left.",
+     "Oh, sorry, I didn't realize it was so loud."
+    ],
+    "answer": 3,
+    "explain": "The polite request is met with an apology and agreement."
+   }
+  ]
+ },
+ {
+  "id": "lcr-017",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Have you decided where to do your internship?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The internship starts in June.",
+     "I was decided last week.",
+     "Not yet, I'm still waiting to hear back from two companies.",
+     "Yes, it's down the hall."
+    ],
+    "answer": 2,
+    "explain": "The reply answers whether a decision has been made."
+   }
+  ]
+ },
+ {
+  "id": "lcr-018",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "This textbook costs an arm and a leg."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I know, I'm going to look for a used copy.",
+     "I hurt my arm playing tennis.",
+     "It costs about ten minutes to walk.",
+     "The book is on the shelf."
+    ],
+    "answer": 0,
+    "explain": "An arm and a leg means very expensive. The correct reply agrees and offers a solution."
+   }
+  ]
+ },
+ {
+  "id": "lcr-019",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Do you want to study at my place or at the library?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, I do want that.",
+     "My place is near the park.",
+     "I want a place of my own.",
+     "The library, I think. It's quieter."
+    ],
+    "answer": 3,
+    "explain": "The question offers two options, so the answer must choose one."
+   }
+  ]
+ },
+ {
+  "id": "lcr-020",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Why didn't you come to the study group yesterday?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The study group is at four.",
+     "I had a fever, so I stayed in bed.",
+     "I came by bus.",
+     "Yes, the group was helpful."
+    ],
+    "answer": 1,
+    "explain": "Why asks for a reason."
+   }
+  ]
+ },
+ {
+  "id": "lcr-021",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "How did your interview go?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I went there by subway.",
+     "Better than I expected, actually.",
+     "I'll interview her on Monday.",
+     "It went through the door."
+    ],
+    "answer": 1,
+    "explain": "The question asks for an evaluation of the interview."
+   }
+  ]
+ },
+ {
+  "id": "lcr-022",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "That exam was a piece of cake."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I like chocolate cake too.",
+     "Yes, it was served at noon.",
+     "A piece costs two dollars.",
+     "Good for you! I found it pretty tough."
+    ],
+    "answer": 3,
+    "explain": "A piece of cake means very easy."
+   }
+  ]
+ },
+ {
+  "id": "lcr-023",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "I'd like to return this jacket."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Do you have the receipt with you?",
+     "It's a good jacket for winter.",
+     "Yes, I returned it yesterday.",
+     "Turn left at the corner."
+    ],
+    "answer": 0,
+    "explain": "A store worker would ask for the receipt."
+   }
+  ]
+ },
+ {
+  "id": "lcr-024",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "What did you think of the guest lecture?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I'll think about it tomorrow.",
+     "The lecture hall is full.",
+     "It was interesting, though a bit too long.",
+     "Yes, she's a guest."
+    ],
+    "answer": 2,
+    "explain": "The question asks for an opinion."
+   }
+  ]
+ },
+ {
+  "id": "lcr-025",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Do you mind if I open the window?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I opened it with the key.",
+     "It's a nice window seat.",
+     "The window cost a lot.",
+     "Not at all, it's pretty stuffy in here."
+    ],
+    "answer": 3,
+    "explain": "Not at all means no, I do not mind."
+   }
+  ]
+ },
+ {
+  "id": "lcr-026",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Are you taking the shuttle or driving to campus?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The shuttle is blue and white.",
+     "Driving, I need the car after class.",
+     "Yes, I take it often.",
+     "To campus on Monday."
+    ],
+    "answer": 1,
+    "explain": "The question offers two options, so one must be chosen."
+   }
+  ]
+ },
+ {
+  "id": "lcr-027",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "How come you're not at the career fair?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "It's at the sports center.",
+     "I went there for the fair last year.",
+     "I have a midterm to study for.",
+     "Yes, I'm not coming."
+    ],
+    "answer": 2,
+    "explain": "How come asks for a reason."
+   }
+  ]
+ },
+ {
+  "id": "lcr-028",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Which professor would you recommend for statistics?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Professor Nguyen explains things really clearly.",
+     "Statistics is required for my major.",
+     "I recommend the cafeteria.",
+     "Yes, I've taken it."
+    ],
+    "answer": 0,
+    "explain": "The reply names a professor with a reason."
+   }
+  ]
+ },
+ {
+  "id": "lcr-029",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Excuse me, does this bus go downtown?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Yes, but you'll have to transfer at Elm Street.",
+     "No, I live downtown.",
+     "It's a long way down.",
+     "The bus pass is expensive."
+    ],
+    "answer": 0,
+    "explain": "The reply answers and adds useful information."
+   }
+  ]
+ },
+ {
+  "id": "lcr-030",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "I just found out I got the scholarship!"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "That's too bad, I'm sorry.",
+     "Where did you find it?",
+     "Congratulations, you deserve it!",
+     "I'm not a scholar."
+    ],
+    "answer": 2,
+    "explain": "Good news calls for congratulations."
+   }
+  ]
+ },
+ {
+  "id": "lcr-031",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Could I borrow your notes from Monday's class?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Monday is my favorite day.",
+     "Sure, I'll send you photos of them tonight.",
+     "No, I was borrowing yours.",
+     "I borrowed them Monday."
+    ],
+    "answer": 1,
+    "explain": "The request is accepted with a plan."
+   }
+  ]
+ },
+ {
+  "id": "lcr-032",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Where should we meet before the movie?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The movie starts at seven.",
+     "We met last year in the cinema.",
+     "Yes, we should.",
+     "How about in front of the ticket window?"
+    ],
+    "answer": 3,
+    "explain": "The question asks for a meeting place."
+   }
+  ]
+ },
+ {
+  "id": "lcr-033",
+  "type": "lcr",
+  "diff": "medium",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Do you know if the bookstore sells art supplies?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The store is selling out.",
+     "Art is my favorite subject.",
+     "I think so, they have a section upstairs.",
+     "Yes, I'm an art student."
+    ],
+    "answer": 2,
+    "explain": "The reply answers whether the bookstore sells them."
+   }
+  ]
+ },
+ {
+  "id": "lcr-034",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "m",
+    "t": "I thought the registration deadline got moved to next week."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Actually, I heard it's still this Friday.",
+     "Registration forms are online.",
+     "It's moving to a bigger room.",
+     "Yes, I registered for next week."
+    ],
+    "answer": 0,
+    "explain": "The speaker is correcting an assumption about the deadline."
+   }
+  ]
+ },
+ {
+  "id": "lcr-035",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Do you think we'll finish the lab report before dinner?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The lab closes at six.",
+     "The report was very long.",
+     "Yes, it's a laboratory.",
+     "Not unless we stop checking our phones."
+    ],
+    "answer": 3,
+    "explain": "The reply gives a conditional no that fits the question."
+   }
+  ]
+ },
+ {
+  "id": "lcr-036",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "m",
+    "t": "You're not seriously going to wear that to the interview, are you?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "The interview is at ten.",
+     "Why, what's wrong with it?",
+     "Yes, the interview was serious.",
+     "I wear it every week."
+    ],
+    "answer": 1,
+    "explain": "The speaker implies disapproval, so asking what is wrong is the natural response."
+   }
+  ]
+ },
+ {
+  "id": "lcr-037",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Looks like we're out of printer paper again."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "It looks like rain again.",
+     "I'll grab a pack from the supply room.",
+     "The printer is new.",
+     "Yes, we're out all afternoon."
+    ],
+    "answer": 1,
+    "explain": "The statement implies a problem, and the reply offers to fix it."
+   }
+  ]
+ },
+ {
+  "id": "lcr-038",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "m",
+    "t": "I've been meaning to ask, how did you get such a high score on the exam?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I scored a goal in the game.",
+     "The exam is next on Friday.",
+     "Yes, I asked her too.",
+     "Honestly, I just kept going over the practice tests."
+    ],
+    "answer": 3,
+    "explain": "The question asks how."
+   }
+  ]
+ },
+ {
+  "id": "lcr-039",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Would it be possible to extend my loan on this book?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "Let me check if anyone else has requested it.",
+     "I loaned my book to a friend.",
+     "The book is three hundred pages long.",
+     "I took out the same book."
+    ],
+    "answer": 0,
+    "explain": "A librarian would check for other requests before extending a loan."
+   }
+  ]
+ },
+ {
+  "id": "lcr-040",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "m",
+    "t": "I'm afraid the professor's office hours have been canceled this week."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "No, I'm not afraid of her.",
+     "I'll cancel my flight too.",
+     "Oh no, I was counting on them. I'll email her instead.",
+     "It's been a hot week."
+    ],
+    "answer": 2,
+    "explain": "The reply shows disappointment and offers an alternative."
+   }
+  ]
+ },
+ {
+  "id": "lcr-041",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "f",
+    "t": "How did you manage to get tickets? I thought they'd sold out."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "They're playing the same song again.",
+     "I sold my old ones last week.",
+     "The tickets are out of date.",
+     "I got lucky, someone returned two this morning."
+    ],
+    "answer": 3,
+    "explain": "The reply explains how the speaker got tickets."
+   }
+  ]
+ },
+ {
+  "id": "lcr-042",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "m",
+    "t": "I don't suppose you've seen my student ID anywhere?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I suppose it's about time.",
+     "Check the lost and found, someone turned in a wallet earlier.",
+     "Yes, I'm a student here too.",
+     "Anywhere is fine with me."
+    ],
+    "answer": 1,
+    "explain": "The reply helpfully suggests where it might be."
+   }
+  ]
+ },
+ {
+  "id": "lcr-043",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "f",
+    "t": "If I were you, I'd talk to your advisor before dropping that class."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "If I were taller, I'd play basketball.",
+     "That class meets on Wednesdays.",
+     "You're right. I'll set up a meeting this week.",
+     "I dropped the class off at the office."
+    ],
+    "answer": 2,
+    "explain": "The advice is accepted with a plan."
+   }
+  ]
+ },
+ {
+  "id": "lcr-044",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Surely you're not going to skip the review session."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "I'd rather not, but I have a shift at work.",
+     "Yes, I skipped breakfast too.",
+     "The session was reviewed well.",
+     "Sure, it's in the afternoon."
+    ],
+    "answer": 0,
+    "explain": "The reply acknowledges the concern and gives a reason."
+   }
+  ]
+ },
+ {
+  "id": "lcr-045",
+  "type": "lcr",
+  "diff": "hard",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Do you have a minute, or is this a bad time?"
+   }
+  ],
+  "qs": [
+   {
+    "q": "Choose the best response.",
+    "choices": [
+     "No, go ahead, I was just about to take a break.",
+     "It's a minute past two.",
+     "Yes, the time was bad.",
+     "I have a watch at home."
+    ],
+    "answer": 0,
+    "explain": "The speaker asks permission to talk, so the reply invites them to continue."
+   }
+  ]
+ },
+ {
+  "id": "lcv-001",
+  "type": "lcv",
+  "diff": "easy",
+  "context": "Listen to a conversation between a student and a librarian.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Hi, I was hoping to reserve a study room for Thursday evening."
+   },
+   {
+    "s": "m",
+    "t": "Let me check. The rooms on the second floor are all booked, but there's one in the basement open from six to eight."
+   },
+   {
+    "s": "f",
+    "t": "The basement? Is it quiet down there? I'm practicing a presentation, so I'll be talking out loud."
+   },
+   {
+    "s": "m",
+    "t": "That's actually perfect. The basement rooms are soundproofed, and each one has a whiteboard."
+   },
+   {
+    "s": "f",
+    "t": "Great. There will be four of us. Is that okay?"
+   },
+   {
+    "s": "m",
+    "t": "Each room holds up to six people. I'll just need your student ID to book it."
+   },
+   {
+    "s": "f",
+    "t": "Oh no, I left my wallet in my dorm. Can I give you the number instead?"
+   },
+   {
+    "s": "m",
+    "t": "Sure, that works. Go ahead and read it to me."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why does the student want a study room?",
+    "choices": [
+     "To study quietly by herself",
+     "To meet with a tutor",
+     "To practice a presentation with a group",
+     "To use the whiteboard for math problems"
+    ],
+    "answer": 2,
+    "explain": "She says she is practicing a presentation and that four people will come."
+   },
+   {
+    "q": "What problem does the student have?",
+    "choices": [
+     "She wants a room for more than six people.",
+     "She does not have her student ID with her.",
+     "The basement room is too far away.",
+     "She cannot come on Thursday."
+    ],
+    "answer": 1,
+    "explain": "She left her wallet in her dorm, so she offers to read out the number."
+   }
+  ]
+ },
+ {
+  "id": "lcv-002",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a staff member at the registrar's office.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Hello, I'd like to drop my statistics course, but the online system won't let me."
+   },
+   {
+    "s": "f",
+    "t": "The online drop deadline was last Friday. Now the only option is to withdraw, which puts a W, for withdrawn, on your transcript, but you won't get an F."
+   },
+   {
+    "s": "m",
+    "t": "Will I still get a refund?"
+   },
+   {
+    "s": "f",
+    "t": "Unfortunately, no. After the deadline, tuition for that class isn't refunded."
+   },
+   {
+    "s": "m",
+    "t": "Okay. I'd still rather have a W than fail the course. What do I need to do?"
+   },
+   {
+    "s": "f",
+    "t": "Fill out this form and get your professor's signature. Then bring it back by next Friday."
+   },
+   {
+    "s": "m",
+    "t": "Can I email it instead?"
+   },
+   {
+    "s": "f",
+    "t": "The form has to be turned in here, in person."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why can't the student drop the course online?",
+    "choices": [
+     "The system is not working today.",
+     "He owes money to the university.",
+     "His professor has not approved it.",
+     "The deadline for dropping has passed."
+    ],
+    "answer": 3,
+    "explain": "The staff member says the online drop deadline was last Friday."
+   },
+   {
+    "q": "What will the student most likely do next?",
+    "choices": [
+     "Ask for a refund",
+     "Switch to a different statistics section",
+     "Get his professor to sign the form",
+     "Email the form to the registrar"
+    ],
+    "answer": 2,
+    "explain": "He must get a signature and deliver the form in person. No refund is possible and email is not allowed."
+   }
+  ]
+ },
+ {
+  "id": "lcv-003",
+  "type": "lcv",
+  "diff": "easy",
+  "context": "Listen to a conversation between two students.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Okay, so for our marketing project, we need to split up the work. Any preferences?"
+   },
+   {
+    "s": "m",
+    "t": "I'm happy to do the survey. I took a research methods class last term."
+   },
+   {
+    "s": "f",
+    "t": "Perfect. Then I'll design the slides. I made the slides for our last project too."
+   },
+   {
+    "s": "m",
+    "t": "Should we pick one person to present the results?"
+   },
+   {
+    "s": "f",
+    "t": "Maybe all of us should speak a little. The professor said she grades on teamwork."
+   },
+   {
+    "s": "m",
+    "t": "Good point. But we still need Priya's part. Has she answered your messages?"
+   },
+   {
+    "s": "f",
+    "t": "Not yet. I'll catch her after class tomorrow."
+   },
+   {
+    "s": "m",
+    "t": "Okay. Let's meet Friday to put everything together."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What will the man do for the project?",
+    "choices": [
+     "Conduct the survey",
+     "Design the slides",
+     "Present the results alone",
+     "Contact Priya"
+    ],
+    "answer": 0,
+    "explain": "He offers to do the survey because of his research methods class."
+   },
+   {
+    "q": "What does the woman say about the presentation?",
+    "choices": [
+     "Only Priya should present.",
+     "The professor will choose the speaker.",
+     "It should be shorter than last time.",
+     "Every team member should speak."
+    ],
+    "answer": 3,
+    "explain": "She says the professor grades on teamwork."
+   }
+  ]
+ },
+ {
+  "id": "lcv-004",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a professor.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Professor Hall, do you have a minute? I wanted to ask about the history paper due Monday."
+   },
+   {
+    "s": "m",
+    "t": "Of course. What's on your mind?"
+   },
+   {
+    "s": "f",
+    "t": "I've been sick all week, and I've barely started. Would it be possible to get a few extra days?"
+   },
+   {
+    "s": "m",
+    "t": "I'm sorry to hear that. Have you seen a doctor?"
+   },
+   {
+    "s": "f",
+    "t": "Yes, the health center gave me a note. I can bring it to you."
+   },
+   {
+    "s": "m",
+    "t": "That would help. In that case, you can turn it in on Thursday with no penalty."
+   },
+   {
+    "s": "f",
+    "t": "Thank you so much. Should I bring a printed copy?"
+   },
+   {
+    "s": "m",
+    "t": "No need. Just email it as a PDF before noon."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why does the student visit the professor?",
+    "choices": [
+     "She needs help choosing a topic.",
+     "She wants more time to finish a paper because she was ill.",
+     "She disagrees with a grade.",
+     "She wants to drop the class."
+    ],
+    "answer": 1,
+    "explain": "She says she has been sick and asks for extra days."
+   },
+   {
+    "q": "What must the student do to meet the new deadline?",
+    "choices": [
+     "Hand in a printed copy on Monday",
+     "Email the paper as a PDF before noon on Thursday",
+     "Pay a late fee",
+     "Go back to the health center on Thursday"
+    ],
+    "answer": 1,
+    "explain": "The professor allows Thursday with no penalty and asks for a PDF by email before noon."
+   }
+  ]
+ },
+ {
+  "id": "lcv-005",
+  "type": "lcv",
+  "diff": "hard",
+  "context": "Listen to a conversation between a student and an academic advisor.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "I have two options for this summer, and I can't decide. There's an internship at a software company, or a summer course in advanced calculus."
+   },
+   {
+    "s": "m",
+    "t": "Which one would help you more?"
+   },
+   {
+    "s": "f",
+    "t": "The internship is unpaid, but it might lead to a job. The calculus class would let me graduate a semester early."
+   },
+   {
+    "s": "m",
+    "t": "Hmm. Graduating early saves tuition. But employers really notice internship experience."
+   },
+   {
+    "s": "f",
+    "t": "I can't afford to do both. I also need to work part time at the bookstore."
+   },
+   {
+    "s": "m",
+    "t": "Then here's a thought. Could the internship be done part time, or remotely?"
+   },
+   {
+    "s": "f",
+    "t": "I don't know. I never asked."
+   },
+   {
+    "s": "m",
+    "t": "Ask them. If they say yes, you could take the course online and do both."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the student's problem?",
+    "choices": [
+     "She has failed a course.",
+     "She cannot find a summer job.",
+     "She wants to change her major.",
+     "She cannot choose between two summer plans."
+    ],
+    "answer": 3,
+    "explain": "She begins by saying she has two options and cannot decide."
+   },
+   {
+    "q": "What does the advisor suggest?",
+    "choices": [
+     "Finding out whether the internship can be flexible",
+     "Taking calculus later",
+     "Quitting the bookstore job",
+     "Choosing the internship because it is unpaid"
+    ],
+    "answer": 0,
+    "explain": "He asks whether the internship could be part time or remote so that she can do both."
+   }
+  ]
+ },
+ {
+  "id": "lcv-006",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a housing office employee.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Hi, I live in Baker Hall, and I'd like to request a room change."
+   },
+   {
+    "s": "f",
+    "t": "Is there a problem with your current room?"
+   },
+   {
+    "s": "m",
+    "t": "My roommate and I get along fine. The problem is the noise. Our room is right below the lounge, and people play loud music until midnight."
+   },
+   {
+    "s": "f",
+    "t": "Have you talked to your resident advisor about it?"
+   },
+   {
+    "s": "m",
+    "t": "Twice. It got quieter for a few days, and then it went back to normal."
+   },
+   {
+    "s": "f",
+    "t": "I see. We do have an open single room on the fourth floor, but it costs a little more each month."
+   },
+   {
+    "s": "m",
+    "t": "How much more?"
+   },
+   {
+    "s": "f",
+    "t": "About eighty dollars. If you'd rather keep your roommate, I can ask the advisor to enforce quiet hours more strictly."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why does the man want to change rooms?",
+    "choices": [
+     "He does not like his roommate.",
+     "His room is too small.",
+     "Noise from the lounge above his room",
+     "His room is too far from classes."
+    ],
+    "answer": 2,
+    "explain": "He says the room is below the lounge, where loud music plays."
+   },
+   {
+    "q": "What is a disadvantage of the single room?",
+    "choices": [
+     "It is on a noisy floor.",
+     "It is far from the dining hall.",
+     "It will not be available until next semester.",
+     "It costs more."
+    ],
+    "answer": 3,
+    "explain": "The employee says it costs about eighty dollars more per month."
+   }
+  ]
+ },
+ {
+  "id": "lcv-007",
+  "type": "lcv",
+  "diff": "easy",
+  "context": "Listen to a conversation between two students.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Did you see the flyer for the photography club? They're having an open meeting tonight."
+   },
+   {
+    "s": "m",
+    "t": "I did. I'm tempted, but I don't even own a good camera."
+   },
+   {
+    "s": "f",
+    "t": "You don't need one. Most people just use their phones, and the club lends cameras too."
+   },
+   {
+    "s": "m",
+    "t": "Really? What do they do at the meetings?"
+   },
+   {
+    "s": "f",
+    "t": "Mostly they share photos and give each other feedback. On weekends, they take trips to places like the botanical garden."
+   },
+   {
+    "s": "m",
+    "t": "That sounds fun. What time does it start?"
+   },
+   {
+    "s": "f",
+    "t": "Seven, in the arts building. Want to go together?"
+   },
+   {
+    "s": "m",
+    "t": "Sure. I have a chemistry quiz tomorrow, though, so I can only stay for an hour."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What concern does the man mention at first?",
+    "choices": [
+     "He has no free time on weekends.",
+     "He does not have a good camera.",
+     "He does not know where the meeting is.",
+     "He has never taken a photograph."
+    ],
+    "answer": 1,
+    "explain": "He says he doesn't own a good camera."
+   },
+   {
+    "q": "Why can the man stay only an hour?",
+    "choices": [
+     "He has to work tonight.",
+     "The meeting is short.",
+     "He has a quiz tomorrow.",
+     "He is meeting a friend at the garden."
+    ],
+    "answer": 2,
+    "explain": "He mentions a chemistry quiz the next day."
+   }
+  ]
+ },
+ {
+  "id": "lcv-008",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a dining services employee.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Hi, I'm trying to figure out my meal plan. I keep running out of swipes before the end of the week."
+   },
+   {
+    "s": "f",
+    "t": "How many meals a week does your plan include?"
+   },
+   {
+    "s": "m",
+    "t": "Ten. But I eat breakfast and dinner at the dining hall every day, because my classes end late."
+   },
+   {
+    "s": "f",
+    "t": "That's fourteen meals a week without even counting lunch. You'd be better off with the unlimited plan."
+   },
+   {
+    "s": "m",
+    "t": "Isn't it a lot more expensive?"
+   },
+   {
+    "s": "f",
+    "t": "It's about two hundred dollars more per semester. But you can switch until the end of this month, and the cost is adjusted."
+   },
+   {
+    "s": "m",
+    "t": "Hmm. I'll think about it. Can I change it online?"
+   },
+   {
+    "s": "f",
+    "t": "No, you'll need to come to this office and fill out a form."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why does the man run out of swipes?",
+    "choices": [
+     "He eats more meals there than his plan allows.",
+     "He gave swipes to a friend.",
+     "The dining hall raised its prices.",
+     "His plan only works on weekdays."
+    ],
+    "answer": 0,
+    "explain": "His plan has ten meals, but he eats at least fourteen."
+   },
+   {
+    "q": "How can the man change his meal plan?",
+    "choices": [
+     "By filling out a form at the office",
+     "By calling the dining hall",
+     "By using the online system",
+     "By waiting until next semester"
+    ],
+    "answer": 0,
+    "explain": "The employee says it cannot be done online and that he must come to the office."
+   }
+  ]
+ },
+ {
+  "id": "lcv-009",
+  "type": "lcv",
+  "diff": "easy",
+  "context": "Listen to a conversation between a student and an information technology help desk worker.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Hi, I can't connect my laptop to the campus Wi-Fi. It keeps asking for my password, and then it fails."
+   },
+   {
+    "s": "m",
+    "t": "Did you change your university password recently?"
+   },
+   {
+    "s": "f",
+    "t": "Yes, last week. My account asked me to."
+   },
+   {
+    "s": "m",
+    "t": "That's probably the cause. Your laptop is still trying the old one. Go to your Wi-Fi settings, forget the campus network, and reconnect with the new password."
+   },
+   {
+    "s": "f",
+    "t": "Oh, that sounds easy. My phone connects fine, though. Why is that?"
+   },
+   {
+    "s": "m",
+    "t": "Phones often update saved passwords after you sign in to your email. Laptops usually don't."
+   },
+   {
+    "s": "f",
+    "t": "Makes sense. Thanks. Do I need to do anything else?"
+   },
+   {
+    "s": "m",
+    "t": "No, but if it still doesn't work, bring it by tomorrow. We're open until five."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What caused the student's problem?",
+    "choices": [
+     "The campus network is down.",
+     "Her account was locked.",
+     "Her laptop saved her old password.",
+     "Her laptop is too old."
+    ],
+    "answer": 2,
+    "explain": "The worker says the laptop is still trying the old password."
+   },
+   {
+    "q": "According to the worker, why does her phone connect without trouble?",
+    "choices": [
+     "It uses a different network.",
+     "It updated the saved password automatically.",
+     "It has a stronger signal.",
+     "She has never changed the phone's settings."
+    ],
+    "answer": 1,
+    "explain": "He explains that phones often update saved passwords after signing in to email."
+   }
+  ]
+ },
+ {
+  "id": "lcv-010",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a teaching assistant.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Hi, I'm in the Tuesday chemistry lab, but I have a job interview this Tuesday. Is there any way to attend a different section?"
+   },
+   {
+    "s": "f",
+    "t": "There's a Thursday section, but it's usually full. Let me check. It looks like there are two open spots."
+   },
+   {
+    "s": "m",
+    "t": "Great. Can you move me?"
+   },
+   {
+    "s": "f",
+    "t": "I can, but you'll need your professor's approval first. It's a department rule."
+   },
+   {
+    "s": "m",
+    "t": "She's in her office until three, right?"
+   },
+   {
+    "s": "f",
+    "t": "Yes. Also, remember that the Thursday section starts an hour earlier, at one o'clock."
+   },
+   {
+    "s": "m",
+    "t": "That's fine. I don't have any classes then."
+   },
+   {
+    "s": "f",
+    "t": "Okay. Get her signature and bring it back to me before Tuesday."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why does the student want to change lab sections?",
+    "choices": [
+     "He wants a smaller group.",
+     "He is behind on the work.",
+     "He does not like his lab partner.",
+     "He has a job interview on the day of his lab"
+    ],
+    "answer": 3,
+    "explain": "He says he has a job interview on Tuesday."
+   },
+   {
+    "q": "What must the student do before he can switch?",
+    "choices": [
+     "Pay a fee",
+     "Take a safety test",
+     "Get permission from his professor",
+     "Find another student to trade places"
+    ],
+    "answer": 2,
+    "explain": "The teaching assistant says the professor's approval is a department rule."
+   }
+  ]
+ },
+ {
+  "id": "lcv-011",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a bookstore employee.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "I need the textbook for Biology one hundred one. Is it better to rent it or buy it?"
+   },
+   {
+    "s": "m",
+    "t": "Renting is cheaper upfront. It's sixty dollars for the semester, compared with one hundred and forty to buy it new."
+   },
+   {
+    "s": "f",
+    "t": "What if I want to write notes in it?"
+   },
+   {
+    "s": "m",
+    "t": "Rentals can be highlighted, but you can't write in them with a pen. If you do, you'll be charged a fee."
+   },
+   {
+    "s": "f",
+    "t": "Hmm. And if I buy it, can I sell it back later?"
+   },
+   {
+    "s": "m",
+    "t": "Yes, but only if the professor uses the same edition next term, and that's not guaranteed."
+   },
+   {
+    "s": "f",
+    "t": "I think I'll rent it and take notes in a separate notebook."
+   },
+   {
+    "s": "m",
+    "t": "Smart. Just remember to return it by the last day of finals."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What restriction applies to rented books?",
+    "choices": [
+     "Students may not write in them with a pen.",
+     "Students may not highlight them.",
+     "They must be returned before midterms.",
+     "They cannot be used in the library."
+    ],
+    "answer": 0,
+    "explain": "The employee says rentals can be highlighted but not written in with pen."
+   },
+   {
+    "q": "What does the student decide to do?",
+    "choices": [
+     "Buy the book new",
+     "Buy a used copy",
+     "Share a copy with a friend",
+     "Rent the book and take notes elsewhere"
+    ],
+    "answer": 3,
+    "explain": "She says she will rent it and use a separate notebook."
+   }
+  ]
+ },
+ {
+  "id": "lcv-012",
+  "type": "lcv",
+  "diff": "hard",
+  "context": "Listen to a conversation between two students.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Have you decided about the study abroad program in Spain?"
+   },
+   {
+    "s": "f",
+    "t": "I'm leaning toward it, but my parents are worried about the cost."
+   },
+   {
+    "s": "m",
+    "t": "I looked into it. The tuition is the same as here, and there's a scholarship for students with a B average."
+   },
+   {
+    "s": "f",
+    "t": "That's good news. I have a three point four, so I should qualify."
+   },
+   {
+    "s": "m",
+    "t": "The application is due in two weeks, and you need a recommendation from a professor."
+   },
+   {
+    "s": "f",
+    "t": "I'll ask Professor Kim. She taught my Spanish class."
+   },
+   {
+    "s": "m",
+    "t": "Good idea. I'm applying too. We could go together."
+   },
+   {
+    "s": "f",
+    "t": "That would make me less nervous. Okay, let's both apply."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What does the man say about the cost of the program?",
+    "choices": [
+     "It is cheaper than staying home.",
+     "Tuition is the same as at their school, and a scholarship is available.",
+     "Only students with a perfect average receive help.",
+     "Parents can apply for a loan."
+    ],
+    "answer": 1,
+    "explain": "He says tuition is the same and there is a scholarship for students with a B average."
+   },
+   {
+    "q": "What will the woman probably do first?",
+    "choices": [
+     "Apply for a loan",
+     "Ask Professor Kim for a recommendation",
+     "Call her parents",
+     "Take a Spanish exam"
+    ],
+    "answer": 1,
+    "explain": "She says she will ask Professor Kim, who taught her Spanish class."
+   }
+  ]
+ },
+ {
+  "id": "lcv-013",
+  "type": "lcv",
+  "diff": "hard",
+  "context": "Listen to a conversation between a student and a fitness center employee.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Hi, I tried to sign up for the Wednesday yoga class online, but it says it's full."
+   },
+   {
+    "s": "m",
+    "t": "Yes, that one is popular. You can join the waiting list, though. People often drop out during the first week."
+   },
+   {
+    "s": "f",
+    "t": "How does it work? Do I get an email?"
+   },
+   {
+    "s": "m",
+    "t": "You get a text message, and you have thirty minutes to confirm your spot."
+   },
+   {
+    "s": "f",
+    "t": "Thirty minutes is short. What if I'm in class?"
+   },
+   {
+    "s": "m",
+    "t": "Then I'd suggest the Friday class. It still has a few spots, and the instructor is the same."
+   },
+   {
+    "s": "f",
+    "t": "Oh, that works. I'm free on Friday mornings."
+   },
+   {
+    "s": "m",
+    "t": "Great. Let me sign you up now."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why does the man recommend the Friday class?",
+    "choices": [
+     "The Wednesday class has been canceled.",
+     "The Friday instructor is better.",
+     "The Friday class is cheaper.",
+     "The woman might miss the waiting list message."
+    ],
+    "answer": 3,
+    "explain": "She worries about being in class when the text arrives, and he responds with the Friday option."
+   },
+   {
+    "q": "What will the woman most likely do?",
+    "choices": [
+     "Register for the Friday class",
+     "Join the Wednesday waiting list",
+     "Skip yoga this semester",
+     "Email the instructor"
+    ],
+    "answer": 0,
+    "explain": "She says Friday works for her, and he offers to sign her up."
+   }
+  ]
+ },
+ {
+  "id": "lcv-014",
+  "type": "lcv",
+  "diff": "medium",
+  "context": "Listen to a conversation between a student and a professor.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Professor Reyes, I wanted to talk about my presentation topic. I was planning to cover renewable energy in general."
+   },
+   {
+    "s": "f",
+    "t": "That's very broad for ten minutes. Is there a particular aspect you find interesting?"
+   },
+   {
+    "s": "m",
+    "t": "I like solar panels, especially how they're used in villages without electricity."
+   },
+   {
+    "s": "f",
+    "t": "That's much better. You could focus on one case, like a village in India, and show how it changed daily life."
+   },
+   {
+    "s": "m",
+    "t": "I read an article about that, actually. Can I use it as a source?"
+   },
+   {
+    "s": "f",
+    "t": "It's fine as a starting point, but I'd want at least two scholarly sources as well. The library database has some good ones."
+   },
+   {
+    "s": "m",
+    "t": "Okay, I'll start there. Should I send you an outline?"
+   },
+   {
+    "s": "f",
+    "t": "Yes, by next Wednesday."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What does the professor say about the student's original topic?",
+    "choices": [
+     "It has already been chosen by another student.",
+     "It is not related to the course.",
+     "It is too broad for the time available.",
+     "It is too technical."
+    ],
+    "answer": 2,
+    "explain": "She says it is very broad for ten minutes."
+   },
+   {
+    "q": "What does the professor require for sources?",
+    "choices": [
+     "Only articles from newspapers",
+     "One source from the professor",
+     "No more than one article",
+     "At least two scholarly sources besides the article"
+    ],
+    "answer": 3,
+    "explain": "She accepts the article as a start but wants at least two scholarly sources as well."
+   }
+  ]
+ },
+ {
+  "id": "lan-001",
+  "type": "lan",
+  "diff": "easy",
+  "context": "Listen to an announcement at a university library.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Attention library visitors. Beginning next Monday, the main library will stay open until two in the morning during the final exam period. The first floor and the quiet study rooms will remain open all night, but the cafe will close at midnight as usual. Please remember that you must show your student ID at the front desk after ten at night."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What change is being announced?",
+    "choices": [
+     "The cafe will open all night.",
+     "The library will stay open later during exams.",
+     "The library will close for the weekend.",
+     "The quiet rooms will be removed."
+    ],
+    "answer": 1,
+    "explain": "The announcement says the library will stay open until two in the morning during finals."
+   },
+   {
+    "q": "What must students do after ten at night?",
+    "choices": [
+     "Reserve a study room",
+     "Leave the first floor",
+     "Show their student ID",
+     "Buy food at the cafe"
+    ],
+    "answer": 2,
+    "explain": "They must show an ID at the front desk after ten."
+   }
+  ]
+ },
+ {
+  "id": "lan-002",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement in a biology class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Before we begin today's lab, I have a quick reminder. Anyone working with the preserved samples must wear gloves and goggles at all times. The goggles are in the cabinet by the door. Also, because of a delivery problem, we only have six microscopes instead of eight, so you'll be working in groups of three instead of pairs. Please choose your partners now, and start with the worksheet on your table."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why will students work in groups of three?",
+    "choices": [
+     "There are fewer microscopes than usual.",
+     "The samples are limited.",
+     "The lab is too crowded.",
+     "The worksheet is too long."
+    ],
+    "answer": 0,
+    "explain": "A delivery problem left only six microscopes."
+   },
+   {
+    "q": "Where can students find the goggles?",
+    "choices": [
+     "In the cabinet by the door",
+     "On the worksheet table",
+     "In the supply closet",
+     "At the front desk"
+    ],
+    "answer": 0,
+    "explain": "The speaker says the goggles are in the cabinet by the door."
+   }
+  ]
+ },
+ {
+  "id": "lan-003",
+  "type": "lan",
+  "diff": "easy",
+  "context": "Listen to an announcement from the campus transportation office.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "This is a message from campus transportation. Because of road construction on College Avenue, the blue line shuttle will not stop at the science building this week. Instead, riders can board at the stop outside the engineering library, a three minute walk away. The shuttle will still run every fifteen minutes. Regular service will resume next Monday. We apologize for the inconvenience."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why is the shuttle route changing?",
+    "choices": [
+     "A shortage of drivers",
+     "A building closure",
+     "Road construction",
+     "A schedule error"
+    ],
+    "answer": 2,
+    "explain": "The announcement mentions road construction on College Avenue."
+   },
+   {
+    "q": "What should riders at the science building do this week?",
+    "choices": [
+     "Wait for a later shuttle",
+     "Board at the stop near the engineering library",
+     "Take a different bus line",
+     "Walk to College Avenue"
+    ],
+    "answer": 1,
+    "explain": "Riders are told to use the engineering library stop."
+   }
+  ]
+ },
+ {
+  "id": "lan-004",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement from the career center.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Good afternoon, everyone. The annual career fair is this Thursday in the sports center, from ten until four. More than sixty companies will attend, including several that are hiring for summer internships. Bring several printed copies of your resume, and dress professionally. If you'd like feedback on your resume first, the career center is offering free fifteen minute reviews on Wednesday. Appointments can be booked on its website."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What can students do on Wednesday?",
+    "choices": [
+     "Attend the career fair",
+     "Interview for internships",
+     "Print their resumes for free",
+     "Get feedback on their resumes"
+    ],
+    "answer": 3,
+    "explain": "The career center offers resume reviews on Wednesday."
+   },
+   {
+    "q": "What are students told to bring to the fair?",
+    "choices": [
+     "A letter from a professor",
+     "A list of questions",
+     "Printed copies of their resumes",
+     "Their transcripts"
+    ],
+    "answer": 2,
+    "explain": "The speaker says to bring several printed resumes."
+   }
+  ]
+ },
+ {
+  "id": "lan-005",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement from parking services.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Parking services would like to remind students that the old parking permits expire at the end of this month. New permits are available online for one hundred and twenty dollars for the year. Students who live on campus may choose a cheaper option, a ninety dollar permit for the east lot only. Vehicles without a valid permit after the first of next month will be ticketed."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What option is available to students who live on campus?",
+    "choices": [
+     "A cheaper permit for one lot",
+     "A free permit",
+     "A permit valid only on weekends",
+     "A permit that lasts two years"
+    ],
+    "answer": 0,
+    "explain": "A ninety dollar permit for the east lot is offered to residents."
+   },
+   {
+    "q": "What will happen to cars without a valid permit next month?",
+    "choices": [
+     "They will be towed immediately.",
+     "They will be allowed one week of free parking.",
+     "They will be moved to the east lot.",
+     "They will receive tickets."
+    ],
+    "answer": 3,
+    "explain": "The speaker says vehicles without a valid permit will be ticketed."
+   }
+  ]
+ },
+ {
+  "id": "lan-006",
+  "type": "lan",
+  "diff": "easy",
+  "context": "Listen to an announcement in a university dining hall.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Welcome to the dining hall's weekly update. Starting tomorrow, we will serve a vegetarian option at every meal, in response to student requests. On Wednesdays, the dessert station will also offer gluten free choices. And because so many students asked for it, we're extending breakfast hours, so it will now end at eleven instead of ten. Please share more ideas using the suggestion box by the entrance."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the announcement mainly about?",
+    "choices": [
+     "A price increase",
+     "Changes made because of student requests",
+     "A new dining hall opening",
+     "Complaints about the food"
+    ],
+    "answer": 1,
+    "explain": "Each change is described as a response to what students asked for."
+   },
+   {
+    "q": "What change is being made to breakfast?",
+    "choices": [
+     "It will start earlier.",
+     "It will end an hour later.",
+     "It will be free on Wednesdays.",
+     "It will be served only on weekends."
+    ],
+    "answer": 1,
+    "explain": "Breakfast will now end at eleven instead of ten."
+   }
+  ]
+ },
+ {
+  "id": "lan-007",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement from the registrar's office.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Students, this is a reminder from the registrar's office. The last day to change a course from credit to audit is this Friday at five. After that, changes aren't possible without a special petition, which takes about two weeks to review. If you're unsure, talk to your academic advisor before Friday. Advisors are holding extra drop in hours on Thursday afternoon in the student services building."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What should students do if they are unsure about changing a course?",
+    "choices": [
+     "Submit a petition immediately",
+     "Email the registrar",
+     "Wait until next week",
+     "Speak with their academic advisor"
+    ],
+    "answer": 3,
+    "explain": "The speaker recommends talking to an advisor before Friday."
+   },
+   {
+    "q": "What happens after Friday at five?",
+    "choices": [
+     "A special petition is required.",
+     "Students lose their credit.",
+     "The course is dropped automatically.",
+     "Students pay a late fee."
+    ],
+    "answer": 0,
+    "explain": "Changes then need a petition that takes about two weeks."
+   }
+  ]
+ },
+ {
+  "id": "lan-008",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement in an art history class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Hello, art history students. Our field trip to the city museum is this Saturday. The bus will leave from the front of the humanities building at nine in the morning, and we should be back by two. Admission is free for students, but you'll need to show your ID. Please wear comfortable shoes, because we'll be walking through several large galleries. If you can't make it, send me an email today so I can adjust the head count."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What do students need to show at the museum?",
+    "choices": [
+     "A permission form",
+     "A bus ticket",
+     "Their student ID",
+     "A payment receipt"
+    ],
+    "answer": 2,
+    "explain": "Admission is free if students show their ID."
+   },
+   {
+    "q": "Why should students who cannot go send an email?",
+    "choices": [
+     "So they can get a different assignment",
+     "So the bus can be canceled",
+     "So they can receive a refund",
+     "So the professor can plan for the right number of people"
+    ],
+    "answer": 3,
+    "explain": "The speaker wants to adjust the head count."
+   }
+  ]
+ },
+ {
+  "id": "lan-009",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement in a chemistry class.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Attention students in Professor Ortiz's chemistry class. The exam review session scheduled for tonight has been moved. Instead of room one fourteen, it will be held in the large lecture hall in the science center, room two hundred. The time hasn't changed, and it still starts at seven. The room was changed because more than a hundred students signed up. Bring your questions and a calculator, since we'll solve practice problems together."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Why was the location changed?",
+    "choices": [
+     "The first room is being repaired.",
+     "A large number of students signed up.",
+     "The professor is in another building.",
+     "The session was extended."
+    ],
+    "answer": 1,
+    "explain": "More than a hundred students signed up."
+   },
+   {
+    "q": "What has stayed the same?",
+    "choices": [
+     "The room",
+     "The professor",
+     "The starting time",
+     "The topics"
+    ],
+    "answer": 2,
+    "explain": "The speaker says the time hasn't changed."
+   }
+  ]
+ },
+ {
+  "id": "lan-010",
+  "type": "lan",
+  "diff": "hard",
+  "context": "Listen to an announcement from technology services.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Information technology services will be upgrading the campus network this Sunday. Wi-Fi will be unavailable in all residence halls from two until six in the morning. Wired connections in the library and computer labs will not be affected. If you have an assignment due early Monday, we recommend submitting it before Saturday night. For updates, follow the technology services page, which will show progress in real time."
+   }
+  ],
+  "qs": [
+   {
+    "q": "Who will be affected by the Wi-Fi outage?",
+    "choices": [
+     "Students living in residence halls",
+     "Students in the library",
+     "All students on campus",
+     "Only computer lab users"
+    ],
+    "answer": 0,
+    "explain": "Only residence hall Wi-Fi will be unavailable."
+   },
+   {
+    "q": "What does the speaker recommend?",
+    "choices": [
+     "Turning in early Monday assignments before Saturday night",
+     "Using the library on Sunday afternoon",
+     "Buying a wired connection",
+     "Restarting laptops before Sunday"
+    ],
+    "answer": 0,
+    "explain": "The speaker suggests submitting work before Saturday night."
+   }
+  ]
+ },
+ {
+  "id": "lan-011",
+  "type": "lan",
+  "diff": "easy",
+  "context": "Listen to an announcement at a new student orientation.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Welcome, new students, and congratulations on starting your first semester. In a moment, you'll split into small groups, each led by a returning student. Your leader will give you a campus tour and help you find your classrooms. After the tour, lunch is on us, in the main dining hall. Please pick up your name tag and schedule from the table at the entrance, since you'll need them for the afternoon session."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What will the students do next?",
+    "choices": [
+     "Eat lunch in the dining hall",
+     "Attend the afternoon session",
+     "Divide into groups led by returning students",
+     "Choose their classes"
+    ],
+    "answer": 2,
+    "explain": "The speaker says they will split into small groups in a moment."
+   },
+   {
+    "q": "Why should students collect their name tags and schedules?",
+    "choices": [
+     "They give free access to lunch.",
+     "They will need them in the afternoon.",
+     "They are required for the campus tour.",
+     "They show where to sit."
+    ],
+    "answer": 1,
+    "explain": "The speaker says they will be needed for the afternoon session."
+   }
+  ]
+ },
+ {
+  "id": "lan-012",
+  "type": "lan",
+  "diff": "medium",
+  "context": "Listen to an announcement from the student volunteer office.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "This is a message from the student volunteer office. Next Saturday we're organizing a community cleanup along the river trail, and we need about forty volunteers. Gloves and bags will be provided, but please bring your own water bottle. Everyone who participates will receive a certificate that can count toward the service hours required for graduation. To sign up, visit the office on the second floor of the student center before Wednesday."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What will volunteers receive?",
+    "choices": [
+     "A free lunch",
+     "A university sweatshirt",
+     "Extra credit in a class",
+     "A certificate for service hours"
+    ],
+    "answer": 3,
+    "explain": "The certificate can count toward required service hours."
+   },
+   {
+    "q": "What do volunteers need to bring?",
+    "choices": [
+     "Gloves",
+     "Garbage bags",
+     "A water bottle",
+     "A signed permission form"
+    ],
+    "answer": 2,
+    "explain": "Gloves and bags are provided, but not water bottles."
+   }
+  ]
+ },
+ {
+  "id": "lat-001",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in an astronomy class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "So last time we noticed that the Moon always shows the same face to Earth. Today I want to explain why, because it isn't a coincidence. The effect is called tidal locking. Here's the idea. Earth's gravity pulls harder on the near side of the Moon than on the far side, so the Moon gets stretched slightly, a bit like a lemon. Early in its history, the Moon was spinning faster than it does now."
+   },
+   {
+    "s": "m",
+    "t": "As it spun, that stretched bulge kept being carried out of line with Earth, and Earth's gravity tugged on the bulge to pull it back. That tugging worked like a brake. Over millions of years, the spin slowed until one rotation took exactly as long as one orbit. At that point, the bulge stayed pointed at Earth, and the braking stopped."
+   },
+   {
+    "s": "m",
+    "t": "Now, you might wonder if this is rare. It isn't. Most large moons in our solar system are tidally locked to their planets. Even Pluto and its largest moon, Charon, always face each other, which means each one is locked to the other."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the talk mainly about?",
+    "choices": [
+     "Why the Moon always shows the same side to Earth",
+     "How the Moon was formed",
+     "Why the Moon is shaped like a lemon",
+     "How tides are created on Earth"
+    ],
+    "answer": 0,
+    "explain": "The professor explains tidal locking as the reason for the Moon's constant face."
+   },
+   {
+    "q": "What acted like a brake on the Moon's spin?",
+    "choices": [
+     "Friction from the Moon's surface",
+     "The pull of other planets",
+     "The Moon's own orbit slowing down",
+     "Earth's gravity pulling on the Moon's bulge"
+    ],
+    "answer": 3,
+    "explain": "Earth tugged on the bulge, which slowed the rotation."
+   },
+   {
+    "q": "Why does the professor mention Pluto and Charon?",
+    "choices": [
+     "To show that moons can lose their locking",
+     "To show that tidal locking is common",
+     "To compare the sizes of moons and planets",
+     "To explain how Pluto was discovered"
+    ],
+    "answer": 1,
+    "explain": "The example supports the claim that tidal locking is not rare."
+   },
+   {
+    "q": "What can be inferred about a moon that spins much faster than it orbits?",
+    "choices": [
+     "It has no bulge at all.",
+     "Gravity is probably still slowing its spin.",
+     "It is too small to be affected by gravity.",
+     "It will soon leave its orbit."
+    ],
+    "answer": 1,
+    "explain": "Since braking only stops once rotation matches the orbit, a faster spin suggests the process is unfinished."
+   }
+  ]
+ },
+ {
+  "id": "lat-002",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in a biology class.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Let's talk about something that happens underground, where most of us never look. Many trees form partnerships with fungi. The fungus grows thin threads around the tree's roots and even into them. These threads reach much farther into the soil than roots can, so they bring water and minerals, such as phosphorus, to the tree. In return, the tree gives the fungus sugars that it makes through photosynthesis."
+   },
+   {
+    "s": "f",
+    "t": "What surprised researchers was that one fungal network can connect several trees at once. In one experiment, scientists shaded a young tree so it couldn't photosynthesize well. Later, they found that carbon had moved to it from taller neighbors through the fungus. Some people call this the wood wide web."
+   },
+   {
+    "s": "f",
+    "t": "Now, I should add a note of caution. We don't yet know whether trees send carbon on purpose, to help each other, or whether it simply flows from places with a lot to places with little. The experiments show movement. They don't show intention. So be careful when you read headlines that say trees talk to each other."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the main topic of the talk?",
+    "choices": [
+     "How trees grow taller than their neighbors",
+     "The effects of shade on forest animals",
+     "The chemistry of photosynthesis",
+     "Cooperation between trees and fungi in the soil"
+    ],
+    "answer": 3,
+    "explain": "The professor describes the tree and fungus partnership and what moves through it."
+   },
+   {
+    "q": "What does a tree give to the fungus?",
+    "choices": [
+     "Sugars",
+     "Water",
+     "Phosphorus",
+     "Carbon dioxide"
+    ],
+    "answer": 0,
+    "explain": "The tree provides sugars made through photosynthesis."
+   },
+   {
+    "q": "Why does the professor describe the experiment with the shaded tree?",
+    "choices": [
+     "To prove that trees can communicate on purpose",
+     "To show that shade kills young trees",
+     "To show that carbon can move between trees",
+     "To compare different kinds of fungi"
+    ],
+    "answer": 2,
+    "explain": "Carbon moved to the shaded tree from taller neighbors."
+   },
+   {
+    "q": "What does the professor imply about headlines claiming that trees talk?",
+    "choices": [
+     "They are completely false.",
+     "They are based on poor experiments.",
+     "They describe a process that scientists fully understand.",
+     "They may claim more than the evidence shows."
+    ],
+    "answer": 3,
+    "explain": "She says the experiments show movement but not intention."
+   }
+  ]
+ },
+ {
+  "id": "lat-003",
+  "type": "lat",
+  "diff": "easy",
+  "context": "Listen to part of a talk in a psychology class.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Here's a question for you. If you have ten hours to study for an exam, is it better to study all ten the night before, or to spread them over two weeks? Psychologists have tested this for more than a century, and the answer is consistent. Spreading it out wins. This is called the spacing effect."
+   },
+   {
+    "s": "f",
+    "t": "In a classic study, students learned word lists either in one long session or in several short ones with breaks in between. A week later, the group that studied in several sessions remembered far more words. Researchers think that each time you return to material, you have to pull it out of memory, and that effort strengthens the memory."
+   },
+   {
+    "s": "f",
+    "t": "Interestingly, students often feel that cramming works better. After a long session, the material feels familiar, so they think they know it. But familiarity isn't the same as knowledge. That false confidence is one reason many people keep cramming, even though it works worse."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the main point of the talk?",
+    "choices": [
+     "Long study sessions are the best way to learn.",
+     "Studying in separate sessions is more effective than cramming.",
+     "Students should avoid studying before an exam.",
+     "Word lists are easier to learn than essays."
+    ],
+    "answer": 1,
+    "explain": "The spacing effect favors spreading study time out."
+   },
+   {
+    "q": "According to researchers, why does spacing help?",
+    "choices": [
+     "Breaks help students relax.",
+     "Repeated exposure makes material shorter.",
+     "Retrieving information from memory strengthens it.",
+     "Students sleep more between sessions."
+    ],
+    "answer": 2,
+    "explain": "The professor says the effort of pulling material out of memory strengthens it."
+   },
+   {
+    "q": "Why does the professor say that cramming makes material feel familiar?",
+    "choices": [
+     "To explain why students continue to cram",
+     "To show that cramming is effective",
+     "To suggest that familiar material is easy",
+     "To criticize teachers who assign long readings"
+    ],
+    "answer": 0,
+    "explain": "The false sense of knowing explains why people keep cramming."
+   },
+   {
+    "q": "What would the professor most likely advise a student to do?",
+    "choices": [
+     "Study a little each day before the exam",
+     "Study for one long session the night before",
+     "Reread the material many times in a row",
+     "Study only the hardest topics"
+    ],
+    "answer": 0,
+    "explain": "Her talk supports spaced study."
+   }
+  ]
+ },
+ {
+  "id": "lat-004",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in an economics class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Imagine you buy a movie ticket for twelve dollars. Twenty minutes in, you realize the film is terrible. Do you stay or leave? Many people stay, because they paid for the ticket. Economists call this the sunk cost fallacy. A sunk cost is money or effort that has already been spent and can't be recovered, no matter what you decide next."
+   },
+   {
+    "s": "m",
+    "t": "The key point is this. Since the twelve dollars is gone either way, it shouldn't affect your decision. What should matter is the future. Would the next ninety minutes be better spent watching this movie or doing something else? If something else is more enjoyable, you should leave."
+   },
+   {
+    "s": "m",
+    "t": "This applies far beyond movies. A company may keep funding a failing project because it has already invested millions. A student may stay in a major they dislike because they've already completed two years. In both cases, the past investment is pulling on the decision, when only future costs and benefits should count."
+   },
+   {
+    "s": "m",
+    "t": "To be fair, there's one exception. Sometimes continuing is rational because quitting has its own costs, such as a penalty fee. But that is a future cost, not a sunk one."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the talk mainly about?",
+    "choices": [
+     "How movie theaters set ticket prices",
+     "How companies save money",
+     "Why past spending should not influence decisions",
+     "Why people dislike taking risks"
+    ],
+    "answer": 2,
+    "explain": "The professor defines the sunk cost fallacy and explains how to avoid it."
+   },
+   {
+    "q": "According to the professor, what should people consider when making a decision?",
+    "choices": [
+     "How much they have already spent",
+     "What will happen in the future",
+     "What other people have done",
+     "How much effort they have put in"
+    ],
+    "answer": 1,
+    "explain": "Only future costs and benefits should count."
+   },
+   {
+    "q": "Why does the professor mention a company and a student?",
+    "choices": [
+     "To compare large and small decisions",
+     "To explain how to manage money",
+     "To show that students make worse choices",
+     "To show that the fallacy occurs in many situations"
+    ],
+    "answer": 3,
+    "explain": "They are examples beyond the movie case."
+   },
+   {
+    "q": "Which situation would the professor consider a good reason to continue a project?",
+    "choices": [
+     "Millions have already been spent on it.",
+     "The project has been running for years.",
+     "Quitting would trigger a penalty fee.",
+     "The team is afraid of failing."
+    ],
+    "answer": 2,
+    "explain": "A penalty for quitting is a future cost, which can rationally matter."
+   }
+  ]
+ },
+ {
+  "id": "lat-005",
+  "type": "lat",
+  "diff": "hard",
+  "context": "Listen to part of a talk in a history class.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "When Johannes Gutenberg introduced movable type printing in Germany in the fourteen forties, books became cheaper almost overnight. Before that, every book was copied by hand, which could take a scribe months. Within fifty years, printers had produced millions of books across Europe."
+   },
+   {
+    "s": "f",
+    "t": "You might assume that cheaper books immediately made everyone literate. That didn't happen. For a long time, most people still couldn't read, and printers mostly sold to universities, churches, and wealthy merchants. What changed first was not how many people could read, but how fast ideas could travel."
+   },
+   {
+    "s": "f",
+    "t": "A good example is Martin Luther's writings. Within a few weeks of publication, his pamphlets were being read in cities hundreds of miles away. Earlier, such a message might have taken years to spread, if it spread at all. Printers also helped standardize spelling, since they wanted their books to be understood in different regions."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the main idea of the talk?",
+    "choices": [
+     "Printing first changed how quickly ideas spread.",
+     "Printing made most Europeans literate within fifty years.",
+     "Scribes continued to produce most books.",
+     "Printing made books more expensive."
+    ],
+    "answer": 0,
+    "explain": "The professor says literacy did not spread at once, but ideas traveled faster."
+   },
+   {
+    "q": "Who bought most of the early printed books?",
+    "choices": [
+     "Ordinary farmers",
+     "Scribes",
+     "Young students",
+     "Universities, churches, and wealthy merchants"
+    ],
+    "answer": 3,
+    "explain": "The professor lists these groups as the main buyers."
+   },
+   {
+    "q": "Why does the professor mention Martin Luther?",
+    "choices": [
+     "To show that most printers were religious",
+     "To illustrate how fast printed messages could travel",
+     "To explain why books became cheaper",
+     "To compare him with Gutenberg"
+    ],
+    "answer": 1,
+    "explain": "His pamphlets reached distant cities in weeks."
+   },
+   {
+    "q": "Why did printers help standardize spelling?",
+    "choices": [
+     "They were required by law.",
+     "They wanted readers in different regions to understand their books.",
+     "They wanted to make books shorter.",
+     "Scribes had already agreed on rules."
+    ],
+    "answer": 1,
+    "explain": "The professor states this reason at the end."
+   }
+  ]
+ },
+ {
+  "id": "lat-006",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in an environmental science class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "If you've ever walked from a park into a busy downtown on a summer afternoon, you've probably felt it. Cities are often several degrees warmer than the countryside around them. This is called the urban heat island effect. There are three main causes. First, dark surfaces like asphalt and rooftops absorb more sunlight than grass or soil does."
+   },
+   {
+    "s": "m",
+    "t": "Second, cities have fewer plants. Plants cool the air by releasing water vapor, a bit like sweating. Third, buildings and cars give off heat directly, from air conditioners, engines, and so on."
+   },
+   {
+    "s": "m",
+    "t": "So what can be done? Some cities paint rooftops white, which reflects sunlight. Others plant trees along streets. In Los Angeles, a program used a light gray coating on certain roads, and surface temperatures dropped. But these methods help only so much, since the heat from air conditioning is hard to reduce."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the talk mainly about?",
+    "choices": [
+     "How trees grow in cities",
+     "Why summers are getting hotter",
+     "How asphalt is made",
+     "Why cities are warmer than nearby areas and what can be done"
+    ],
+    "answer": 3,
+    "explain": "The professor explains causes and some solutions to urban heat islands."
+   },
+   {
+    "q": "How do plants cool the air?",
+    "choices": [
+     "By releasing water vapor",
+     "By blocking sunlight with their leaves",
+     "By absorbing heat from buildings",
+     "By lowering wind speed"
+    ],
+    "answer": 0,
+    "explain": "She compares it to sweating."
+   },
+   {
+    "q": "Why does the professor mention Los Angeles?",
+    "choices": [
+     "To show a city with many trees",
+     "To explain why asphalt is dark",
+     "To give an example of a method that lowered temperatures",
+     "To show that cooling programs always fail"
+    ],
+    "answer": 2,
+    "explain": "Surface temperatures dropped after the coating was applied."
+   },
+   {
+    "q": "What does the professor suggest about air conditioning in cities?",
+    "choices": [
+     "It is the best solution.",
+     "It has no effect on temperature.",
+     "It is used mainly on rooftops.",
+     "It can add to the heat problem."
+    ],
+    "answer": 3,
+    "explain": "She lists air conditioners as heat sources and says that heat is hard to reduce."
+   }
+  ]
+ },
+ {
+  "id": "lat-007",
+  "type": "lat",
+  "diff": "hard",
+  "context": "Listen to part of a talk in a linguistics class.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "Let's consider what happens when people with no shared language have to communicate regularly, such as traders or workers on plantations. They often develop a pidgin, a simplified language with limited vocabulary, borrowed mostly from one of the languages, and very little grammar. A pidgin isn't anyone's first language. It's a tool for specific purposes."
+   },
+   {
+    "s": "f",
+    "t": "Here's where it gets fascinating. When children grow up hearing a pidgin as their main input, something remarkable happens. They don't just copy it. They expand it, adding consistent grammar, such as ways to mark tense and plurals. The result is called a creole, which is a full language with native speakers."
+   },
+   {
+    "s": "f",
+    "t": "Haitian Creole is one example. Its vocabulary mostly comes from French, but its grammar developed in its own way and is different from French. Some linguists argue that this shows children have a natural ability to build grammar, even when the input they receive is incomplete."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the talk mainly about?",
+    "choices": [
+     "Why traders learn new languages",
+     "How a creole develops from a pidgin",
+     "How French spread to other countries",
+     "The history of plantations"
+    ],
+    "answer": 1,
+    "explain": "The professor traces the path from pidgin to creole."
+   },
+   {
+    "q": "What is true of a pidgin?",
+    "choices": [
+     "It is spoken by children as a first language.",
+     "It has complex rules for tense.",
+     "It has a small vocabulary and little grammar.",
+     "It is a mix of equal parts of two languages."
+    ],
+    "answer": 2,
+    "explain": "A pidgin is described as simplified, with limited vocabulary and very little grammar."
+   },
+   {
+    "q": "Why does the professor mention Haitian Creole?",
+    "choices": [
+     "As an example of a creole with its own grammar",
+     "As an example of a pidgin",
+     "To show that French is a simple language",
+     "To explain why traders needed a common language"
+    ],
+    "answer": 0,
+    "explain": "Its grammar developed differently from French."
+   },
+   {
+    "q": "What do some linguists conclude from creoles?",
+    "choices": [
+     "Children have a natural ability to create grammar.",
+     "Adults learn languages faster than children.",
+     "Grammar can only be taught by teachers.",
+     "Pidgins are better than creoles."
+    ],
+    "answer": 0,
+    "explain": "The professor says they argue children build grammar from incomplete input."
+   }
+  ]
+ },
+ {
+  "id": "lat-008",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in an art history class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Look at the painting on the screen, a religious scene from the thirteen hundreds. Notice how flat it seems. The figures are lined up across the front, the buildings don't recede, and sizes depend on importance, not distance. Now compare it with a painting from the fourteen twenties. Suddenly we feel we could walk into the scene. What changed?"
+   },
+   {
+    "s": "m",
+    "t": "The answer is linear perspective, a technique developed by the architect Filippo Brunelleschi in Florence. The idea is that parallel lines, like the edges of a road or a tiled floor, appear to meet at a single point in the distance, called the vanishing point. By drawing lines that way, artists could create a convincing illusion of depth."
+   },
+   {
+    "s": "m",
+    "t": "Brunelleschi was an architect, not a painter, so he approached the problem mathematically. His friend Alberti then wrote down the rules in a book, which allowed other artists to learn them. That's a big reason the technique spread so quickly through Italy."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the main topic of the talk?",
+    "choices": [
+     "Why religious scenes were popular",
+     "How Florence became an art center",
+     "How linear perspective changed the look of paintings",
+     "The life of Brunelleschi"
+    ],
+    "answer": 2,
+    "explain": "The talk explains perspective and its effect on depth."
+   },
+   {
+    "q": "What is the vanishing point?",
+    "choices": [
+     "The lowest point in a painting",
+     "The point where parallel lines appear to meet",
+     "The brightest area in a picture",
+     "The place where a painter signs the work"
+    ],
+    "answer": 1,
+    "explain": "The professor defines it this way."
+   },
+   {
+    "q": "Why does the professor begin by comparing two paintings?",
+    "choices": [
+     "To criticize older artists",
+     "To show how paintings were cleaned",
+     "To compare religious and nonreligious subjects",
+     "To show the effect of a new technique"
+    ],
+    "answer": 3,
+    "explain": "The older painting looks flat and the later one has depth."
+   },
+   {
+    "q": "According to the professor, why did the technique spread quickly?",
+    "choices": [
+     "Brunelleschi taught in many cities.",
+     "Wealthy buyers demanded it.",
+     "Alberti published its rules.",
+     "It was easy to copy by eye."
+    ],
+    "answer": 2,
+    "explain": "Alberti's book allowed other artists to learn the technique."
+   }
+  ]
+ },
+ {
+  "id": "lat-009",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in a geology class.",
+  "audio": [
+   {
+    "s": "f",
+    "t": "On a hike in the northern United States, you might come across a huge boulder sitting alone in a field, made of a completely different type of rock from everything around it. Geologists call these boulders erratics. They aren't from here. So how did a boulder the size of a house get to the middle of farmland?"
+   },
+   {
+    "s": "f",
+    "t": "The answer is glaciers. During the last ice age, sheets of ice thousands of feet thick moved slowly across the land. As they advanced, they picked up rocks, from pebbles to boulders, frozen into the ice. When the climate warmed and the ice melted, it dropped them, sometimes hundreds of miles from where they started."
+   },
+   {
+    "s": "f",
+    "t": "Erratics are useful to geologists because by identifying the rock type, they can trace where it came from. That tells us the direction the ice moved. For example, boulders of a distinctive red rock found in one state matched a cliff far to the north, which showed that the ice had traveled southward."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the talk mainly about?",
+    "choices": [
+     "How glaciers moved large boulders far from their origin",
+     "How rivers carve valleys",
+     "How farmland is formed",
+     "Why ice ages end"
+    ],
+    "answer": 0,
+    "explain": "The professor explains how glaciers carried erratics."
+   },
+   {
+    "q": "What happened when the ice melted?",
+    "choices": [
+     "The rocks sank into the ground.",
+     "The rocks were washed away by rivers.",
+     "The rocks broke into pebbles.",
+     "The rocks were left behind."
+    ],
+    "answer": 3,
+    "explain": "The ice dropped the rocks."
+   },
+   {
+    "q": "Why does the professor mention the red rock?",
+    "choices": [
+     "To explain why some rocks are colored",
+     "To show how erratics reveal the direction of ice movement",
+     "To show that glaciers melt slowly",
+     "To compare different ice ages"
+    ],
+    "answer": 1,
+    "explain": "The red rock matched a cliff to the north, showing that ice moved south."
+   },
+   {
+    "q": "Geologists find a boulder of a rock that exists only in mountains to the west. What would they most likely conclude?",
+    "choices": [
+     "The ice moved from east to west.",
+     "The ice moved from west to east.",
+     "The boulder was not carried by ice.",
+     "The mountains were once covered by farmland."
+    ],
+    "answer": 1,
+    "explain": "The source of the rock indicates the direction the ice traveled."
+   }
+  ]
+ },
+ {
+  "id": "lat-010",
+  "type": "lat",
+  "diff": "medium",
+  "context": "Listen to part of a talk in a physiology class.",
+  "audio": [
+   {
+    "s": "m",
+    "t": "Many of you pulled an all-nighter last semester, so this might hurt. Sleep doesn't just rest the brain. It actively helps store what you learned during the day. Researchers have found that during deep sleep, the brain replays patterns of activity that occurred while we were awake, almost like rehearsing."
+   },
+   {
+    "s": "m",
+    "t": "In one study, two groups of participants learned a list of word pairs in the evening. One group slept normally, and the other stayed awake all night. After that, both groups got two full nights of recovery sleep, and then they were tested. You would expect no difference, right? But the group that slept the first night remembered more."
+   },
+   {
+    "s": "m",
+    "t": "This suggests that sleep soon after learning is important, and that you can't completely make up for it later. So if you have an exam on Friday, the sleep you get on Wednesday night matters too, not just the sleep on Thursday."
+   }
+  ],
+  "qs": [
+   {
+    "q": "What is the main idea of the talk?",
+    "choices": [
+     "Sleep is useful only before exams.",
+     "Staying awake improves attention.",
+     "Memory gets worse with age.",
+     "Sleep helps the brain store new learning."
+    ],
+    "answer": 3,
+    "explain": "The professor says sleep actively helps store what was learned."
+   },
+   {
+    "q": "What does the brain do during deep sleep, according to the professor?",
+    "choices": [
+     "It replays activity from earlier in the day.",
+     "It stops processing information.",
+     "It creates new words.",
+     "It forgets unimportant facts."
+    ],
+    "answer": 0,
+    "explain": "The brain replays patterns of activity like rehearsing."
+   },
+   {
+    "q": "Why does the professor say that both groups had two nights of recovery sleep?",
+    "choices": [
+     "To show that all participants slept equally",
+     "To explain why the study was short",
+     "To show that later sleep did not make up for the lost first night",
+     "To prove that sleep is not important"
+    ],
+    "answer": 2,
+    "explain": "The group that missed the first night still remembered less."
+   },
+   {
+    "q": "What advice does the professor's talk support?",
+    "choices": [
+     "Studying only on the night before the exam",
+     "Taking naps instead of sleeping at night",
+     "Avoiding sleep on the night before the exam",
+     "Sleeping well the night after studying"
+    ],
+    "answer": 3,
+    "explain": "She says sleep soon after learning matters, not just before the test."
+   }
+  ]
+ }
+]

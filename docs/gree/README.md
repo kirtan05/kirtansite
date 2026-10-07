@@ -9,6 +9,7 @@ phone, the office laptop and the home laptop, all sharing one progress record.
 |---|---|
 | Words | 791 words: Barron's 333 high-frequency first, then the rest of *Essential Words for the GRE* (Geer). Each round teaches 5 new words, then tests them. A miss shows the card again and retests it before the round ends. Words answered right come back after 1, 3, 7, 14, 30 and 60 days (Leitner boxes 1–6); a miss drops the word to box 1. Tests get harder as the box rises: meaning → word from meaning → fill-in-the-blank / synonym. |
 | Questions | Original GRE-style Sentence Equivalence and Text Completion (1, 2 and 3 blank) with explanations. Every choice that's on the word list is glossed. Missed questions come back the next day, on the same ladder. |
+| TOEFL | The 2026 TOEFL iBT by task type: Complete the Words, Read in Daily Life, Academic Passage, the four Listening tasks (spoken by the browser's text-to-speech, once) and Build a Sentence, all checked instantly and put on the same review ladder as Questions (ids like `rap-003`). Email and Academic Discussion open the Writing editor. Speaking is practised with Claude outside the app. Content: `src/data/gree/toefl-*.json`. |
 | Writing | Timed editor for the GRE Issue essay, TOEFL academic discussion, TOEFL email and free writing. Drafts are kept on the device and autosaved to D1. |
 | Progress | Minutes per day (time on the site while in use, plus logged off-site work), streak, 12-week heatmap, word stages, day-by-day table, settings. |
 
@@ -30,7 +31,7 @@ Writes are idempotent (client uuids for events, `last_at` for card state), so
 the client can resend its outbox any number of times. The client keeps an
 outbox in localStorage and flushes every 20 s and when the tab is hidden.
 
-Content lives in `src/data/gree/words.json` and `questions.json`, served only
+Content lives in `src/data/gree/words.json`, `questions.json` and `toefl-*.json`, served only
 behind the login because the definitions and sentences come from published
 books. After editing either file run:
 

@@ -14,7 +14,7 @@ export const papers: Paper[] = [
     year: 2025,
     description:
       'Defined CoD-V, a novel multimodal task for automated technical support reporting. Fine-tuned VideoLLama2 with MultiModal RAG on the curated ComVID benchmark (1,176 annotated videos).',
-    links: [{ label: 'arXiv', href: '#' }],
+    links: [{ label: 'arXiv', href: 'https://arxiv.org/abs/2509.19952' }],
   },
   {
     title: 'M3Hop-CoT: Misogynous Meme Identification',
@@ -22,6 +22,6 @@ export const papers: Paper[] = [
     year: 2024,
     description:
       'Proposed a Chain-of-Thought framework for detecting multimodal hate speech. Three-hop prompting strategy (Emotion, Target, Context) significantly outperformed unimodal baselines.',
-    links: [{ label: 'arXiv', href: '#' }],
+    links: [{ label: 'arXiv', href: 'https://arxiv.org/abs/2410.09220' }],
   },
 ];

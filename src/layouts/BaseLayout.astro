@@ -16,6 +16,7 @@ const {
 } = Astro.props;
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://kirtanjain.com');
+const ogImage = new URL('/og.png', Astro.site ?? 'https://kirtanjain.com').href;
 ---
 
 <!doctype html>
@@ -31,6 +32,10 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://kirtanja
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <!-- Preload critical fonts -->
     <link
@@ -53,6 +58,13 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site ?? 'https://kirtanja
     <title>{title}</title>
 
     <ClientRouter />
+
+    <!-- The hero is hidden in CSS until GSAP reveals it -->
+    <noscript>
+      <style>
+        .hero-char, .hero-tagline { opacity: 1; }
+      </style>
+    </noscript>
   </head>
   <body class="min-h-screen bg-bg text-text">
     <div class="ambient-glow" aria-hidden="true"></div>

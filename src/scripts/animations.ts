@@ -14,6 +14,12 @@ function initAnimations(): void {
   cleanupFns.forEach((fn) => fn());
   cleanupFns = [];
 
+  // Reduced motion: show the hero (hidden in CSS until revealed) and skip the rest
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    gsap.set('.hero-char, .hero-tagline', { opacity: 1 });
+    return;
+  }
+
   // 1. Card stagger entrance — dramatic scale + rotation
   const animateEls = document.querySelectorAll('[data-animate]');
   if (animateEls.length > 0) {
@@ -175,6 +181,7 @@ function initAnimations(): void {
     const target = parseInt(el.dataset.counter!, 10);
     const suffix = el.dataset.counterSuffix || '';
     const obj = { val: 0 };
+    el.textContent = 0 + suffix;
 
     gsap.to(obj, {
       val: target,

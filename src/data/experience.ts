@@ -48,8 +48,8 @@ export const achievements: Achievement[] = [
     highlight: 'AIR 2194',
   },
   {
-    text: "General Secretary, Technical — Student Gymkhana '24-25",
-    highlight: 'Gen Sec',
+    text: "General Secretary (Technical), Student Gymkhana '24-25",
+    highlight: 'General Secretary',
   },
   { text: 'Overall Events Head, Inter-IIT Cultural Meet 7.0' },
   {

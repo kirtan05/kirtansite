@@ -357,7 +357,7 @@ export const todos: Todo[] = [
   {
     what: 'Manila stay',
     when: '23 to 25 Dec, two nights',
-    why: 'Six people. Three options that were open on 11 Oct are further down this page.'
+    why: 'Six people. Five options that were open on 11 Oct are further down this page, with photos.'
   },
   {
     what: 'DJ: Manila to Busuanga',
@@ -397,56 +397,6 @@ export const todos: Todo[] = [
   }
 ];
 
-export interface Stay {
-  name: string;
-  area: string;
-  price: string;
-  each: string;
-  rating: string;
-  beds: string;
-  cancel: string;
-  verdict: string;
-  href: string;
-  pick?: boolean;
-}
-
-export const stays: Stay[] = [
-  {
-    name: 'Milano 3BR with a private pool',
-    area: 'Makati, next to Poblacion',
-    price: '₹23,847',
-    each: '₹3,975 each',
-    rating: '4.91 from 107 stays',
-    beds: 'Three queen beds, two sofa beds, three bathrooms',
-    cancel: 'Free until 22 Dec',
-    verdict: 'About 200 m from the Poblacion bar street and 5.5 km from Terminal 3 in a straight line. A real bed for everyone, a bathroom for every two people, and it can be cancelled until the day before. One review reports the air conditioning failing for a night.',
-    href: 'https://www.airbnb.co.in/rooms/1205435593034541935?check_in=2026-12-23&check_out=2026-12-25&adults=6',
-    pick: true
-  },
-  {
-    name: '3BR loft beside the MRT',
-    area: 'Mandaluyong',
-    price: '₹16,665',
-    each: '₹2,780 each',
-    rating: '4.94 from 271 stays',
-    beds: 'Two singles, a double, a sofa bed, two bathrooms',
-    cancel: 'Free until 23 Nov',
-    verdict: 'The cheapest and the best reviewed. Four beds for six people, and 2 km from Poblacion, so every night out starts and ends with a Grab.',
-    href: 'https://www.airbnb.co.in/rooms/923966312212898872?check_in=2026-12-23&check_out=2026-12-25&adults=6'
-  },
-  {
-    name: '2BR in the business district',
-    area: 'Makati',
-    price: '₹19,601',
-    each: '₹3,270 each',
-    rating: '4.95 from 81 stays',
-    beds: 'Floor mattresses involved, one bathroom',
-    cancel: 'Free until 23 Nov',
-    verdict: 'Office towers, 2 km from Poblacion. One bathroom, six men, an 08:30 van.',
-    href: 'https://www.airbnb.co.in/rooms/1639108912467918817?check_in=2026-12-23&check_out=2026-12-25&adults=6'
-  }
-];
-
 export interface Idea {
   when: string;
   what: string;
@@ -481,9 +431,68 @@ export const manila: Idea[] = [
     detail: 'The doc named Toyo Eatery and Metiz for modern Filipino tasting menus. Both need a reservation in a normal week, and whether either opens on Christmas Eve is the first thing to ask. Have a fallback in Poblacion.'
   },
   {
+    when: 'Either evening, 18:00 to 22:00',
+    what: 'The Ayala Triangle lights',
+    detail: 'Makati’s Christmas light-and-sound show in the park, 1.2 km from Poblacion. In past years it ran every half hour from six to ten, November into January. This year’s schedule is not out yet.'
+  },
+  {
+    when: 'Thu 24, night',
+    what: 'Christmas Eve, the local way',
+    detail: 'The last of the nine Simbang Gabi masses is at dawn on the 24th, and churches fill again in the evening before families go home for Noche Buena at midnight. San Agustin and Manila Cathedral are the two to see. Outside every church: bibingka and puto bumbong off a charcoal stove. After midnight the streets are empty.'
+  },
+  {
     when: 'Before the 25th',
     what: 'Pesos and supplies',
     detail: 'Withdraw cash for a week of islands, and buy anything the group wants on Darocotan. There is no shop there.'
+  }
+];
+
+export interface Area {
+  name: string;
+  airport: string;
+  clark: string;
+  what: string;
+  verdict: string;
+  pick?: boolean;
+}
+
+/** Road distances from OpenStreetMap routing; times are with empty roads, so double them at 6 pm. */
+export const areas: Area[] = [
+  {
+    name: 'Poblacion, Makati',
+    airport: '7.5 km',
+    clark: '97 km',
+    what: 'Bars, late food and hostels packed into a few streets. Loud, scruffy, walkable.',
+    verdict: 'Two nights, six men, one of them a night out. Everything is on foot and the flats are cheap.',
+    pick: true
+  },
+  {
+    name: 'BGC, Taguig',
+    airport: '6.4 km',
+    clark: '101 km',
+    what: 'New, clean, planned. Malls, rooftop bars, wide pavements.',
+    verdict: 'Nicer streets, but for these dates the cheapest well-reviewed flat for six was about ₹58,000, more than double.'
+  },
+  {
+    name: 'Makati CBD, Greenbelt',
+    airport: '6.4 km',
+    clark: '102 km',
+    what: 'Office towers and malls. Quiet after nine.',
+    verdict: 'Closest to the Ayala Triangle lights, 2 km from the bars. Fine, just nothing to walk out into.'
+  },
+  {
+    name: 'Newport, beside Terminal 3',
+    airport: '2.2 km',
+    clark: '105 km',
+    what: 'A casino resort and hotels across the road from the airport.',
+    verdict: 'Right for the night of 1 January before the 08:00 flight. Wrong for seeing Manila.'
+  },
+  {
+    name: 'Clark or San Fernando',
+    airport: '100 km',
+    clark: '7 to 21 km',
+    what: 'Next to the airport you fly out of. San Fernando is the giant-lantern town.',
+    verdict: 'Tempting for the 24th, but it costs the whole Manila day, and in the one year with a published schedule the lantern show skipped Christmas Eve.'
   }
 ];
 

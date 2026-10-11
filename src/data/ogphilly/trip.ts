@@ -487,11 +487,6 @@ export const manila: Idea[] = [
   }
 ];
 
-export const money = [
-  { what: 'Clark to Coron, six seats', paid: 'Sid', amount: '₹32,640', split: '₹5,440 each. KJ’s share gets netted off against the Delhi flight.' },
-  { what: 'Darocotan, four nights, seven people', paid: 'DJ', amount: 'Not posted', split: 'DJ to post the amount.' }
-];
-
 export const newYears = [
   { year: '2022', what: 'Drunk on the sports complex', where: 'Patna' },
   { year: '2023', what: 'Drunk on the streets', where: 'Darjeeling' },

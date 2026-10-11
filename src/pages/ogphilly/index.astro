@@ -2,7 +2,7 @@
 // The trip plan for the Og group's Philippines trip, Dec 2026. Standalone on
 // purpose: it shares nothing with the rest of the site's layout or styles.
 // All content is in src/data/ogphilly/trip.ts.
-import { days, facts, legById, legKm, manila, money, newYears, people, places, stays, todos } from '../../data/ogphilly/trip';
+import { days, facts, legById, legKm, manila, newYears, people, places, stays, todos } from '../../data/ogphilly/trip';
 
 const modeWord = { air: 'by air', sea: 'by boat', road: 'by road' } as const;
 const distances = (ids: string[]) => {
@@ -86,7 +86,7 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
               <a href="#todo">Still to book</a>
               <a href="#manila">Manila</a>
               <a href="#stay">Where to stay</a>
-              <a href="#money">Money</a>
+              <a href="#know">Before you fly</a>
             </p>
           </header>
 
@@ -216,20 +216,8 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
           </div>
         </section>
 
-        <section id="money">
-          <h2>Money</h2>
-          <p class="sub">Who has paid for what so far.</p>
-          <div class="ledger">
-            {money.map((m) => (
-              <div>
-                <h3>{m.what}</h3>
-                <p class="amount">
-                  {m.amount} <small>paid by {m.paid}</small>
-                </p>
-                <p>{m.split}</p>
-              </div>
-            ))}
-          </div>
+        <section id="know">
+          <h2>Before you fly</h2>
           <dl class="facts">
             {facts.map((f) => (
               <div>
@@ -783,30 +771,10 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
         color: var(--mango);
       }
 
-      .ledger {
-        display: grid;
-        gap: 1rem 2.5rem;
-      }
-      .ledger > div {
-        padding-top: 1rem;
-        border-top: 2px solid var(--deep);
-      }
-      .ledger h3 {
-        font: 700 1.0625rem/1.3 var(--text);
-      }
-      .ledger .amount {
-        margin: 0.3rem 0;
-        font: 400 1.9rem/1.1 var(--display);
-      }
-      .ledger .amount small {
-        display: inline;
-        margin-left: 0.4rem;
-        font-family: var(--text);
-      }
       .facts {
         display: grid;
         gap: 0 2.5rem;
-        margin-top: 2.5rem;
+        margin-top: 1.4rem;
       }
       .facts > div {
         padding: 0.9rem 0;
@@ -949,8 +917,7 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
         }
         .todo,
         .plan,
-        .facts,
-        .ledger {
+        .facts {
           grid-template-columns: 1fr 1fr;
         }
         .stays {

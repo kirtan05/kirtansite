@@ -162,7 +162,7 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
                   {t.link && (
                     <>
                       {' '}
-                      <a href={t.link.href} rel="noopener">
+                      <a href={t.link.href} target="_blank" rel="noopener">
                         {t.link.text}
                       </a>
                       .
@@ -192,8 +192,8 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
           <h3 class="subhead" id="stay">Where to stay</h3>
           <p class="sub">
             Two nights, six people (DJ is not here yet). All three were open on Airbnb for 23 to 25 December on 11
-            October. Prices are the total for both nights, fees included. Clark is the same 85 km from all of them, so
-            the choice is about the evenings.
+            October, out of 215 that came up across Poblacion, Makati and BGC. Prices are the total for both nights,
+            fees included. Clark is the same 85 km from all of them, so the choice is about the evenings.
           </p>
           <div class="stays">
             {stays.map((s) => (
@@ -210,7 +210,7 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
                   <li>{s.cancel}</li>
                 </ul>
                 <p class="verdict">{s.verdict}</p>
-                <a href={s.href} rel="noopener">Open on Airbnb</a>
+                <a href={s.href} target="_blank" rel="noopener">Open on Airbnb</a>
               </article>
             ))}
           </div>

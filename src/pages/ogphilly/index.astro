@@ -2,7 +2,7 @@
 // The trip plan for the Og group's Philippines trip, Dec 2026. Standalone on
 // purpose: it shares nothing with the rest of the site's layout or styles.
 // All content is in src/data/ogphilly/trip.ts.
-import { days, facts, legById, legKm, money, newYears, people, places, stays, todos } from '../../data/ogphilly/trip';
+import { days, facts, legById, legKm, manila, money, newYears, people, places, stays, todos } from '../../data/ogphilly/trip';
 
 const modeWord = { air: 'by air', sea: 'by boat', road: 'by road' } as const;
 const distances = (ids: string[]) => {
@@ -84,7 +84,7 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
             <p class="jump">
               <a href="#flights">Who lands when</a>
               <a href="#todo">Still to book</a>
-              <a href="#manila">Manila stay</a>
+              <a href="#manila">Manila</a>
               <a href="#money">Money</a>
             </p>
           </header>
@@ -174,10 +174,25 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
         </section>
 
         <section id="manila">
-          <h2>Manila stay</h2>
+          <h2>Two nights in Manila</h2>
           <p class="sub">
-            23 to 25 December, two nights, six people (DJ is not here yet). All three were open on Airbnb for those dates
-            on 11 October. Prices are the total for both nights, fees included.
+            Land Wednesday evening, leave Friday morning. The trick is the order: go out on the 23rd, see the city on
+            the 24th, and be done by the time Christmas Eve closes it.
+          </p>
+          <ol class="plan">
+            {manila.map((m) => (
+              <li>
+                <p class="due">{m.when}</p>
+                <h3>{m.what}</h3>
+                <p>{m.detail}</p>
+              </li>
+            ))}
+          </ol>
+          <h3 class="subhead">Where to stay</h3>
+          <p class="sub">
+            Two nights, six people (DJ is not here yet). All three were open on Airbnb for 23 to 25 December on 11
+            October. Prices are the total for both nights, fees included. Clark is the same 85 km from all of them, so
+            the choice is about the evenings.
           </p>
           <div class="stays">
             {stays.map((s) => (
@@ -692,6 +707,31 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
         margin-bottom: 0.3rem;
       }
 
+      .plan {
+        display: grid;
+        gap: 0 2.5rem;
+        margin-bottom: 3rem;
+      }
+      .plan li {
+        padding: 1rem 0 1.1rem;
+        border-top: 2px solid var(--deep);
+      }
+      .plan .due {
+        font-weight: 700;
+        font-size: 0.9375rem;
+        font-variant-numeric: tabular-nums;
+        color: #bd2347;
+      }
+      .plan h3 {
+        margin: 0.15rem 0 0.3rem;
+        font: 700 1.1875rem/1.25 var(--text);
+      }
+      .subhead {
+        font: 400 1.5rem/1.1 var(--display);
+      }
+      .paper .subhead + .sub {
+        margin-top: 0.6rem;
+      }
       .stays {
         display: grid;
         gap: 1rem;
@@ -906,6 +946,7 @@ const title = 'OG Philly — 23 Dec to 2 Jan';
           content: none;
         }
         .todo,
+        .plan,
         .facts,
         .ledger {
           grid-template-columns: 1fr 1fr;

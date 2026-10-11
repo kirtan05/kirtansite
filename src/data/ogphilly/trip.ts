@@ -132,7 +132,8 @@ export const days: Day[] = [
     lines: [
       'KJ, Sid and Martin leave Delhi 01:40 on CX694, sit in Hong Kong for 4 h 55 min, and land at NAIA Terminal 3 at 16:35 on CX919.',
       'Parth, Ankur and Dabad: inbound flights not in the Drive folder yet. All three are on the Coron flight on the 25th, so they are in Manila by the 24th at the latest.',
-      'Terminal 3 to Makati is about 10 km. Grab, not a white taxi.'
+      'Terminal 3 to Poblacion is under 10 km by road. Grab, not a white taxi. Out of the airport by six, at the flat by seven.',
+      'This is the night out, not tomorrow. Tomorrow is Christmas Eve and the city shuts early; tonight is an ordinary Wednesday and the bars are 200 metres from the door.'
     ],
     quote: { text: 'Bahar jane layak to nahi hai 7 hr.', by: 'KJ, on the Hong Kong layover. Sid disagrees.' }
   },
@@ -147,9 +148,9 @@ export const days: Day[] = [
     status: 'open',
     statusText: 'Stay not booked',
     lines: [
-      'The one free day in the city. Poblacion is walkable from Makati for the evening.',
-      'It is Christmas Eve in the most Christmas country on earth. Kitchens close early for Noche Buena, so book dinner or eat by eight.',
-      'Early night is the smart move. Nobody will make it.'
+      'The one full day in the city. Old Manila in the morning before the heat: Fort Santiago, San Agustin Church, the walls of Intramuros. Then Binondo, the oldest Chinatown anywhere, for lunch on foot.',
+      'It is Christmas Eve in the most Christmas country on earth. In past years the Makati malls shut at 20:00 and most kitchens with them, for Noche Buena. Book dinner, or eat by seven.',
+      'After that it is the plunge pool on the balcony and whatever was bought before the shops closed. The van is at 08:30.'
     ],
     quote: {
       text: 'Many travelers find Manila congested, polluted, and not very charming.',
@@ -167,7 +168,7 @@ export const days: Day[] = [
     status: 'booked',
     statusText: 'Flight booked for six',
     lines: [
-      'The flight leaves from Clark, not NAIA. Clark is two hours north on a good day. Van leaves Makati at 08:30. The van is not booked.',
+      'The flight leaves from Clark, not NAIA. Clark is about 100 km north: 1 h 20 min with empty roads, two hours to be safe. Van leaves at 08:30. The van is not booked.',
       'Cebgo DG6039, Clark 13:15 to Busuanga 14:40. Six seats: Ankur, Dabad, KJ, Martin, Parth, Sid. 20 kg checked, 7 kg cabin.',
       'Busuanga airport to Coron town is another 40 minutes by van. Coron stay for the next three nights is not booked.'
     ]
@@ -418,7 +419,7 @@ export const stays: Stay[] = [
     rating: '4.91 from 107 stays',
     beds: 'Three queen beds, two sofa beds, three bathrooms',
     cancel: 'Free until 22 Dec',
-    verdict: 'A real bed for everyone, a bathroom for every two people, and it can be cancelled until the day before.',
+    verdict: 'About 200 m from the Poblacion bar street and 5.5 km from Terminal 3 in a straight line. A real bed for everyone, a bathroom for every two people, and it can be cancelled until the day before. One review reports the air conditioning failing for a night.',
     href: 'https://www.airbnb.co.in/rooms/1205435593034541935?check_in=2026-12-23&check_out=2026-12-25&adults=6',
     pick: true
   },
@@ -430,7 +431,7 @@ export const stays: Stay[] = [
     rating: '4.94 from 271 stays',
     beds: 'Two singles, a double, a sofa bed, two bathrooms',
     cancel: 'Free until 23 Nov',
-    verdict: 'The cheapest and the best reviewed. Four beds for six people.',
+    verdict: 'The cheapest and the best reviewed. Four beds for six people, and 2 km from Poblacion, so every night out starts and ends with a Grab.',
     href: 'https://www.airbnb.co.in/rooms/923966312212898872?check_in=2026-12-23&check_out=2026-12-25&adults=6'
   },
   {
@@ -441,8 +442,48 @@ export const stays: Stay[] = [
     rating: '4.95 from 81 stays',
     beds: 'Floor mattresses involved, one bathroom',
     cancel: 'Free until 23 Nov',
-    verdict: 'One bathroom, six men, an 08:30 van.',
+    verdict: 'Office towers, 2 km from Poblacion. One bathroom, six men, an 08:30 van.',
     href: 'https://www.airbnb.co.in/rooms/1639108912467918817?check_in=2026-12-23&check_out=2026-12-25&adults=6'
+  }
+];
+
+export interface Idea {
+  when: string;
+  what: string;
+  detail: string;
+}
+
+/** Manila, in the order the two days actually run. */
+export const manila: Idea[] = [
+  {
+    when: 'Wed 23, from 19:00',
+    what: 'Poblacion on foot',
+    detail: 'Makati’s old red-light district, now the bar district. Rooftops, holes in the wall, and speakeasies behind unmarked doors. Eat first: Filipino food at one of the pubs, then follow the noise.'
+  },
+  {
+    when: 'Thu 24, 08:30 to 11:30',
+    what: 'Intramuros',
+    detail: 'The Spanish walled city. Fort Santiago, San Agustin Church (1607, the oldest stone church in the country), Casa Manila. Walk it or rent bamboo bikes. 25 minutes by Grab. Fort Santiago has stayed open through past Christmas seasons, but check the Intramuros Administration page that week.'
+  },
+  {
+    when: 'Thu 24, 12:00 to 14:30',
+    what: 'Binondo food crawl',
+    detail: 'Ten minutes from Intramuros, founded 1594. Dumplings, lumpia, hopia, fried siopao, all within a few streets of Ongpin. No booking, just walk and eat.'
+  },
+  {
+    when: 'Thu 24, afternoon',
+    what: 'Pick one',
+    detail: 'From the original doc: an indoor shooting range with a range officer, or a massage. Or BGC for coffee and a walk, 3 km east of the flat. Or the pool.'
+  },
+  {
+    when: 'Thu 24, by 19:00',
+    what: 'Dinner, booked',
+    detail: 'The doc named Toyo Eatery and Metiz for modern Filipino tasting menus. Both need a reservation in a normal week, and whether either opens on Christmas Eve is the first thing to ask. Have a fallback in Poblacion.'
+  },
+  {
+    when: 'Before the 25th',
+    what: 'Pesos and supplies',
+    detail: 'Withdraw cash for a week of islands, and buy anything the group wants on Darocotan. There is no shop there.'
   }
 ];
 

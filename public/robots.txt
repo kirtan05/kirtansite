@@ -3,6 +3,7 @@ Disallow: /learning
 Disallow: /gree
 Disallow: /major
 Disallow: /certificate
+Disallow: /ogphilly
 Allow: /
 
 Sitemap: https://kirtanjain.com/sitemap-index.xml

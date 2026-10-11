@@ -1,0 +1,943 @@
+---
+// The trip plan for the Og group's Philippines trip, Dec 2026. Standalone on
+// purpose: it shares nothing with the rest of the site's layout or styles.
+// All content is in src/data/ogphilly/trip.ts.
+import { days, facts, legById, legKm, money, newYears, people, places, stays, todos } from '../../data/ogphilly/trip';
+
+const modeWord = { air: 'by air', sea: 'by boat', road: 'by road' } as const;
+const distances = (ids: string[]) => {
+  const sum = { air: 0, sea: 0, road: 0 };
+  for (const id of ids) {
+    const leg = legById(id);
+    sum[leg.mode] += legKm(leg);
+  }
+  return (Object.keys(sum) as (keyof typeof sum)[])
+    .filter((m) => sum[m] > 0)
+    .map((m) => `${Math.round(sum[m] / 5) * 5 || 5} km ${modeWord[m]}`)
+    .join(', ');
+};
+const coords = ([lon, lat]: [number, number]) => `${lat.toFixed(3)}° N, ${lon.toFixed(3)}° E`;
+const statusWord = { booked: 'Booked', unverified: 'Unconfirmed', open: 'Not booked' } as const;
+const title = 'OG Philly — 23 Dec to 2 Jan';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="theme-color" content="#0b4a5a" />
+    <title>{title}</title>
+    <meta name="description" content="Seven people, eleven days, Palawan. The plan, and what is still not booked." />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content="Seven people, eleven days, Palawan. The plan, and what is still not booked." />
+    <link rel="icon" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <main>
+      <section class="journey" aria-label="The route, day by day">
+        <div class="map" id="map">
+          <canvas id="map-canvas" aria-hidden="true"></canvas>
+          <div class="map-labels" id="map-labels" aria-hidden="true"></div>
+          <p class="map-fallback" id="map-fallback" hidden>The map needs WebGL, which this browser has switched off. Everything else on the page works without it.</p>
+          <ul class="legend" aria-label="Map key">
+            <li class="k-air">Flight</li>
+            <li class="k-sea">Boat</li>
+            <li class="k-road">Road</li>
+          </ul>
+          <nav class="strip" aria-label="Jump to a day">
+            {days.map((d, i) => (
+              <a href={`#${d.id}`} data-go={i} aria-label={`${d.weekday} ${d.date}: ${d.where}`}>
+                {d.date.split(' ')[0]}
+              </a>
+            ))}
+          </nav>
+        </div>
+
+        <div class="story">
+          <header class="hero" data-day="-1">
+            <h1>OG Philly</h1>
+            <ul class="placard" aria-label="Route">
+              <li>Manila</li>
+              <li>Clark</li>
+              <li>Coron</li>
+              <li>El Nido</li>
+              <li>Darocotan</li>
+            </ul>
+            <p class="lede">Seven people, eleven days, one long thin island. 23 December to 2 January.</p>
+            <p>
+              Philly is the Philippines. As Sid put it, if any of us had done better in JEE we would be going to the
+              actual one.
+            </p>
+            <p>
+              This page replaces the doc. Three things are booked. <a href="#todo">{todos.length} are not</a>, and the
+              first two of those decide whether three people make their flight home.
+            </p>
+            <p class="countdown" id="countdown"></p>
+            <p class="jump">
+              <a href="#flights">Who lands when</a>
+              <a href="#todo">Still to book</a>
+              <a href="#manila">Manila stay</a>
+              <a href="#money">Money</a>
+            </p>
+          </header>
+
+          {days.map((d, i) => (
+            <article class="day" id={d.id} data-day={i}>
+              <p class="when">
+                <span>{d.weekday}</span> {d.date}
+              </p>
+              <h2>{d.where}</h2>
+              <p class={`status s-${d.status}`}>{d.statusText}</p>
+              {d.lines.map((line) => (
+                <p>{line}</p>
+              ))}
+              {d.quote && (
+                <blockquote>
+                  <p>{d.quote.text}</p>
+                  <footer>{d.quote.by}</footer>
+                </blockquote>
+              )}
+              <p class="meta">
+                {places[d.at].name}, {coords(places[d.at].at)}
+                {d.legs.length > 0 && d.id !== 'd02' && <span>{distances(d.legs)}</span>}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <div class="paper">
+        <section id="flights">
+          <h2>Who lands when</h2>
+          <p class="sub">Into Manila and out of it. “Unconfirmed” means someone said so in the group and nobody has seen a ticket.</p>
+          <div class="board" role="table">
+            <div class="row head" role="row">
+              <span role="columnheader">Who</span>
+              <span role="columnheader">Lands</span>
+              <span role="columnheader">Leaves</span>
+              <span role="columnheader">Proof</span>
+            </div>
+            {people.map((p) => (
+              <div class="row" role="row">
+                <span class="who" role="cell">
+                  {p.name}
+                  <small>from {p.from}</small>
+                </span>
+                <span role="cell" data-label="Lands">
+                  <b class={p.arrive === 'Not known' ? 'unknown' : ''}>{p.arrive}</b>
+                  {p.arriveNote && <small>{p.arriveNote}</small>}
+                </span>
+                <span role="cell" data-label="Leaves">
+                  <b>{p.leave}</b>
+                  {p.leaveNote && <small>{p.leaveNote}</small>}
+                </span>
+                <span role="cell" data-label="Proof">
+                  <b class={`status s-${p.proof}`}>{statusWord[p.proof]}</b>
+                  <small>{p.proofText}</small>
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="todo">
+          <h2>Still to book</h2>
+          <p class="sub">In the order they will run out. Nobody owns any of these yet. Say “mine” in the group.</p>
+          <ol class="todo">
+            {todos.map((t) => (
+              <li>
+                <h3>{t.what}</h3>
+                <p class="due">{t.when}</p>
+                <p>
+                  {t.why}
+                  {t.link && (
+                    <>
+                      {' '}
+                      <a href={t.link.href} rel="noopener">
+                        {t.link.text}
+                      </a>
+                      .
+                    </>
+                  )}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section id="manila">
+          <h2>Manila stay</h2>
+          <p class="sub">
+            23 to 25 December, two nights, six people (DJ is not here yet). All three were open on Airbnb for those dates
+            on 11 October. Prices are the total for both nights, fees included.
+          </p>
+          <div class="stays">
+            {stays.map((s) => (
+              <article class:list={['stay', { pick: s.pick }]}>
+                {s.pick && <p class="tag">Book this one</p>}
+                <h3>{s.name}</h3>
+                <p class="area">{s.area}</p>
+                <p class="price">
+                  {s.price} <small>{s.each}</small>
+                </p>
+                <ul>
+                  <li>{s.beds}</li>
+                  <li>{s.rating}</li>
+                  <li>{s.cancel}</li>
+                </ul>
+                <p class="verdict">{s.verdict}</p>
+                <a href={s.href} rel="noopener">Open on Airbnb</a>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="money">
+          <h2>Money</h2>
+          <p class="sub">Who has paid for what so far.</p>
+          <div class="ledger">
+            {money.map((m) => (
+              <div>
+                <h3>{m.what}</h3>
+                <p class="amount">
+                  {m.amount} <small>paid by {m.paid}</small>
+                </p>
+                <p>{m.split}</p>
+              </div>
+            ))}
+          </div>
+          <dl class="facts">
+            {facts.map((f) => (
+              <div>
+                <dt>{f.q}</dt>
+                <dd>{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      </div>
+
+      <section class="nye" id="nye">
+        <h2>New Year’s Eve, the record so far</h2>
+        <ol>
+          {newYears.map((n) => (
+            <li class:list={{ next: n.what === '??' }}>
+              <span class="year">{n.year}</span>
+              <span class="what">{n.what}</span>
+              <span class="where">{n.where}</span>
+            </li>
+          ))}
+        </ol>
+        <p class="colophon">
+          Built from the Og and Jap invasion chats and the Drive folder, as they stood on 11 October 2026. If something
+          here is wrong, it was wrong in the group first.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      import { initMap } from '../../scripts/ogphilly/map';
+
+      const canvas = document.getElementById('map-canvas') as HTMLCanvasElement;
+      const map = initMap(canvas, document.getElementById('map-labels')!);
+      if (!map) {
+        canvas.hidden = true;
+        document.getElementById('map-fallback')!.hidden = false;
+      }
+
+      const blocks = [...document.querySelectorAll<HTMLElement>('[data-day]')];
+      const strip = [...document.querySelectorAll<HTMLAnchorElement>('.strip a')];
+      const mapEl = document.getElementById('map')!;
+      let active = -2;
+      let queued = false;
+
+      function update() {
+        queued = false;
+        // The reading line: a bit below the middle on a laptop, a bit below
+        // the sticky map on a phone.
+        const stacked = mapEl.offsetWidth === innerWidth;
+        const line = stacked ? mapEl.offsetHeight + (innerHeight - mapEl.offsetHeight) * 0.45 : innerHeight * 0.55;
+        let day = -1;
+        for (const b of blocks) if (b.getBoundingClientRect().top <= line) day = Number(b.dataset.day);
+        if (day === active) return;
+        active = day;
+        map?.show(day);
+        strip.forEach((a, i) => a.toggleAttribute('aria-current', i === day));
+        blocks.forEach((b) => b.classList.toggle('on', Number(b.dataset.day) === day));
+      }
+      addEventListener('scroll', () => queued || ((queued = true), requestAnimationFrame(update)), { passive: true });
+      addEventListener('resize', update);
+      update();
+
+      const left = Math.ceil((Date.UTC(2026, 11, 22, 20, 10) - Date.now()) / 864e5);
+      const countdown = document.getElementById('countdown')!;
+      if (left > 1) countdown.textContent = `CX694 pushes back from Delhi in ${left} days.`;
+      else if (left >= 0) countdown.textContent = 'CX694 pushes back from Delhi tonight.';
+    </script>
+
+    <style is:global>
+      :root {
+        --sea: #0b4a5a;
+        --deep: #0a3340;
+        --foam: #f6f1e1;
+        --mist: #a8cdcb;
+        --sand: #efe2b8;
+        --mango: #ffb703;
+        --hibiscus: #ff5c7a;
+        --palm: #8ee3a1;
+        --display: 'Bowlby One', 'Arial Black', sans-serif;
+        --text: 'Bricolage Grotesque', system-ui, sans-serif;
+        --map-h: 44svh;
+      }
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--sea);
+        color: var(--foam);
+        font: 400 1.0625rem/1.55 var(--text);
+        font-optical-sizing: auto;
+      }
+      a {
+        color: inherit;
+        text-decoration-thickness: 0.09em;
+        text-underline-offset: 0.18em;
+      }
+      :focus-visible {
+        outline: 3px solid var(--mango);
+        outline-offset: 3px;
+        border-radius: 2px;
+      }
+      h1,
+      h2,
+      h3,
+      p,
+      ul,
+      ol,
+      dl,
+      dd,
+      blockquote {
+        margin: 0;
+      }
+      ul,
+      ol {
+        padding: 0;
+        list-style: none;
+      }
+      [hidden] {
+        display: none !important;
+      }
+
+      /* ── the map ─────────────────────────────────────────────── */
+      .map {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        height: var(--map-h);
+        overflow: hidden;
+        background: var(--sea);
+        box-shadow: 0 10px 24px -12px rgb(4 30 38 / 0.7);
+      }
+      .map canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .map-labels {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .map-label {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: -0.62em 0 0 0.7em;
+        font: 600 0.8125rem/1 var(--text);
+        letter-spacing: 0.01em;
+        color: var(--foam);
+        white-space: nowrap;
+        text-shadow:
+          0 0 3px var(--deep),
+          0 0 8px var(--deep),
+          0 1px 2px var(--deep);
+        transition: opacity 0.35s;
+        will-change: transform;
+      }
+      .map-fallback {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 2rem;
+        text-align: center;
+        color: var(--mist);
+      }
+      .legend {
+        position: absolute;
+        left: 0.9rem;
+        top: 0.8rem;
+        display: flex;
+        gap: 0.9rem;
+        font: 500 0.75rem/1 var(--text);
+        color: var(--mist);
+      }
+      .legend li::before {
+        content: '';
+        display: inline-block;
+        width: 1.25rem;
+        margin-right: 0.35rem;
+        vertical-align: middle;
+        border-top: 2.5px solid var(--foam);
+      }
+      .legend .k-sea::before {
+        border-top: 2.5px dashed var(--mango);
+      }
+      .legend .k-road::before {
+        border-top-color: var(--deep);
+        box-shadow: 0 0 0 1px rgb(246 241 225 / 0.35);
+      }
+      .strip {
+        position: absolute;
+        inset: auto 0 0 0;
+        display: flex;
+        padding: 1.6rem 0.4rem 0.4rem;
+        background: linear-gradient(to top, rgb(10 51 64 / 0.96) 45%, transparent);
+      }
+      .strip a {
+        flex: 1;
+        padding: 0.9rem 0 0.5rem;
+        font: 700 0.875rem/1 var(--text);
+        font-variant-numeric: tabular-nums;
+        text-align: center;
+        text-decoration: none;
+        color: var(--mist);
+        border-bottom: 3px solid transparent;
+      }
+      .strip a:hover {
+        color: var(--foam);
+      }
+      .strip a[aria-current] {
+        color: var(--mango);
+        border-bottom-color: var(--mango);
+      }
+
+      /* ── the story column ────────────────────────────────────── */
+      .story {
+        padding: 0 1.25rem;
+      }
+      .hero {
+        padding: 2.5rem 0 3.5rem;
+      }
+      .hero h1 {
+        display: inline-block;
+        font: 400 clamp(3.6rem, 19vw, 6.2rem) / 0.86 var(--display);
+        letter-spacing: -0.01em;
+        color: var(--mango);
+        text-shadow:
+          0.045em 0.045em 0 var(--hibiscus),
+          0.09em 0.09em 0 var(--deep);
+        transform: rotate(-3deg);
+        transform-origin: left bottom;
+        margin: 0.4rem 0 1.4rem;
+      }
+      /* Jeepneys paint their route on the side, one stop per panel. */
+      .placard {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        margin-bottom: 1.6rem;
+        font: 400 0.8125rem/1 var(--display);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--deep);
+      }
+      .placard li {
+        padding: 0.5em 0.7em 0.42em;
+        background: var(--foam);
+        border-bottom: 3px solid var(--deep);
+      }
+      .placard li:nth-child(3n + 1) {
+        background: var(--mango);
+      }
+      .placard li:nth-child(3n + 2) {
+        background: var(--hibiscus);
+      }
+      .hero p {
+        max-width: 34rem;
+      }
+      .hero p + p {
+        margin-top: 0.9rem;
+      }
+      .hero .lede {
+        font-size: 1.375rem;
+        line-height: 1.3;
+        font-weight: 600;
+      }
+      .hero .countdown {
+        color: var(--mist);
+        font-variant-numeric: tabular-nums;
+      }
+      .hero .countdown:empty {
+        display: none;
+      }
+      .hero .jump {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1.25rem;
+        margin-top: 1.5rem;
+        font-weight: 600;
+      }
+      .hero .jump a {
+        color: var(--mango);
+      }
+
+      .day {
+        min-height: calc(100svh - var(--map-h));
+        padding: 2.25rem 0 2.75rem;
+        border-top: 1px solid rgb(246 241 225 / 0.14);
+        opacity: 0.45;
+        transition: opacity 0.4s;
+        scroll-margin-top: var(--map-h);
+      }
+      .day.on {
+        opacity: 1;
+      }
+      .day .when {
+        font: 400 clamp(2.4rem, 11vw, 3.6rem) / 1 var(--display);
+        color: var(--foam);
+      }
+      .day .when span {
+        display: block;
+        margin-bottom: 0.3rem;
+        font: 600 1rem/1 var(--text);
+        color: var(--mist);
+      }
+      .day h2 {
+        margin-top: 0.5rem;
+        font: 700 1.5rem/1.2 var(--text);
+        color: var(--mango);
+      }
+      .day > p {
+        max-width: 33rem;
+        margin-top: 0.85rem;
+      }
+      .status {
+        font-weight: 700;
+        font-size: 0.9375rem;
+      }
+      .status::before {
+        content: '';
+        display: inline-block;
+        width: 0.62em;
+        height: 0.62em;
+        margin-right: 0.5em;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .day .status {
+        margin-top: 0.6rem;
+      }
+      .s-booked {
+        color: var(--palm);
+      }
+      .s-unverified {
+        color: var(--mango);
+      }
+      .s-open {
+        color: var(--hibiscus);
+      }
+      .day blockquote {
+        max-width: 31rem;
+        margin-top: 1.4rem;
+        padding-left: 1rem;
+        border-left: 3px solid var(--mango);
+      }
+      .day blockquote p {
+        font-size: 1.1875rem;
+        line-height: 1.35;
+        font-weight: 600;
+      }
+      .day blockquote footer {
+        margin-top: 0.35rem;
+        font-size: 0.875rem;
+        color: var(--mist);
+      }
+      .day .meta {
+        margin-top: 1.4rem;
+        font-size: 0.875rem;
+        font-variant-numeric: tabular-nums;
+        color: var(--mist);
+      }
+      .day .meta span {
+        display: block;
+      }
+
+      /* ── the paperwork ───────────────────────────────────────── */
+      .paper {
+        position: relative;
+        z-index: 3;
+        background: var(--sand);
+        color: var(--deep);
+        padding: 1px 1.25rem 3rem;
+      }
+      .paper section {
+        max-width: 68rem;
+        margin: 0 auto;
+        padding-top: 3.5rem;
+        scroll-margin-top: 0.5rem;
+      }
+      .paper h2,
+      .nye h2 {
+        font: 400 clamp(1.9rem, 7.5vw, 3rem) / 1.02 var(--display);
+        letter-spacing: -0.005em;
+      }
+      .paper .sub {
+        max-width: 40rem;
+        margin: 0.7rem 0 1.6rem;
+      }
+      .paper small {
+        display: block;
+        font-size: 0.875rem;
+        font-weight: 400;
+        opacity: 0.78;
+      }
+      .paper .s-booked {
+        color: #17703c;
+      }
+      .paper .s-unverified {
+        color: #8a5200;
+      }
+      .paper .s-open,
+      .paper .unknown {
+        color: #bd2347;
+      }
+      .paper a {
+        font-weight: 700;
+      }
+
+      .board .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.7rem 1rem;
+        padding: 1.1rem 0;
+        border-top: 2px solid var(--deep);
+      }
+      .board .head {
+        display: none;
+      }
+      .board .who,
+      .board [data-label='Proof'] {
+        grid-column: 1 / -1;
+      }
+      .board .who {
+        font: 400 1.6rem/1 var(--display);
+      }
+      .board .who small {
+        margin-top: 0.3rem;
+        font-family: var(--text);
+      }
+      .board [data-label]::before {
+        content: attr(data-label);
+        display: block;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        opacity: 0.6;
+      }
+      .board b {
+        font-variant-numeric: tabular-nums;
+      }
+
+      .todo {
+        counter-reset: todo;
+        display: grid;
+        gap: 0 2.5rem;
+      }
+      .todo li {
+        counter-increment: todo;
+        position: relative;
+        padding: 1rem 0 1.1rem 3rem;
+        border-top: 2px solid var(--deep);
+      }
+      .todo li::before {
+        content: counter(todo);
+        position: absolute;
+        left: 0;
+        top: 0.85rem;
+        font: 400 1.6rem/1 var(--display);
+        color: #bd2347;
+      }
+      .todo h3 {
+        font: 700 1.1875rem/1.25 var(--text);
+      }
+      .todo .due {
+        font-weight: 600;
+        font-size: 0.9375rem;
+        opacity: 0.7;
+        margin-bottom: 0.3rem;
+      }
+
+      .stays {
+        display: grid;
+        gap: 1rem;
+      }
+      .stay {
+        padding: 1.25rem;
+        border: 2px solid var(--deep);
+      }
+      .stay.pick {
+        background: var(--deep);
+        color: var(--foam);
+      }
+      .stay .tag {
+        display: inline-block;
+        margin-bottom: 0.8rem;
+        padding: 0.4em 0.6em 0.32em;
+        background: var(--mango);
+        color: var(--deep);
+        font: 400 0.8125rem/1 var(--display);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+      .stay h3 {
+        font: 700 1.25rem/1.2 var(--text);
+      }
+      .stay .price {
+        margin: 0.8rem 0 0.7rem;
+        font: 400 1.9rem/1 var(--display);
+      }
+      .stay .price small {
+        display: inline;
+        margin-left: 0.4rem;
+        font-family: var(--text);
+      }
+      .stay ul {
+        font-size: 0.9375rem;
+      }
+      .stay li {
+        padding: 0.3rem 0;
+        border-top: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+      }
+      .stay .verdict {
+        margin: 0.8rem 0 1rem;
+        font-weight: 600;
+      }
+      .stay.pick a {
+        color: var(--mango);
+      }
+
+      .ledger {
+        display: grid;
+        gap: 1rem 2.5rem;
+      }
+      .ledger > div {
+        padding-top: 1rem;
+        border-top: 2px solid var(--deep);
+      }
+      .ledger h3 {
+        font: 700 1.0625rem/1.3 var(--text);
+      }
+      .ledger .amount {
+        margin: 0.3rem 0;
+        font: 400 1.9rem/1.1 var(--display);
+      }
+      .ledger .amount small {
+        display: inline;
+        margin-left: 0.4rem;
+        font-family: var(--text);
+      }
+      .facts {
+        display: grid;
+        gap: 0 2.5rem;
+        margin-top: 2.5rem;
+      }
+      .facts > div {
+        padding: 0.9rem 0;
+        border-top: 1px solid rgb(10 51 64 / 0.35);
+      }
+      .facts dt {
+        font-weight: 700;
+      }
+
+      /* ── the record ──────────────────────────────────────────── */
+      .nye {
+        position: relative;
+        z-index: 3;
+        background: var(--deep);
+        padding: 4rem 1.25rem 3rem;
+      }
+      .nye > * {
+        max-width: 68rem;
+        margin-inline: auto;
+      }
+      .nye h2 {
+        color: var(--mango);
+      }
+      .nye ol {
+        margin-top: 1.8rem;
+      }
+      .nye li {
+        display: grid;
+        grid-template-columns: 4.2rem 1fr;
+        gap: 0 1rem;
+        padding: 0.9rem 0;
+        border-top: 1px solid rgb(246 241 225 / 0.2);
+      }
+      .nye .year {
+        grid-row: span 2;
+        font: 400 1.25rem/1.3 var(--display);
+        font-variant-numeric: tabular-nums;
+        color: var(--mist);
+      }
+      .nye .what {
+        font-weight: 600;
+        font-size: 1.1875rem;
+        line-height: 1.3;
+      }
+      .nye .where {
+        font-size: 0.9375rem;
+        color: var(--mist);
+      }
+      .nye .next .year {
+        color: var(--hibiscus);
+      }
+      .nye .next .what {
+        font: 400 3.2rem/1 var(--display);
+        color: var(--hibiscus);
+      }
+      .nye .colophon {
+        margin-top: 3rem;
+        font-size: 0.875rem;
+        color: var(--mist);
+      }
+
+      /* ── laptop ──────────────────────────────────────────────── */
+      @media (min-width: 60rem) {
+        :root {
+          --map-h: 100vh;
+        }
+        .journey {
+          display: grid;
+          grid-template-columns: minmax(26rem, 36%) 1fr;
+        }
+        .map {
+          order: 2;
+          box-shadow: none;
+          /* The text column sits on the same sea, so let the map dissolve into it. */
+          -webkit-mask-image: linear-gradient(to right, transparent, #000 22%);
+          mask-image: linear-gradient(to right, transparent, #000 22%);
+        }
+        .legend {
+          left: auto;
+          right: 1.5rem;
+          top: 1.4rem;
+          font-size: 0.8125rem;
+        }
+        .strip {
+          left: 0;
+          padding: 2.5rem 2rem 1.2rem 14%;
+        }
+        .strip a {
+          font-size: 1rem;
+          padding: 0.8rem 0 0.6rem;
+        }
+        .map-label {
+          font-size: 0.9375rem;
+        }
+        .story {
+          padding: 0 1rem 0 clamp(2rem, 4.5vw, 4.5rem);
+        }
+        .hero {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: flex-start;
+          padding: 4rem 0;
+        }
+        .hero h1 {
+          font-size: clamp(4.6rem, 7.6vw, 7.4rem);
+        }
+        .day {
+          min-height: 92vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          padding: 4rem 0;
+          border-top: 0;
+          scroll-margin-top: 0;
+        }
+        .paper,
+        .nye {
+          padding-inline: clamp(2rem, 4.5vw, 4.5rem);
+        }
+        .board .row {
+          grid-template-columns: 9rem 1.25fr 1.1fr 1.1fr;
+          align-items: start;
+        }
+        .board .who,
+        .board [data-label='Proof'] {
+          grid-column: auto;
+        }
+        .board .head {
+          display: grid;
+          padding: 0 0 0.5rem;
+          border-top: 0;
+          font-size: 0.875rem;
+          font-weight: 600;
+          opacity: 0.6;
+        }
+        .board [data-label]::before {
+          content: none;
+        }
+        .todo,
+        .facts,
+        .ledger {
+          grid-template-columns: 1fr 1fr;
+        }
+        .stays {
+          grid-template-columns: 1.15fr 1fr 1fr;
+          align-items: start;
+        }
+        .nye li {
+          grid-template-columns: 6rem 1fr 12rem;
+          align-items: baseline;
+        }
+        .nye .year {
+          grid-row: auto;
+        }
+        .nye .where {
+          text-align: right;
+        }
+        .nye .next .what {
+          font-size: 5rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .day,
+        .map-label {
+          transition: none;
+        }
+      }
+    </style>
+  </body>
+</html>

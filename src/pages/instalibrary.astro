@@ -17,12 +17,12 @@ const TABS = [
 ---
 
 <BaseLayout
-  title="Library · Kirtan Jain"
+  title="Instalibrary · Kirtan Jain"
   description="What I want to read, watch, cook, hear, try and visit, what I have finished, and the reel that put each one there."
 >
   <section class="mx-auto max-w-4xl px-6 py-12 md:py-20" id="library">
     <div data-scroll-animate>
-      <h1 class="font-display text-4xl font-bold md:text-5xl">Library</h1>
+      <h1 class="font-display text-4xl font-bold md:text-5xl">Instalibrary</h1>
       <p class="mt-3 text-lg text-text-secondary">
         Things I mean to read, watch, cook, hear, try and visit. Most arrive from reels I send myself;
         each entry links back to the one that suggested it.
@@ -647,7 +647,7 @@ const TABS = [
   // ClientRouter is enabled in BaseLayout, so a client-side navigation to this
   // page never fires DOMContentLoaded. astro:page-load covers both cases.
   document.addEventListener('astro:page-load', load);
-  // A link to /library#films followed while already here changes only the hash.
+  // A link to /instalibrary#film followed while already here changes only the hash.
   window.addEventListener('hashchange', () => {
     if (document.getElementById('library')) selectTab(location.hash.slice(1), false);
   });

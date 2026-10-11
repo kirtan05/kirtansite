@@ -9,6 +9,9 @@ import learningGuard from './src/integrations/learning-guard.mjs';
 export default defineConfig({
   site: 'https://kirtanjain.com',
 
+  // The library page's first address; links to it are already out there.
+  redirects: { '/library': '/instalibrary' },
+
   vite: {
     plugins: [tailwindcss()]
   },

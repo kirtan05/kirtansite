@@ -1,0 +1,454 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// Data comes from the library Worker at /api/library, a Workers route on this
+// hostname in front of Pages, beside spine's /api/reading. Fetched client-side
+// because this page is prerendered and the list changes whenever a reel is filed.
+const TABS = [
+  { type: 'book', label: 'Books' },
+  { type: 'film', label: 'Films' },
+  { type: 'show', label: 'Shows' },
+  { type: 'recipe', label: 'Recipes' },
+  { type: 'other', label: 'Other' },
+];
+---
+
+<BaseLayout
+  title="Library · Kirtan Jain"
+  description="What I want to read, watch and cook, what I have finished, and the reel that put each one there."
+>
+  <section class="mx-auto max-w-4xl px-6 py-12 md:py-20" id="library">
+    <div data-scroll-animate>
+      <h1 class="font-display text-4xl font-bold md:text-5xl">Library</h1>
+      <p class="mt-3 text-lg text-text-secondary">
+        Things I mean to read, watch and cook. Most arrive from reels I send myself;
+        each entry links back to the one that suggested it.
+      </p>
+    </div>
+
+    <div class="mt-10 flex flex-wrap gap-2" role="tablist" aria-label="Kind" id="library-tabs">
+      {
+        TABS.map((tab) => (
+          <button
+            type="button"
+            role="tab"
+            data-type={tab.type}
+            aria-selected="false"
+            class="library-tab rounded-full border border-border/50 px-4 py-1.5 font-mono text-xs uppercase tracking-widest text-text-secondary transition-colors duration-200 hover:text-text"
+          >
+            {tab.label} <span class="library-count" data-count={tab.type} />
+          </button>
+        ))
+      }
+    </div>
+
+    {/* --- Want --- */}
+    <div class="mt-10">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="font-display text-2xl font-bold">Want</h2>
+        <span class="font-mono text-xs uppercase tracking-widest text-accent" id="want-count"></span>
+      </div>
+      <div
+        class="mt-4 rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl"
+        style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+      >
+        <div id="want" class="divide-y divide-border/50">
+          <p class="font-mono text-sm text-text-secondary">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    {/* --- Done --- */}
+    <div class="mt-16">
+      <div class="flex items-baseline justify-between gap-4">
+        <h2 class="font-display text-2xl font-bold">Done</h2>
+        <span class="font-mono text-xs uppercase tracking-widest text-text-secondary" id="done-count"></span>
+      </div>
+      <div
+        class="mt-4 rounded-2xl border border-border/50 bg-surface/80 p-6 backdrop-blur-xl"
+        style="border-top: 0.5px solid rgba(255,255,255,0.05);"
+      >
+        <div id="done" class="divide-y divide-border/50">
+          <p class="font-mono text-sm text-text-secondary">Loading…</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-10 font-mono text-xs text-text-secondary">
+      <p id="library-note" aria-live="polite"></p>
+      <button type="button" id="signin-toggle" class="mt-2 underline-offset-4 hover:text-text hover:underline">
+        Sign in to edit
+      </button>
+      <form id="signin-form" class="mt-3 flex max-w-sm gap-2" hidden>
+        <label class="sr-only" for="signin-password">Password</label>
+        <input
+          id="signin-password"
+          type="password"
+          autocomplete="current-password"
+          placeholder="Password"
+          class="min-w-0 flex-1 rounded-lg border border-border bg-bg px-3 py-2 text-text"
+        />
+        <button type="submit" class="rounded-lg border border-border px-3 py-2 text-text hover:border-accent/50">
+          Sign in
+        </button>
+      </form>
+    </div>
+  </section>
+</BaseLayout>
+
+<style is:global>
+  /*
+    is:global because every row is built in JS after render, where Astro's scoped
+    attributes never reach. Classes are `library-` prefixed to keep that safe.
+  */
+  .library-tab[aria-selected='true'] {
+    color: var(--color-bg);
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+  }
+
+  .library-count {
+    opacity: 0.7;
+  }
+
+  .library-cover {
+    width: 3.25rem;
+    aspect-ratio: 2 / 3;
+    flex: none;
+    /* Without this the row stretches the cover to its own height and crops it. */
+    align-self: flex-start;
+    object-fit: cover;
+    border-radius: 0.375rem;
+    background: var(--color-border);
+  }
+
+  /* No cover: an empty plate the same size, so titles stay aligned down the list. */
+  .library-cover[data-empty='true'] {
+    border: 1px solid var(--color-border);
+    background: transparent;
+  }
+
+  .library-action {
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 0.2rem 0.7rem;
+    transition: border-color 200ms, color 200ms;
+  }
+
+  .library-action:hover:not(:disabled) {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+  }
+
+  .library-action:disabled {
+    opacity: 0.5;
+  }
+
+  .library-select {
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-bg);
+    color: inherit;
+    padding: 0.2rem 0.5rem;
+  }
+</style>
+
+<script>
+  const ENDPOINT = '/api/library';
+  const READING = '/api/reading';
+  const TYPES = ['book', 'film', 'show', 'recipe', 'other'];
+  /** What "done" is called for each kind of thing. */
+  const DONE_VERB: Record<string, string> = {
+    book: 'Read',
+    film: 'Seen',
+    show: 'Seen',
+    recipe: 'Cooked',
+    other: 'Done',
+  };
+
+  let items: any[] = [];
+  let signedIn = false;
+  let active = 'book';
+  /** Normalised titles from spine: books finished, and books open right now. */
+  let finishedTitles = new Set<string>();
+  let readingTitles = new Set<string>();
+
+  /** Mirrors the Worker's normaliseTitle closely enough to match spine's titles. */
+  function normalise(title: string): string {
+    const words = title
+      .normalize('NFKD')
+      .replace(/\p{M}+/gu, '')
+      .toLowerCase()
+      .replace(/&/g, ' and ')
+      .replace(/['’`]/g, '')
+      .replace(/[^\p{L}\p{N}]+/gu, ' ')
+      .trim()
+      .split(' ')
+      .filter(Boolean);
+    if (words.length > 1 && ['the', 'a', 'an'].includes(words[0])) words.shift();
+    return words.join(' ');
+  }
+
+  function el(tag: string, className = '', text = ''): HTMLElement {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text) node.textContent = text;
+    return node;
+  }
+
+  /** A book spine has finished counts as done here even if nobody ticked it. */
+  function isDone(item: any): boolean {
+    return item.status === 'done' || (item.type === 'book' && finishedTitles.has(normalise(item.title)));
+  }
+
+  function note(message: string) {
+    document.getElementById('library-note')!.textContent = message;
+  }
+
+  async function patch(item: any, body: Record<string, unknown>, button?: HTMLButtonElement) {
+    if (button) button.disabled = true;
+    try {
+      const response = await fetch(`${ENDPOINT}/items/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (response.status === 401) {
+        signedIn = false;
+        note('Signed out. Sign in again to edit.');
+      } else if (response.status === 409) {
+        note('Another entry already has that title under that kind.');
+      } else if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      } else {
+        const updated = (await response.json()).item;
+        items = updated.status === 'dismissed'
+          ? items.filter((other) => other.id !== item.id)
+          : items.map((other) => (other.id === item.id ? updated : other));
+        note('');
+      }
+    } catch {
+      note('That change did not save. Try again in a moment.');
+    }
+    render();
+  }
+
+  function action(label: string, onClick: (button: HTMLButtonElement) => void): HTMLButtonElement {
+    const button = el('button', 'library-action', label) as HTMLButtonElement;
+    button.type = 'button';
+    button.addEventListener('click', () => onClick(button));
+    return button;
+  }
+
+  function row(item: any): HTMLElement {
+    const done = isDone(item);
+    const wrap = el('div', 'flex gap-4 py-4 first:pt-0 last:pb-0');
+
+    if (item.cover_url) {
+      const cover = el('img', 'library-cover') as HTMLImageElement;
+      cover.src = item.cover_url;
+      cover.alt = '';
+      cover.loading = 'lazy';
+      wrap.appendChild(cover);
+    } else if (item.type === 'book' || item.type === 'film' || item.type === 'show') {
+      const blank = el('div', 'library-cover');
+      blank.dataset.empty = 'true';
+      wrap.appendChild(blank);
+    }
+
+    const main = el('div', 'min-w-0 flex-1');
+    const head = el('div', 'flex items-baseline justify-between gap-4');
+    head.appendChild(el('h3', 'font-display text-lg font-bold text-text', item.title));
+
+    const flags: string[] = [];
+    if (item.type === 'book' && !done && readingTitles.has(normalise(item.title))) flags.push('Reading now');
+    else if (item.status === 'doing') flags.push('In progress');
+    if (item.needs_review) flags.push('Check this');
+    if (flags.length) head.appendChild(el('span', 'shrink-0 font-mono text-xs text-accent', flags.join(' · ')));
+    main.appendChild(head);
+
+    const byline = [item.creator, item.year].filter(Boolean).join(' · ');
+    if (byline) main.appendChild(el('div', 'mt-1 font-mono text-xs text-text-secondary', byline));
+
+    // One line per reel: what it said, and who said it.
+    for (const source of item.sources || []) {
+      const line = el('p', 'mt-2 text-sm leading-relaxed text-text-secondary');
+      if (source.note) line.appendChild(document.createTextNode(`${source.note} `));
+      const link = el('a', 'whitespace-nowrap font-mono text-xs text-accent hover:underline') as HTMLAnchorElement;
+      link.href = source.reel_url;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = source.reel_author ? `@${source.reel_author}` : 'reel';
+      line.appendChild(link);
+      main.appendChild(line);
+    }
+
+    if (item.body && (item.body.ingredients?.length || item.body.steps?.length)) {
+      const details = el('details', 'mt-3 text-sm text-text-secondary');
+      details.appendChild(el('summary', 'cursor-pointer font-mono text-xs uppercase tracking-widest', 'Recipe'));
+      if (item.body.ingredients?.length) {
+        const list = el('ul', 'mt-3 list-disc space-y-1 pl-5');
+        for (const line of item.body.ingredients) list.appendChild(el('li', '', line));
+        details.appendChild(list);
+      }
+      if (item.body.steps?.length) {
+        const list = el('ol', 'mt-3 list-decimal space-y-2 pl-5');
+        for (const line of item.body.steps) list.appendChild(el('li', '', line));
+        details.appendChild(list);
+      }
+      main.appendChild(details);
+    }
+
+    if (signedIn) {
+      const bar = el('div', 'mt-3 flex flex-wrap items-center gap-2 font-mono text-xs text-text-secondary');
+      if (item.status === 'done') {
+        bar.appendChild(action('Back to want', (b) => patch(item, { status: 'want' }, b)));
+      } else {
+        bar.appendChild(action(DONE_VERB[item.type], (b) => patch(item, { status: 'done' }, b)));
+      }
+      bar.appendChild(action('Dismiss', (b) => patch(item, { status: 'dismissed' }, b)));
+
+      const select = el('select', 'library-select') as HTMLSelectElement;
+      select.setAttribute('aria-label', `Kind for ${item.title}`);
+      for (const type of TYPES) {
+        const option = el('option', '', type) as HTMLOptionElement;
+        option.value = type;
+        option.selected = type === item.type;
+        select.appendChild(option);
+      }
+      select.addEventListener('change', () => patch(item, { type: select.value, needs_review: false }));
+      bar.appendChild(select);
+
+      if (item.needs_review) bar.appendChild(action('Looks right', (b) => patch(item, { needs_review: false }, b)));
+      main.appendChild(bar);
+    }
+
+    wrap.appendChild(main);
+    return wrap;
+  }
+
+  function fill(id: string, list: any[], emptyMessage: string) {
+    const node = document.getElementById(id)!;
+    node.textContent = '';
+    if (!list.length) {
+      node.appendChild(el('p', 'font-mono text-sm text-text-secondary', emptyMessage));
+      return;
+    }
+    for (const item of list) node.appendChild(row(item));
+  }
+
+  function render() {
+    for (const tab of document.querySelectorAll<HTMLElement>('.library-tab')) {
+      const type = tab.dataset.type!;
+      tab.setAttribute('aria-selected', String(type === active));
+      const count = items.filter((item) => item.type === type && !isDone(item)).length;
+      tab.querySelector('.library-count')!.textContent = count ? String(count) : '';
+    }
+
+    const mine = items.filter((item) => item.type === active);
+    const want = mine.filter((item) => !isDone(item));
+    const done = mine
+      .filter(isDone)
+      .sort((a, b) => b.status_changed_at - a.status_changed_at);
+
+    document.getElementById('want-count')!.textContent = want.length ? String(want.length) : '';
+    document.getElementById('done-count')!.textContent = done.length ? String(done.length) : '';
+    fill('want', want, 'Nothing waiting here.');
+    fill('done', done, 'Nothing finished yet.');
+
+    document.getElementById('signin-toggle')!.hidden = signedIn;
+    if (signedIn) document.getElementById('signin-form')!.hidden = true;
+  }
+
+  function unavailable() {
+    for (const id of ['want', 'done']) {
+      const node = document.getElementById(id)!;
+      node.textContent = '';
+      node.appendChild(el('p', 'font-mono text-sm text-text-secondary', 'Unavailable.'));
+    }
+    note('The library did not load. It will be back when its server is reachable.');
+  }
+
+  async function getJson(url: string): Promise<any> {
+    const response = await fetch(url, { headers: { accept: 'application/json' } });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+
+  function selectTab(type: string, updateHash = true) {
+    if (!TYPES.includes(type)) return;
+    active = type;
+    if (updateHash) history.replaceState(null, '', `#${type}`);
+    render();
+  }
+
+  async function load() {
+    // Bail if this is not the library page — astro:page-load fires on every route.
+    if (!document.getElementById('library')) return;
+
+    const fromHash = location.hash.slice(1);
+    if (TYPES.includes(fromHash)) active = fromHash;
+
+    for (const tab of document.querySelectorAll<HTMLElement>('.library-tab')) {
+      tab.addEventListener('click', () => selectTab(tab.dataset.type!));
+    }
+
+    const toggle = document.getElementById('signin-toggle')!;
+    const form = document.getElementById('signin-form') as HTMLFormElement;
+    const password = document.getElementById('signin-password') as HTMLInputElement;
+    toggle.addEventListener('click', () => {
+      form.hidden = !form.hidden;
+      if (!form.hidden) password.focus();
+    });
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const response = await fetch(`${ENDPOINT}/login`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password: password.value }),
+      }).catch(() => null);
+      password.value = '';
+      if (response?.ok) {
+        signedIn = true;
+        note('');
+        render();
+      } else {
+        note(response ? 'That password was not right.' : 'Could not reach the server.');
+      }
+    });
+
+    try {
+      items = (await getJson(ENDPOINT)).items || [];
+    } catch {
+      unavailable();
+      return;
+    }
+    render();
+
+    // Both of these only add to what is already on screen, so neither blocks it
+    // and neither failing is worth a message.
+    getJson(`${ENDPOINT}/me`)
+      .then((me) => {
+        signedIn = Boolean(me.signedIn);
+        render();
+      })
+      .catch(() => {});
+    getJson(READING)
+      .then((reading) => {
+        const titles = (books: any[]) =>
+          new Set((books || []).map((book) => normalise(book.title || '')).filter(Boolean));
+        finishedTitles = titles(reading.recently_finished);
+        readingTitles = titles(reading.currently_reading);
+        render();
+      })
+      .catch(() => {});
+  }
+
+  // ClientRouter is enabled in BaseLayout, so a client-side navigation to this
+  // page never fires DOMContentLoaded. astro:page-load covers both cases.
+  document.addEventListener('astro:page-load', load);
+  // A link to /library#films followed while already here changes only the hash.
+  window.addEventListener('hashchange', () => {
+    if (document.getElementById('library')) selectTab(location.hash.slice(1), false);
+  });
+</script>

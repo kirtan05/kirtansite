@@ -123,7 +123,7 @@ const listFilms = [
   item('film', 'Ronin', { sources: [heists] }),
   item('film', 'Thief', { sources: [heists] }),
   item('film', 'Solo', { sources: [reel('CCC', 'oneoff')] }),
-  item('film', 'Orphan'),
+  item('film', 'Orphan', { sources: [reel('DDD', 'another')] }),
 ];
 
 test('list: an item sits under every list of three or more that names it; the rest go under Everything else', () => {
@@ -142,6 +142,17 @@ test('list: an item sits under every list of three or more that names it; the re
 test('list: Everything else stays last even when it is the biggest', () => {
   const films = [...listFilms.slice(3, 6), ...['A', 'B', 'C', 'D', 'E'].map((title) => item('film', title))];
   assert.deepEqual(groupItems(films, 'film', 'list').map((group) => group.label), ['Heist films', 'Everything else']);
+});
+
+test('list: inside Everything else, an item named by more reels still comes first', () => {
+  const films = [
+    ...listFilms.slice(3, 6),
+    item('film', 'Zed', { sources: [reel('GGG'), reel('HHH')] }),
+    item('film', 'Alpha', { sources: [reel('III')] }),
+    item('film', 'Beta', { sources: [reel('JJJ')] }),
+  ];
+  const groups = groupItems(films, 'film', 'list');
+  assert.deepEqual(shape(groups).at(-1), ['Everything else', ['Zed', 'Alpha', 'Beta']]);
 });
 
 test('list: one with no title yet is headed by its account', () => {

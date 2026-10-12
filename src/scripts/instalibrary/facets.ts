@@ -344,10 +344,7 @@ function groupByList(items: Item[], shown: (item: Item) => boolean): Group[] {
     if (lists.length === 0) rest.items.push(item);
     for (const url of lists) drafts.get(url)!.items.push(item);
   }
-  // Items under "Everything else" are in it because no list claims them, so how
-  // many reels recommended each says little there; they read best by title.
-  const byTitle = (a: Item, b: Item) => a.title.localeCompare(b.title);
-  return [...settle([...drafts.values()], shown).sort(bySize), ...settle([rest], shown, byTitle)];
+  return [...settle([...drafts.values()], shown).sort(bySize), ...settle([rest], shown)];
 }
 
 /**
@@ -389,17 +386,16 @@ function groupBySeries(items: Item[], shown: (item: Item) => boolean): Group[] {
  * Split a whole tab into the groups the page draws.
  *
  * `items` is the whole tab: which groups exist is decided from all of it, and
- * only then does each group keep the items `shown` accepts. `tab` is the tab the
- * items belong to; each item is read by its own type, so an unknown tab simply
- * has nothing to group by. A grouping this file does not know gives one flat group.
+ * only then does each group keep the items `shown` accepts. `_tab` is the tab the
+ * items belong to. It is accepted because the page passes it, but each item is
+ * read by its own type, so an unknown tab simply has nothing to group by. A grouping this file does not know gives one flat group.
  */
 export function groupItems(
   items: Item[],
-  tab: string,
+  _tab: string,
   choice: string,
   shown: (item: Item) => boolean = () => true,
 ): Group[] {
-  void tab;
   if (choice === 'list') return groupByList(items, shown);
   if (choice === 'series') return groupBySeries(items, shown);
   if (choice === 'verdict') {

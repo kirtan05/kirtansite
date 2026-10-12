@@ -220,6 +220,7 @@ const TABS = [
 
   .library-summary::before {
     content: '+';
+    content: '+' / '';
     flex: none;
     width: 1ch;
     font-family: var(--font-mono, monospace);
@@ -229,6 +230,7 @@ const TABS = [
 
   .library-groupbox[open] > .library-summary::before {
     content: '\2212';
+    content: '\2212' / '';
   }
 
   .library-headtext {

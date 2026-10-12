@@ -8,6 +8,7 @@ import {
   GROUP_LABELS,
   NARROW_LABELS,
   TABS,
+  bodyOf,
   byline,
   fold,
   groupItems,
@@ -17,6 +18,7 @@ import {
   narrowOptions,
   reelCount,
   safeUrl,
+  sourcesOf,
 } from './facets.ts';
 
 let nextId = 1;
@@ -235,13 +237,15 @@ test('length: miniseries, one season, two or three, four or more', () => {
     show('The Wire', { seasons: 5 }),
     show('Firefly', { seasons: 1, miniseries: false }),
     show('Mystery', null),
+    show('Zero', { seasons: 0 }),
+    show('Half', { seasons: 2.5 }),
   ];
   assert.deepEqual(shape(groupItems(shows, 'show', 'length')), [
     ['Two or three seasons', ['Dark', 'Fleabag']],
     ['Four or more seasons', ['The Wire']],
     ['Miniseries', ['Chernobyl']],
     ['One season', ['Firefly']],
-    ['Unsorted', ['Mystery']],
+    ['Unsorted', ['Half', 'Mystery', 'Zero']],
   ]);
 });
 
@@ -284,6 +288,27 @@ test('city and kind', () => {
     ['cafe', ['Blue Tokai']],
     ['Unsorted', ['Somewhere']],
   ]);
+});
+
+test('one spelling of a kind, a city or a language is one group and one menu option', () => {
+  const place = (title: string, body: Record<string, unknown>) => item('place', title, { body });
+  const places = [
+    place('A', { kind: 'Cafe', city: 'Delhi', country: 'India' }),
+    place('B', { kind: 'cafe', city: 'delhi', country: 'india' }),
+  ];
+  assert.deepEqual(shape(groupItems(places, 'place', 'kind')), [['Cafe', ['A', 'B']]]);
+  assert.deepEqual(shape(groupItems(places, 'place', 'city')), [['Delhi, India', ['A', 'B']]]);
+  assert.deepEqual(narrowOptions(places, 'kind'), [{ value: 'cafe', label: 'Cafe', count: 2 }]);
+  assert.deepEqual(narrowOptions(places, 'city'), [{ value: 'delhi, india', label: 'Delhi, India', count: 2 }]);
+  for (const one of places) {
+    assert.ok(matchesNarrow(one, { kind: 'cafe' }));
+    assert.ok(matchesNarrow(one, { city: 'delhi, india' }));
+  }
+
+  const films = [film('Heat', ['Crime'], { body: { genres: ['Crime'], language: 'en' } }), film('Se7en', ['Crime'], { body: { genres: ['Crime'], language: 'EN' } })];
+  assert.deepEqual(shape(groupItems(films, 'film', 'language')), [['English', ['Heat', 'Se7en']]]);
+  assert.deepEqual(narrowOptions(films, 'language'), [{ value: 'en', label: 'English', count: 2 }]);
+  assert.ok(films.every((one) => matchesNarrow(one, { language: 'en' })));
 });
 
 test('verdict: the fixed order holds whatever the sizes, and an unreviewed tool has its own last group', () => {
@@ -351,8 +376,8 @@ test('the genre menu matches any of an item’s genres, and menus combine', () =
   const book = item('book', 'Dune', { body: { genre: 'science fiction' } });
   assert.ok(matchesNarrow(book, { genre: 'science fiction' }));
   const place = item('place', 'MTR', { body: { kind: 'restaurant', city: 'Bengaluru', country: 'India' } });
-  assert.ok(matchesNarrow(place, { city: 'Bengaluru, India', kind: 'restaurant' }));
-  assert.ok(!matchesNarrow(place, { city: 'Delhi, India' }));
+  assert.ok(matchesNarrow(place, { city: 'bengaluru, india', kind: 'restaurant' }));
+  assert.ok(!matchesNarrow(place, { city: 'delhi, india' }));
 });
 
 test('menu options are what the tab holds, most common first, each with its count', () => {
@@ -388,6 +413,9 @@ test('byline: creator, year, up to two genres, runtime or seasons, and the reel 
   assert.equal(show({ genres: ['Drama'], seasons: 4, miniseries: false }), '2019 · Drama · 4 seasons');
   assert.equal(show({ genres: [], seasons: 1, miniseries: false }), '2019 · 1 season');
   assert.equal(show({ genres: ['Drama'], seasons: 1, miniseries: true }), '2019 · Drama · Miniseries');
+  // A season count the length grouping would call missing is not shown either.
+  assert.equal(show({ genres: ['Drama'], seasons: 0 }), '2019 · Drama');
+  assert.equal(show({ genres: ['Drama'], seasons: 2.5 }), '2019 · Drama');
 
   const dune = item('book', 'Dune', { creator: 'Frank Herbert', year: 1965, body: { genre: 'science fiction', series: 'Dune', series_position: 1 } });
   assert.equal(byline(dune), 'Frank Herbert · 1965 · Science fiction · Dune #1');
@@ -411,10 +439,11 @@ test('a body that is odd or was corrected by hand never throws: the item is Unso
     item('film', 'Genres of the wrong kind', { body: { genres: [null, 5, { name: 'Crime' }] } }),
     item('film', 'No sources at all', { sources: undefined as unknown as Source[] }),
     item('film', 'Year as text', { year: 'nineteen' as unknown as number }),
+    item('film', 'A null source', { sources: [null as unknown as Source] }),
   ];
   for (const choice of TABS.film.groupBy) {
     const groups = groupItems(odd, 'film', choice);
-    assert.equal(groups.flatMap((group) => group.items).length, 4, choice);
+    assert.equal(groups.flatMap((group) => group.items).length, odd.length, choice);
   }
   assert.deepEqual(groupItems(odd, 'film', 'genre').map((group) => group.label), ['Unsorted']);
   assert.deepEqual(groupItems(odd, 'film', 'decade').map((group) => group.label), ['Unsorted']);
@@ -424,8 +453,40 @@ test('a body that is odd or was corrected by hand never throws: the item is Unso
   assert.equal(byline(book), '');
   assert.equal(byline(odd[0]), '');
   assert.ok(matchesSearch(odd[2], 'sources'));
+  assert.ok(matchesSearch(odd[4], 'null'));
+  assert.equal(reelCount(odd[4]), 0);
   assert.ok(matchesNarrow(odd[0], { genre: '' }));
   assert.deepEqual(narrowOptions(odd, 'genre'), []);
+
+  // The readers the page shares: a null source or a missing body is skipped, not thrown on.
+  assert.deepEqual(sourcesOf(odd[4]), []);
+  assert.deepEqual(sourcesOf(odd[2]), []);
+  assert.deepEqual(bodyOf(item('film', 'No body')), {});
+  assert.deepEqual(bodyOf(item('film', 'List body', { body: [] as unknown as Record<string, unknown> })), {});
+  assert.deepEqual(bodyOf(odd[0]), { genres: 'Crime', language: 7, runtime: 'long' });
+});
+
+test('an item with no title still sorts, under every grouping', () => {
+  const body = { genres: ['Crime'], language: 'en', kind: 'cafe', city: 'Delhi' };
+  const films = [
+    item('film', null as unknown as string, { year: 1995, body, sources: [reel('A')] }),
+    item('film', 'Heat', { year: 1995, body, sources: [reel('A')] }),
+    item('film', 'Se7en', { year: 1995, body, sources: [reel('A')] }),
+  ];
+  for (const choice of TABS.film.groupBy) {
+    const groups = groupItems(films, 'film', choice);
+    assert.equal(groups.flatMap((group) => group.items).length, 3, choice);
+    assert.equal(groups[0].items[0].title, null, choice);
+  }
+
+  const books = [
+    item('book', null as unknown as string, { creator: 'A. Writer', body: { series: 'Saga', series_position: 1 } }),
+    item('book', 'Second', { creator: 'A. Writer', body: { series: 'Saga', series_position: 1 } }),
+  ];
+  for (const choice of TABS.book.groupBy) {
+    assert.equal(groupItems(books, 'book', choice).flatMap((group) => group.items).length, 2, choice);
+  }
+  assert.equal(groupItems(books, 'book', 'series')[0].label, 'Saga');
 });
 
 test('an unknown tab or grouping falls back to one flat group', () => {

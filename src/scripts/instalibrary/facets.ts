@@ -94,14 +94,16 @@ interface Tag {
   label: string;
 }
 
-function bodyOf(item: Item): Record<string, unknown> {
+/** An item's body, or an empty one when it is null or not a plain object. */
+export function bodyOf(item: Item): Record<string, unknown> {
   const body: unknown = item.body;
   return body !== null && typeof body === 'object' && !Array.isArray(body)
     ? (body as Record<string, unknown>)
     : {};
 }
 
-function sourcesOf(item: Item): Source[] {
+/** An item's sources, leaving out anything that is not an object (a null, say). */
+export function sourcesOf(item: Item): Source[] {
   const sources: unknown = item.sources;
   return Array.isArray(sources)
     ? sources.filter((source) => source !== null && typeof source === 'object')
@@ -114,6 +116,18 @@ function text(value: unknown): string | null {
 
 function num(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+/** A title, or an empty one when a hand edit left it null or not text. */
+export function titleOf(item: Item): string {
+  const title: unknown = item.title;
+  return typeof title === 'string' ? title : '';
+}
+
+/** The one rule for a usable season count: a whole number, 1 or more. */
+function seasonCount(value: unknown): number | null {
+  const seasons = num(value);
+  return seasons !== null && Number.isInteger(seasons) && seasons >= 1 ? seasons : null;
 }
 
 /** Lower case, accents and other combining marks removed, so "Amélie" meets "amelie". */
@@ -141,14 +155,15 @@ export function safeUrl(value: unknown): string | null {
 let displayNames: Intl.DisplayNames | undefined;
 
 /** "en" becomes "English". TMDB's two non-standard codes are named by hand. */
-export function languageName(code: string): string {
+export function languageName(codeAsGiven: string): string {
+  const code = codeAsGiven.toLowerCase();
   if (code === 'cn') return 'Cantonese';
   if (code === 'xx') return 'No language';
   try {
     displayNames ??= new Intl.DisplayNames(['en'], { type: 'language' });
-    return displayNames.of(code) ?? code;
+    return displayNames.of(code) ?? codeAsGiven;
   } catch {
-    return code;
+    return codeAsGiven;
   }
 }
 
@@ -172,7 +187,7 @@ function genreTags(item: Item): Tag[] {
 
 function languageTag(item: Item): Tag | null {
   const code = text(bodyOf(item).language);
-  return code ? { key: code, label: languageName(code) } : null;
+  return code ? { key: fold(code), label: languageName(code) } : null;
 }
 
 function decadeTag(item: Item): Tag | null {
@@ -185,7 +200,7 @@ function decadeTag(item: Item): Tag | null {
 function lengthTag(item: Item): Tag | null {
   const body = bodyOf(item);
   if (body.miniseries === true) return { key: 'miniseries', label: 'Miniseries' };
-  const seasons = num(body.seasons);
+  const seasons = seasonCount(body.seasons);
   if (seasons === 1) return { key: 'one', label: 'One season' };
   if (seasons === 2 || seasons === 3) return { key: 'few', label: 'Two or three seasons' };
   if (seasons !== null && seasons >= 4) return { key: 'many', label: 'Four or more seasons' };
@@ -194,7 +209,7 @@ function lengthTag(item: Item): Tag | null {
 
 function kindTag(item: Item): Tag | null {
   const kind = text(bodyOf(item).kind);
-  return kind ? { key: kind, label: kind } : null;
+  return kind ? { key: fold(kind), label: kind } : null;
 }
 
 function cityTag(item: Item): Tag | null {
@@ -203,7 +218,7 @@ function cityTag(item: Item): Tag | null {
   if (!city) return null;
   const country = text(body.country);
   const label = country ? `${city}, ${country}` : city;
-  return { key: label, label };
+  return { key: fold(label), label };
 }
 
 /** Every tool lands in one of the five; a missing or unknown verdict is "not reviewed". */
@@ -238,7 +253,7 @@ const NARROW_READERS: Record<string, (item: Item) => Tag[]> = {
 
 /** Most recommended first, then by title. */
 function byRecommendation(a: Item, b: Item): number {
-  return reelCount(b) - reelCount(a) || a.title.localeCompare(b.title);
+  return reelCount(b) - reelCount(a) || titleOf(a).localeCompare(titleOf(b));
 }
 
 /** Largest first by what is shown, ties by name. */
@@ -257,7 +272,7 @@ function bySeriesOrder(a: Item, b: Item): number {
   return (
     ascending(num(bodyOf(a).series_position), num(bodyOf(b).series_position)) ||
     ascending(num(a.year), num(b.year)) ||
-    a.title.localeCompare(b.title)
+    titleOf(a).localeCompare(titleOf(b))
   );
 }
 
@@ -388,7 +403,8 @@ function groupBySeries(items: Item[], shown: (item: Item) => boolean): Group[] {
  * `items` is the whole tab: which groups exist is decided from all of it, and
  * only then does each group keep the items `shown` accepts. `_tab` is the tab the
  * items belong to. It is accepted because the page passes it, but each item is
- * read by its own type, so an unknown tab simply has nothing to group by. A grouping this file does not know gives one flat group.
+ * read by its own type, so an unknown tab simply has nothing to group by.
+ * A grouping this file does not know gives one flat group.
  */
 export function groupItems(
   items: Item[],
@@ -473,7 +489,7 @@ export function byline(item: Item): string {
   parts.push(runtime === null ? null : `${runtime} min`);
 
   if (item.type === 'show') {
-    const seasons = num(body.seasons);
+    const seasons = seasonCount(body.seasons);
     if (body.miniseries === true) parts.push('Miniseries');
     else if (seasons !== null) parts.push(seasons === 1 ? '1 season' : `${seasons} seasons`);
   }

@@ -11,12 +11,15 @@ import {
   NARROW_LABELS,
   TABS,
   VERDICTS,
+  bodyOf,
   byline,
   groupItems,
   matchesNarrow,
   matchesSearch,
   narrowOptions,
   safeUrl,
+  sourcesOf,
+  titleOf,
 } from './facets.ts';
 import type { Group, Item, Source } from './facets.ts';
 
@@ -50,6 +53,8 @@ const HEADING_COVERS = 5;
 const SEARCH_DELAY = 150;
 
 let items: Item[] = [];
+/** Set once the library has arrived; until then the lists keep saying "Loading…" or "Unavailable.". */
+let loaded = false;
 let signedIn = false;
 let active = 'book';
 /** What is typed in the search box, once typing has paused. One for the whole page. */
@@ -97,14 +102,6 @@ function el(tag: string, className = '', text = ''): HTMLElement {
   return node;
 }
 
-/** An item's body, which a hand edit may have left null or odd. */
-function bodyOf(item: Item): Record<string, unknown> {
-  const body: unknown = item.body;
-  return body !== null && typeof body === 'object' && !Array.isArray(body)
-    ? (body as Record<string, unknown>)
-    : {};
-}
-
 function str(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
 }
@@ -113,13 +110,9 @@ function strings(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((line): line is string => str(line) !== '') : [];
 }
 
-function sourcesOf(item: Item): Source[] {
-  return Array.isArray(item.sources) ? item.sources : [];
-}
-
 /** A book spine has finished counts as done here even if nobody ticked it. */
 function isDone(item: Item): boolean {
-  return item.status === 'done' || (item.type === 'book' && finishedTitles.has(normalise(item.title)));
+  return item.status === 'done' || (item.type === 'book' && finishedTitles.has(normalise(titleOf(item))));
 }
 
 function note(message: string) {
@@ -234,9 +227,10 @@ function row(item: Item): HTMLElement {
   const body = bodyOf(item);
   const wrap = el('div', 'library-row flex gap-3 py-3 first:pt-0 last:pb-0');
 
-  if (item.cover_url) {
+  const coverUrl = safeUrl(item.cover_url);
+  if (coverUrl) {
     const cover = el('img', 'library-cover') as HTMLImageElement;
-    cover.src = item.cover_url;
+    cover.src = coverUrl;
     cover.alt = '';
     cover.loading = 'lazy';
     wrap.appendChild(cover);
@@ -255,7 +249,7 @@ function row(item: Item): HTMLElement {
   head.appendChild(heading);
 
   const flags: string[] = [];
-  if (item.type === 'book' && !done && readingTitles.has(normalise(item.title))) flags.push('Reading now');
+  if (item.type === 'book' && !done && readingTitles.has(normalise(titleOf(item)))) flags.push('Reading now');
   else if (item.status === 'doing') flags.push('In progress');
   if (item.needs_review) flags.push('Check this');
   if (flags.length) head.appendChild(el('span', 'shrink-0 font-mono text-xs text-accent', flags.join(' · ')));
@@ -316,9 +310,10 @@ function row(item: Item): HTMLElement {
 }
 
 /** One group: a heading that opens and closes, and rows that are built on first opening. */
-function groupBox(group: Group, section: string, openByDefault: boolean): HTMLElement {
+function groupBox(group: Group, section: string, choice: string, autoOpen: boolean): HTMLElement {
   const states = (groupStates[active] ||= new Map());
-  const stateKey = `${section}:${group.key}`;
+  // The grouping is part of the key: "unsorted" and "else" recur under every grouping.
+  const stateKey = `${section}:${choice}:${group.key}`;
 
   const box = el('details', 'library-groupbox') as HTMLDetailsElement;
   const summary = el('summary', 'library-summary');
@@ -335,13 +330,16 @@ function groupBox(group: Group, section: string, openByDefault: boolean): HTMLEl
   }
   summary.appendChild(text);
 
-  const covers = group.items.filter((item) => item.cover_url).slice(0, HEADING_COVERS);
+  const covers = group.items
+    .map((item) => safeUrl(item.cover_url))
+    .filter((url): url is string => url !== null)
+    .slice(0, HEADING_COVERS);
   if (covers.length) {
     const strip = el('div', 'library-strip');
     strip.setAttribute('aria-hidden', 'true');
-    for (const item of covers) {
+    for (const url of covers) {
       const cover = el('img', 'library-thumb') as HTMLImageElement;
-      cover.src = item.cover_url!;
+      cover.src = url;
       cover.alt = '';
       cover.loading = 'lazy';
       strip.appendChild(cover);
@@ -360,23 +358,25 @@ function groupBox(group: Group, section: string, openByDefault: boolean): HTMLEl
   };
 
   // Enter and Space on the summary arrive here as clicks, before the browser flips `open`.
+  // While a short search holds every group open, a hand toggle is not remembered:
+  // it would overwrite what the reader chose before searching.
   summary.addEventListener('click', (event) => {
-    if ((event.target as Element).closest('a')) return;
+    if ((event.target as Element).closest('a') || autoOpen) return;
     states.set(stateKey, !box.open);
   });
   box.addEventListener('toggle', () => {
     if (box.open) build();
   });
-  box.open = states.get(stateKey) ?? openByDefault;
+  box.open = autoOpen || (states.get(stateKey) ?? false);
   if (box.open) build();
   return box;
 }
 
 /** Draw one section: headings and their groups, or a flat list that grows by sixties. */
-function fillSection(node: HTMLElement, groups: Group[], section: string, choice: string, openByDefault: boolean) {
+function fillSection(node: HTMLElement, groups: Group[], section: string, choice: string, autoOpen: boolean) {
   node.textContent = '';
   if (choice !== 'none') {
-    for (const group of groups) node.appendChild(groupBox(group, section, openByDefault));
+    for (const group of groups) node.appendChild(groupBox(group, section, choice, autoOpen));
     return;
   }
 
@@ -440,11 +440,16 @@ function fillControls(all: Item[]) {
 function render() {
   // A late fetch or a pending search can land after the reader has left the page.
   if (!document.getElementById('library')) return;
+  for (const tab of document.querySelectorAll<HTMLElement>('.library-tab')) {
+    tab.setAttribute('aria-selected', String(tab.dataset.type === active));
+  }
+  // The tab highlight follows a click at once; the rest waits for the library, so a
+  // keystroke or click cannot replace "Loading…" or "Unavailable." with "Nothing matches.".
+  if (!loaded) return;
   const searching = query.trim() !== '';
 
   for (const tab of document.querySelectorAll<HTMLElement>('.library-tab')) {
     const type = tab.dataset.type!;
-    tab.setAttribute('aria-selected', String(type === active));
     // While searching, a hit in another tab shows up here, finished or not.
     const count = items.filter((item) =>
       item.type === type && (searching ? matchesSearch(item, query) : !isDone(item)),
@@ -465,15 +470,15 @@ function render() {
   const finished = (item: Item) => isDone(item) && passes(item);
   const wantCount = all.filter(wanted).length;
   const doneCount = all.filter(finished).length;
-  // Few enough hits and every group opens, so nothing a search found stays hidden.
-  const openByDefault = searching && wantCount + doneCount <= OPEN_ALL_AT;
+  // Few enough hits and every group is open, so nothing a search found stays hidden.
+  const autoOpen = searching && wantCount + doneCount <= OPEN_ALL_AT;
 
   document.getElementById('want-count')!.textContent = wantCount ? String(wantCount) : '';
   document.getElementById('done-count')!.textContent = doneCount ? String(doneCount) : '';
 
   const want = document.getElementById('want')!;
   if (wantCount) {
-    fillSection(want, groupItems(all, active, choice, wanted), 'want', choice, openByDefault);
+    fillSection(want, groupItems(all, active, choice, wanted), 'want', choice, autoOpen);
   } else {
     const narrowing = searching || Object.values(narrow).some(Boolean);
     want.textContent = '';
@@ -482,7 +487,7 @@ function render() {
 
   document.getElementById('done-section')!.hidden = doneCount === 0;
   if (doneCount) {
-    fillSection(document.getElementById('done')!, groupItems(all, active, choice, finished), 'done', choice, openByDefault);
+    fillSection(document.getElementById('done')!, groupItems(all, active, choice, finished), 'done', choice, autoOpen);
   }
 
   document.getElementById('signin-toggle')!.hidden = signedIn;
@@ -515,6 +520,7 @@ function selectTab(type: string, updateHash = true) {
 async function load() {
   // Bail if this is not the library page — astro:page-load fires on every route.
   if (!document.getElementById('library')) return;
+  loaded = false;
 
   const fromHash = location.hash.slice(1);
   if (TYPES.includes(fromHash)) active = fromHash;
@@ -574,6 +580,7 @@ async function load() {
     unavailable();
     return;
   }
+  loaded = true;
   render();
 
   // Both of these only add to what is already on screen, so neither blocks it

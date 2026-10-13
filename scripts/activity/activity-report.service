@@ -1,0 +1,15 @@
+# User service: nightly laptop report to WhatsApp.
+# Install for the current user:
+#   cp activity-report.{service,timer} ~/.config/systemd/user/
+#   mkdir -p ~/.config/systemd/user
+#   # create the env file (chmod 600) with ACTIVITY_READ_TOKEN= and optionally WA_GROUP=
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now activity-report.timer
+[Unit]
+Description=Nightly laptop activity report to WhatsApp
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=%h/.config/activity-report.env
+ExecStart=%h/Desktop/projects/kirtansite/scripts/activity/report.sh

@@ -14,3 +14,7 @@ LEARNING_COOKIE_KEY = "a-long-random-string-for-local-use-only"
 # /gree
 GREE_PW = "pbkdf2$10000$REPLACE$REPLACE"
 GREE_COOKIE_KEY = "another-long-random-string-for-local-use-only"
+
+# /learning activity monitor — two independent tokens (writer vs reader)
+ACTIVITY_INGEST_TOKEN = "local-ingest-token"
+ACTIVITY_READ_TOKEN = "local-read-token"

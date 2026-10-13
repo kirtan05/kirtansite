@@ -1,0 +1,170 @@
+---
+export const prerender = false;
+
+/**
+ * The coach's laptop day view — coach-only, like every other coach screen.
+ *
+ * It shows where the day's laptop time went and, as honestly as the grading
+ * page shows staleness, whether the tracker actually ran. A gap in the data is
+ * labelled a gap, never smoothed into a number. Nothing here is on the child's
+ * screen, and nothing here blocks anything on the laptop.
+ */
+import LearningLayout from '../../../../layouts/LearningLayout.astro';
+import { requireRole } from '../../../../lib/learning/guard';
+import { addDays, human, today } from '../../../../lib/learning/dates';
+import { summariseDay, dur, istDay, type CleanEvent } from '../../../../lib/learning/activity';
+
+const gate = await requireRole(Astro, 'coach');
+if (!gate.ok) return gate.response;
+const { env } = gate.ctx;
+
+const date = String(Astro.params.date ?? today());
+if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return new Response('bad date', { status: 400 });
+
+const db = env.ACTIVITY_DB;
+const configured = !!db;
+
+let deviceLabel: string | null = null;
+let lastSeen: string | null = null;
+let events: CleanEvent[] = [];
+let trackerRows: Array<{ kind: string; at: string; detail: string | null }> = [];
+
+if (db) {
+  // Aggregate across all devices for the day (see ingest route's blast-radius note).
+  const device = await db
+    .prepare('SELECT label, MAX(last_seen) AS last_seen FROM activity_device')
+    .first<{ label: string | null; last_seen: string | null }>();
+  deviceLabel = device?.label ?? null;
+  lastSeen = device?.last_seen ?? null;
+
+  const evRes = await db
+    .prepare(
+      `SELECT bucket, started_at, duration_s, app, title, url, host, status, day
+         FROM activity_event WHERE day = ? ORDER BY started_at`,
+    )
+    .bind(date)
+    .all<CleanEvent>();
+  events = (evRes.results ?? []) as CleanEvent[];
+
+  const trk = await db
+    .prepare(`SELECT kind, at, detail FROM activity_tracker_event WHERE day = ? ORDER BY at`)
+    .bind(date)
+    .all<{ kind: string; at: string; detail: string | null }>();
+  trackerRows = trk.results ?? [];
+}
+
+const s = summariseDay(events);
+const istTime = (iso: string) =>
+  new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Kolkata',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(new Date(iso));
+
+const stops = trackerRows.filter((t) => t.kind === 'stopped');
+const isToday = date === today();
+const stale = configured && s.sampleCount === 0;
+
+// Panels, built here so the markup below is a simple loop.
+const panels: Array<{ title: string; rows: Array<{ key: string; seconds: number }>; empty?: string }> = [
+  { title: 'By category', rows: s.byCategory },
+  { title: 'Top apps', rows: s.byApp.slice(0, 12) },
+  {
+    title: 'Top sites',
+    rows: s.byHost.slice(0, 12),
+    empty: 'No web activity (or browsing was outside the tracked browser).',
+  },
+];
+const maxOf = (rows: Array<{ seconds: number }>) => Math.max(1, ...rows.map((r) => r.seconds));
+---
+
+<LearningLayout title="Laptop" role="coach" subtitle={human(date)} wide>
+  <nav class="mb-6 flex items-center justify-between text-sm">
+    <a class="text-slate-500 hover:text-slate-800" href={`/learning/coach/activity/${addDays(date, -1)}`}>
+      &larr; {human(addDays(date, -1))}
+    </a>
+    <span class="font-medium">{deviceLabel ?? 'No device yet'}</span>
+    {
+      !isToday && (
+        <a class="text-slate-500 hover:text-slate-800" href={`/learning/coach/activity/${addDays(date, 1)}`}>
+          {human(addDays(date, 1))} &rarr;
+        </a>
+      )
+    }
+  </nav>
+
+  {
+    !configured && (
+      <p class="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-amber-900">
+        The activity database is not bound on this deployment. See the spec runbook.
+      </p>
+    )
+  }
+
+  {
+    configured && (
+      <>
+        <section
+          class:list={[
+            'mb-6 rounded-2xl border p-5',
+            stale ? 'border-slate-300 bg-slate-50 text-slate-600' : 'border-emerald-300 bg-emerald-50 text-emerald-900',
+          ]}
+        >
+          {s.sampleCount === 0 ? (
+            <p>
+              <strong>No data for this day.</strong> The laptop may have been off, or the tracker not running. Last
+              seen anywhere: {lastSeen ? `${istTime(lastSeen)} IST, ${human(istDay(lastSeen))}` : 'never'}.
+            </p>
+          ) : (
+            <p>
+              Active <strong>{dur(s.activeSeconds)}</strong>
+              {s.firstAt && (
+                <>
+                  {' '}&middot; {istTime(s.firstAt)}–{s.lastAt ? istTime(s.lastAt) : ''}
+                </>
+              )}{' '}
+              &middot; late (22:00–06:00): <strong>{dur(s.lateNightSeconds)}</strong>
+            </p>
+          )}
+          {stops.length > 0 && (
+            <p class="mt-2 text-sm">
+              Tracker stopped {stops.length} time{stops.length > 1 ? 's' : ''} today (
+              {stops.map((t) => istTime(t.at)).join(', ')}).
+            </p>
+          )}
+        </section>
+
+        {s.sampleCount > 0 && (
+          <div class="grid gap-6 md:grid-cols-3">
+            {panels.map((p) => (
+              <section class="rounded-2xl border border-slate-200 p-5">
+                <h2 class="mb-3 text-sm font-semibold tracking-wide text-slate-500 uppercase">{p.title}</h2>
+                {p.rows.length === 0 ? (
+                  <p class="text-sm text-slate-400">{p.empty ?? 'Nothing recorded.'}</p>
+                ) : (
+                  <ul class="space-y-2">
+                    {p.rows.map((r) => (
+                      <li>
+                        <div class="flex justify-between text-sm">
+                          <span class="truncate pr-2">{r.key}</span>
+                          <span class="tabular-nums text-slate-500">{dur(r.seconds)}</span>
+                        </div>
+                        <div class="mt-1 h-1.5 rounded bg-slate-100">
+                          <div
+                            class="h-1.5 rounded bg-indigo-300"
+                            style={`width:${Math.round((r.seconds / maxOf(p.rows)) * 100)}%`}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
+      </>
+    )
+  }
+</LearningLayout>

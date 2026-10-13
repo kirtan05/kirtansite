@@ -1,0 +1,12 @@
+---
+export const prerender = false;
+
+/** Bare /learning/coach/activity → today's day view. */
+import { requireRole } from '../../../../lib/learning/guard';
+import { today } from '../../../../lib/learning/dates';
+
+const gate = await requireRole(Astro, 'coach');
+if (!gate.ok) return gate.response;
+
+return Astro.redirect(`/learning/coach/activity/${today()}`, 302);
+---

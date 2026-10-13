@@ -42,6 +42,14 @@
       "binding": "GREE_DB",
       "database_name": "gree",
       "database_id": "701da37f-7785-435d-b395-aa3b64004865"
+    },
+    {
+      // Laptop activity monitor. Its own database so a browsing timeline never
+      // mixes with the maths record. Create it and paste the id here:
+      //   npx wrangler d1 create activity
+      "binding": "ACTIVITY_DB",
+      "database_name": "activity",
+      "database_id": "REPLACE_WITH_d1_create_output"
     }
   ],
 

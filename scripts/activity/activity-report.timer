@@ -1,0 +1,11 @@
+# Fires at 23:30 IST daily. Persistent=true so a missed run (box off) sends on
+# next boot, labelled with the day it covers.
+[Unit]
+Description=Nightly laptop activity report at 23:30 IST
+
+[Timer]
+OnCalendar=*-*-* 23:30:00 Asia/Kolkata
+Persistent=true
+
+[Install]
+WantedBy=timers.target

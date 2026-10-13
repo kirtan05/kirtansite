@@ -21,6 +21,13 @@ interface Env {
   /** Random 32+ byte base64 string used to sign session cookies. */
   LEARNING_COOKIE_KEY?: string;
 
+  /** /learning activity monitor — see docs/superpowers/specs/2026-10-14-learning-activity-monitor-design.md */
+  ACTIVITY_DB?: D1Database;
+  /** Per-device bearer token the laptop uploader presents to the ingest route. */
+  ACTIVITY_INGEST_TOKEN?: string;
+  /** Read-only bearer token for the nightly summary endpoint. Writers can't read, readers can't write. */
+  ACTIVITY_READ_TOKEN?: string;
+
   /** /gree — GRE/TOEFL English trainer. One user, one password. */
   GREE_DB?: D1Database;
   GREE_HOST?: string;

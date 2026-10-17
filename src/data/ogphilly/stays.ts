@@ -28,7 +28,7 @@ export const stays: Stay[] = [
   {
     "id": "1205435593034541935",
     "name": "Milano 3BR with a plunge pool",
-    "tag": "Book this one",
+    "tag": "Booked",
     "pick": true,
     "area": "Century City, on the edge of Poblacion",
     "price": 23847,

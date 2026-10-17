@@ -127,12 +127,12 @@ export const days: Day[] = [
     at: 'mnl',
     view: { center: [117.5, 18.5], dist: 24 },
     legs: ['del-hkg', 'hkg-mnl', 'mnl-makati'],
-    status: 'open',
-    statusText: 'Stay not booked',
+    status: 'booked',
+    statusText: 'Stay booked',
     lines: [
       'KJ, Sid and Martin leave Delhi 01:40 on CX694, sit in Hong Kong for 4 h 55 min, and land at NAIA Terminal 3 at 16:35 on CX919.',
       'Parth, Ankur and Dabad: inbound flights not in the Drive folder yet. All three are on the Coron flight on the 25th, so they are in Manila by the 24th at the latest.',
-      'Terminal 3 to Poblacion is under 10 km by road. Grab, not a white taxi. Out of the airport by six, at the flat by seven.',
+      'Home for two nights is the Milano condo in Century City, Makati, booked by KJ on 17 Oct. Terminal 3 to the door is 7.5 km. Grab, not a white taxi. Out of the airport by six, at the flat by seven. Check-in is from 15:00, self check-in with the building staff.',
       'This is the night out, not tomorrow. Tomorrow is Christmas Eve and the city shuts early; tonight is an ordinary Wednesday and the bars are 200 metres from the door.'
     ],
     quote: { text: 'Bahar jane layak to nahi hai 7 hr.', by: 'KJ, on the Hong Kong layover. Sid disagrees.' }
@@ -145,12 +145,12 @@ export const days: Day[] = [
     at: 'makati',
     view: { center: [120.72, 14.78], dist: 3.3 },
     legs: [],
-    status: 'open',
-    statusText: 'Stay not booked',
+    status: 'booked',
+    statusText: 'Stay booked',
     lines: [
       'The one full day in the city. Old Manila in the morning before the heat: Fort Santiago, San Agustin Church, the walls of Intramuros. Then Binondo, the oldest Chinatown anywhere, for lunch on foot.',
       'It is Christmas Eve in the most Christmas country on earth. In past years the Makati malls shut at 20:00 and most kitchens with them, for Noche Buena. Book dinner, or eat by seven.',
-      'After that it is the plunge pool on the balcony and whatever was bought before the shops closed. The van is at 08:30.'
+      'After that it is the plunge pool on the terrace and whatever was bought before the shops closed. Checkout is 11:00, but the van is at 08:30.'
     ],
     quote: {
       text: 'Many travelers find Manila congested, polluted, and not very charming.',
@@ -353,11 +353,6 @@ export const todos: Todo[] = [
     what: 'Coron stay',
     when: '25 to 28 Dec, three nights',
     why: 'Six people on the 25th, seven once DJ lands. Pick it around where the island-hopping boats leave from.'
-  },
-  {
-    what: 'Manila stay',
-    when: '23 to 25 Dec, two nights',
-    why: 'Six people. Five options that were open on 11 Oct are further down this page, with photos.'
   },
   {
     what: 'DJ: Manila to Busuanga',

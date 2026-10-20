@@ -1,5 +1,6 @@
 User-agent: *
 Disallow: /learning
+Disallow: /activity
 Disallow: /gree
 Disallow: /major
 Disallow: /certificate

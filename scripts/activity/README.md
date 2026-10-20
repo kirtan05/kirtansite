@@ -23,21 +23,32 @@ and READ tokens once** — copy them; you need them in steps 2 and 3. Then deplo
 the site as usual. Verify:
 `curl -s -o /dev/null -w '%{http_code}' https://kirtanjain.com/learning/api/activity/ingest` → `401`.
 
-## 2. His Windows laptop — one line, elevated PowerShell
+## 2. His Windows laptop — one line, nothing to copy
 
-Copy this folder to the laptop, open PowerShell **as administrator** in it, and:
+The installer is hosted on the site at `/activity/setup.ps1` (served static;
+`robots.txt` disallows `/activity`). On the laptop, open **Terminal (Admin)**
+(right-click Start) and run:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\setup-laptop.ps1 -Token '<INGEST_TOKEN>' -ChildUser 'PCNAME\hisuser'
+irm https://kirtanjain.com/activity/setup.ps1 | iex
 ```
 
-Installs ActivityWatch (winget), applies the Chrome policy (incognito off + web
-watcher forced), registers the uploader (child user, every 10 min) and watchdog
-(SYSTEM, at startup), stores config at machine scope, reports whether his account
-is Standard or Administrator, and starts the tracker. **Before running, confirm
-the AW web-extension ID** — pass `-ExtId '<id>'` if it differs from the default.
-Then sign in as the child to approve the forced extension, and reboot to start
-the watchdog. Data appears at `.../learning/coach/activity` within ~10 minutes.
+It prompts for the INGEST token, **auto-detects the logged-in user** to monitor,
+downloads its runtime scripts to `C:\ProgramData\aw-monitor`, installs
+ActivityWatch (winget), applies the Chrome policy (incognito off + web watcher
+forced), registers the uploader (every 10 min) and watchdog (SYSTEM, at startup),
+and starts tracking. It **warns if that account is an Administrator** (he could
+then remove the tracker; the report still shows the gap). Then approve the forced
+Chrome extension once and reboot. Data appears at `.../learning/coach/activity`
+within ~10 minutes.
+
+Overrides if auto-detect is wrong (e.g. to target a different account):
+```powershell
+& ([scriptblock]::Create((irm https://kirtanjain.com/activity/setup.ps1))) -ChildUser 'PCNAME\hisuser' -Token '<INGEST_TOKEN>'
+```
+`public/activity/{setup,upload,watchdog}.ps1` are the hosted copies of the
+scripts in this folder — keep them in sync. Confirm the AW web-extension ID
+(`-ExtId`) against the Web Store before relying on the forced install.
 
 ## 3. This box — one line (report ships disabled until a group is set)
 

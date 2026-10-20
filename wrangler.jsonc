@@ -49,7 +49,7 @@
       //   npx wrangler d1 create activity
       "binding": "ACTIVITY_DB",
       "database_name": "activity",
-      "database_id": "REPLACE_WITH_d1_create_output"
+      "database_id": "fa1f33dc-e82c-4928-96bc-cc14a4a91370"
     }
   ],
 

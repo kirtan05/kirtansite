@@ -17,7 +17,8 @@ param(
   [string]$Label = 'his-laptop',
   [string]$BaseUrl = 'https://kirtanjain.com/activity',
   [string]$Ingest = 'https://kirtanjain.com/learning/api/activity/ingest',
-  [string]$ExtId = 'nglaklhklhcoonedhgnpgddginnjdadi' # AW web watcher; verify on the Web Store
+  [string]$ExtId = 'nglaklhklhcoonedhgnpgddginnjdadi', # AW web watcher (Chrome Web Store)
+  [string]$EdgeExtId = ''                              # AW web watcher on Edge Add-ons, if you have it
 )
 
 $ErrorActionPreference = 'Stop'
@@ -48,30 +49,63 @@ if ($admins -match [regex]::Escape($short)) {
 }
 
 # --- download the two runtime scripts -----------------------------------
+Write-Host 'Downloading runtime scripts...'
 $dir = 'C:\ProgramData\aw-monitor'
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
 foreach ($f in 'upload.ps1', 'watchdog.ps1') {
   Invoke-WebRequest -UseBasicParsing -Uri "$BaseUrl/$f" -OutFile (Join-Path $dir $f)
 }
 
-# --- ActivityWatch (winget) ---------------------------------------------
-if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-  throw 'winget not found. Install "App Installer" from the Microsoft Store, then re-run.'
+# --- ActivityWatch -------------------------------------------------------
+# winget's first run can block on a hidden source-agreement prompt, so pass
+# --accept-source-agreements and --disable-interactivity and let its output
+# show. If winget is missing or fails, fall back to the direct installer.
+$awInstalled = $false
+if (Get-Command winget -ErrorAction SilentlyContinue) {
+  if (winget list --id ActivityWatch.ActivityWatch -e --accept-source-agreements --disable-interactivity 2>&1 | Select-String 'ActivityWatch') {
+    Write-Host 'ActivityWatch already installed.'
+    $awInstalled = $true
+  } else {
+    Write-Host 'Installing ActivityWatch via winget (first run can take a minute)...'
+    winget install --id ActivityWatch.ActivityWatch -e --silent `
+      --accept-source-agreements --accept-package-agreements --disable-interactivity
+    if ($LASTEXITCODE -eq 0) { $awInstalled = $true } else { Write-Warning "winget exited $LASTEXITCODE; trying the direct installer." }
+  }
 }
-if (-not (winget list --id ActivityWatch.ActivityWatch -e 2>$null | Select-String 'ActivityWatch')) {
-  Write-Host 'Installing ActivityWatch...'
-  winget install --id ActivityWatch.ActivityWatch -e --accept-source-agreements --accept-package-agreements
-} else {
-  Write-Host 'ActivityWatch already installed.'
+if (-not $awInstalled) {
+  Write-Host 'Installing ActivityWatch from the official release...'
+  $awUrl = 'https://github.com/ActivityWatch/activitywatch/releases/latest/download/activitywatch-setup.exe'
+  $awExe = Join-Path $env:TEMP 'activitywatch-setup.exe'
+  try {
+    Invoke-WebRequest -UseBasicParsing -Uri $awUrl -OutFile $awExe
+    Start-Process -FilePath $awExe -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART' -Wait
+    $awInstalled = $true
+  } catch {
+    Write-Warning "Automatic install failed ($_). Install ActivityWatch manually from https://activitywatch.net, then re-run."
+  }
 }
 
-# --- Chrome policy: incognito off, web watcher force-installed ----------
+# --- Browser policy: disable private browsing; force the web watcher -----
+Write-Host 'Applying browser policy and registering tasks...'
+
+# Chrome: incognito off + web watcher force-installed from the Chrome store.
 $chrome = 'HKLM:\SOFTWARE\Policies\Google\Chrome'
-$force = "$chrome\ExtensionInstallForcelist"
 New-Item -Path $chrome -Force | Out-Null
 Set-ItemProperty -Path $chrome -Name 'IncognitoModeAvailability' -Type DWord -Value 1
-New-Item -Path $force -Force | Out-Null
-Set-ItemProperty -Path $force -Name '1' -Type String -Value "$ExtId;https://clients2.google.com/service/update2/crx"
+New-Item -Path "$chrome\ExtensionInstallForcelist" -Force | Out-Null
+Set-ItemProperty -Path "$chrome\ExtensionInstallForcelist" -Name '1' -Type String -Value "$ExtId;https://clients2.google.com/service/update2/crx"
+
+# Edge (his browser). InPrivate uses a different policy name. Force-installing
+# an extension from the Chrome store is blocked on non-domain machines, so for
+# Edge we rely on the window watcher's titles (captured even in InPrivate) and
+# only force the extension if an Edge Add-ons id was supplied.
+$edge = 'HKLM:\SOFTWARE\Policies\Microsoft\Edge'
+New-Item -Path $edge -Force | Out-Null
+Set-ItemProperty -Path $edge -Name 'InPrivateModeAvailability' -Type DWord -Value 1
+if ($EdgeExtId) {
+  New-Item -Path "$edge\ExtensionInstallForcelist" -Force | Out-Null
+  Set-ItemProperty -Path "$edge\ExtensionInstallForcelist" -Name '1' -Type String -Value "$EdgeExtId;https://edge.microsoft.com/extensionwebstorebase/v1/crx"
+}
 
 # --- config at machine scope (both tasks inherit it) --------------------
 [Environment]::SetEnvironmentVariable('AW_TOKEN', $Token, 'Machine')
@@ -99,5 +133,7 @@ if ($aw) { Start-Process $aw.FullName; Write-Host 'Started ActivityWatch.' }
 else { Write-Host 'Could not find aw-qt.exe — launch ActivityWatch once from the Start menu.' -ForegroundColor Yellow }
 
 Write-Host ''
-Write-Host 'Done. In Chrome, approve the forced ActivityWatch extension once, then reboot to start the watchdog.' -ForegroundColor Green
+Write-Host 'Done. Reboot to start the watchdog.' -ForegroundColor Green
+Write-Host 'Edge: window titles (the site/video name) are captured automatically — no extension needed.' -ForegroundColor Green
+Write-Host 'For clean URLs in Edge, optionally install "ActivityWatch Web Watcher" from Edge Add-ons by hand.' -ForegroundColor Green
 Write-Host 'Data appears at https://kirtanjain.com/learning/coach/activity within ~10 minutes.' -ForegroundColor Green

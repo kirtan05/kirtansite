@@ -78,6 +78,17 @@ const APP_RULES: Array<[Category, string[]]> = [
 
 const BROWSERS = ['chrome', 'firefox', 'msedge', 'edge', 'brave', 'opera'];
 
+// Keywords matched against a browser window TITLE when there is no URL — the
+// case for Edge on a non-domain machine, where the web extension can't be
+// force-installed but the window watcher still captures titles like
+// "… - YouTube" or "Roblox". Lets browser time still split by category.
+const TITLE_RULES: Array<[Category, string[]]> = [
+  ['video', ['youtube', 'netflix', 'prime video', 'hotstar', 'twitch', 'disney+']],
+  ['games', ['roblox', 'minecraft', 'fortnite', 'valorant', 'poki', 'crazygames', 'coolmath']],
+  ['social', ['instagram', 'facebook', 'snapchat', 'discord', 'reddit', 'tiktok', 'whatsapp']],
+  ['study', ['khan academy', 'scratch', 'wikipedia', 'brilliant', 'desmos', 'geogebra', 'google docs', 'kirtanjain']],
+];
+
 /** Rough category for a window or web event. */
 export function categorize(e: { app?: string | null; host?: string | null; title?: string | null }): Category {
   const host = (e.host ?? '').toLowerCase();
@@ -88,7 +99,12 @@ export function categorize(e: { app?: string | null; host?: string | null; title
   const app = (e.app ?? '').toLowerCase().replace(/\.exe$/, '');
   if (app) {
     for (const [cat, keys] of APP_RULES) if (keys.some((k) => app.includes(k))) return cat;
-    if (BROWSERS.some((b) => app.includes(b))) return 'browsing';
+    if (BROWSERS.some((b) => app.includes(b))) {
+      // No URL (e.g. Edge without the extension) — fall back to the title.
+      const title = (e.title ?? '').toLowerCase();
+      if (title) for (const [cat, keys] of TITLE_RULES) if (keys.some((k) => title.includes(k))) return cat;
+      return 'browsing';
+    }
   }
   return 'other';
 }

@@ -51,6 +51,16 @@ test('categorize by app when no host', () => {
   assert.equal(categorize({ app: 'SomethingElse.exe' }), 'other');
 });
 
+test('categorize a browser by window title when there is no URL (Edge case)', () => {
+  // Edge without the web extension: no host, but the window title carries it.
+  assert.equal(categorize({ app: 'msedge.exe', title: 'Funny cats compilation - YouTube' }), 'video');
+  assert.equal(categorize({ app: 'msedge.exe', title: 'Roblox' }), 'games');
+  assert.equal(categorize({ app: 'msedge.exe', title: 'Khan Academy | Free Online Courses' }), 'study');
+  assert.equal(categorize({ app: 'msedge.exe', title: 'Some random news site' }), 'browsing');
+  // A real URL still wins over the title.
+  assert.equal(categorize({ app: 'msedge.exe', host: 'youtube.com', title: 'whatever' }), 'video');
+});
+
 test('istDay and istHour use Asia/Kolkata', () => {
   // 2026-10-13T20:00Z is 2026-10-14 01:30 IST (UTC+5:30)
   assert.equal(istDay('2026-10-13T20:00:00Z'), '2026-10-14');

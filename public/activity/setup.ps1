@@ -26,9 +26,11 @@ if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdenti
 }
 
 # --- token (prompt if not passed) ---------------------------------------
+# Plain (visible) prompt: a masked prompt won't echo a paste, which is
+# confusing over a remote session. The token also lives in machine env after
+# install, so showing it here reveals nothing it doesn't already expose.
 if (-not $Token) {
-  $sec = Read-Host 'Paste the INGEST token' -AsSecureString
-  $Token = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
+  $Token = (Read-Host 'Paste the INGEST token, then press Enter').Trim()
 }
 if (-not $Token) { throw 'No token given.' }
 

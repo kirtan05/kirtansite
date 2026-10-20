@@ -30,14 +30,16 @@ New-Item -ItemType Directory -Force -Path $tmp, $OutDir | Out-Null
 
 # --- get sqlite3.exe (resolve the current tools zip from sqlite.org) -----
 Write-Host 'Fetching sqlite3...'
-$sqlite = Join-Path $tmp 'sqlite3.exe'
 $page = (Invoke-WebRequest -UseBasicParsing 'https://www.sqlite.org/download.html').Content
 $rel = [regex]::Match($page, '20\d\d/sqlite-tools-win-x64-\d+\.zip').Value
 if (-not $rel) { throw 'Could not resolve the sqlite tools download URL from sqlite.org.' }
 $zip = Join-Path $tmp 'sqlite.zip'
 Invoke-WebRequest -UseBasicParsing "https://www.sqlite.org/$rel" -OutFile $zip
-Expand-Archive $zip -DestinationPath $tmp -Force
-Copy-Item (Get-ChildItem $tmp -Recurse -Filter sqlite3.exe | Select-Object -First 1).FullName $sqlite -Force
+$ex = Join-Path $tmp 'sqlitetools'
+Expand-Archive $zip -DestinationPath $ex -Force
+# Use the extracted exe wherever it landed (newer zips have no subfolder).
+$sqlite = (Get-ChildItem $ex -Recurse -Filter sqlite3.exe | Select-Object -First 1).FullName
+if (-not $sqlite) { throw 'sqlite3.exe not found in the downloaded tools zip.' }
 
 # --- locate history databases -------------------------------------------
 $browsers = @(

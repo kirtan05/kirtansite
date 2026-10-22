@@ -60,9 +60,9 @@ else
 
   # YouTube videos watched (names from the window title).
   yt=$(jq -r '.youtube[]? | "• \(.name) — \(.seconds)"' <<<"$json" \
-    | while IFS= read -r line; do s="${line##* — }"; printf '%s — %s\n' "${line% — *}" "$(hms "$s")"; done)
+    | while IFS= read -r line; do s="${line##* — }"; printf '%s — %s\n' "${line% — *}" "$(hms "$s")"; done | head -5)
   # Any real YouTube links (only when the browser extension is present).
-  links=$(jq -r '.youtubeLinks[]?' <<<"$json")
+  links=$(jq -r '.youtubeLinks[]?' <<<"$json" | head -5)
   # Websites visited, plain host names.
   sites=$(jq -r '[.topHosts[]? | select(.seconds>=60) | .key] | join(", ")' <<<"$json")
 

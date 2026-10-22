@@ -46,26 +46,50 @@ last=$(jq -r '.lastAt // empty' <<<"$json")
 stops=$(jq -r '.stops | length' <<<"$json")
 human_date="$(TZ=Asia/Kolkata date -d "$DATE" '+%a %-d %b')"
 
+hm12() { TZ=Asia/Kolkata date -d "$1" '+%-I:%M %p' 2>/dev/null | sed 's/AM/am/;s/PM/pm/'; }
+
 if [[ "$samples" == "0" ]]; then
-  body="Laptop report, $human_date
-No activity recorded (laptop off, or tracker not running).
-Detail: $SITE/learning/coach/activity/$DATE"
+  body="📱 Laptop report — $human_date
+
+The laptop wasn't used today (it was off, or not signed in).
+
+See everything: $SITE/learning/coach/activity/$DATE"
 else
-  # Tab-separate so app names containing spaces survive the read; skip anything
-  # under a minute so the message isn't cluttered with 0m entries.
-  tops=$(jq -r '.topApps[]? | select(.seconds>=60) | "\(.key)\t\(.seconds)"' <<<"$json" \
-    | while IFS=$'\t' read -r k s; do printf '%s %s · ' "$k" "$(hms "$s")"; done | sed 's/ · $//')
-  [[ -z "$tops" ]] && tops='(light use)'
   window=""
-  [[ -n "$first" ]] && window=" ($(ist "$first")–$(ist "$last"))"
-  tracker_line="Tracker: reporting normally"
-  [[ "$stops" != "0" ]] && tracker_line="Tracker: stopped $stops time(s) today"
-  body="Laptop report, $human_date
-Active: $(hms "$active")$window
-Top: $tops
-Late (22:00–06:00): $(hms "$late")
-$tracker_line
-Detail: $SITE/learning/coach/activity/$DATE"
+  [[ -n "$first" ]] && window=" ($(hm12 "$first")–$(hm12 "$last"))"
+
+  # YouTube videos watched (names from the window title).
+  yt=$(jq -r '.youtube[]? | "• \(.name) — \(.seconds)"' <<<"$json" \
+    | while IFS= read -r line; do s="${line##* — }"; printf '%s — %s\n' "${line% — *}" "$(hms "$s")"; done)
+  # Any real YouTube links (only when the browser extension is present).
+  links=$(jq -r '.youtubeLinks[]?' <<<"$json")
+  # Websites visited, plain host names.
+  sites=$(jq -r '[.topHosts[]? | select(.seconds>=60) | .key] | join(", ")' <<<"$json")
+
+  late_line=""
+  (( ${late%.*} >= 60 )) && late_line="
+⚠️ Late night (10pm–6am): $(hms "$late")"
+  tracker_line=""
+  [[ "$stops" != "0" ]] && tracker_line="
+⚠️ Tracker was switched off $stops time(s) today."
+
+  body="📱 Laptop report — $human_date
+
+On the laptop: $(hms "$active")$window"
+  [[ -n "$yt" ]] && body="$body
+
+▶️ Watched on YouTube:
+$yt"
+  [[ -n "$links" ]] && body="$body
+
+Links:
+$links"
+  [[ -n "$sites" ]] && body="$body
+
+🌐 Websites: $sites"
+  body="$body$late_line$tracker_line
+
+See everything: $SITE/learning/coach/activity/$DATE"
 fi
 
 if [[ -z "${WA_GROUP:-}" ]]; then

@@ -56,9 +56,32 @@ export const GET: APIRoute = async (ctx) => {
     .bind(date)
     .all<{ at: string }>();
 
-  const s = summariseDay((evRes.results ?? []) as CleanEvent[]);
+  const all = (evRes.results ?? []) as CleanEvent[];
+  const s = summariseDay(all);
+
+  // YouTube video names, from window titles (works for Edge, which has no
+  // extension) — plus any real youtube URLs seen via the web watcher (Chrome).
+  const ytByName = new Map<string, number>();
+  const ytLinks = new Set<string>();
+  for (const e of all) {
+    const title = e.title ?? '';
+    const onYt = /youtube/i.test(title) || /youtube\.com|youtu\.be/.test(e.host ?? '');
+    if (!onYt) continue;
+    if (e.bucket === 'window') {
+      const name = title.replace(/\s*[-–]\s*(YouTube|Google Chrome|Microsoft.?\s?Edge).*$/gi, '').trim();
+      if (name) ytByName.set(name, (ytByName.get(name) ?? 0) + e.duration_s);
+    }
+    if (e.url && /youtube\.com\/watch|youtu\.be\//.test(e.url)) ytLinks.add(e.url);
+  }
+  const youtube = [...ytByName.entries()]
+    .map(([name, seconds]) => ({ name, seconds }))
+    .filter((r) => r.seconds > 5)
+    .sort((a, b) => b.seconds - a.seconds)
+    .slice(0, 8);
 
   return Response.json({
+    youtube,
+    youtubeLinks: [...ytLinks].slice(0, 8),
     date,
     device: device?.label ?? null,
     lastSeen: device?.last_seen ?? null,

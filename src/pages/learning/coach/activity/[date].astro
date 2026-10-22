@@ -77,6 +77,20 @@ const panels: Array<{ title: string; rows: Array<{ key: string; seconds: number 
   },
 ];
 const maxOf = (rows: Array<{ seconds: number }>) => Math.max(1, ...rows.map((r) => r.seconds));
+
+// What was actually on screen: window titles, summed. This is the raw detail
+// (e.g. which YouTube videos) that the aggregate panels above don't show.
+const titleTotals = new Map<string, number>();
+for (const e of events) {
+  if (e.bucket !== 'window' || !e.title) continue;
+  titleTotals.set(e.title, (titleTotals.get(e.title) ?? 0) + e.duration_s);
+}
+const byTitle = [...titleTotals.entries()]
+  .map(([key, seconds]) => ({ key, seconds }))
+  .filter((r) => r.seconds > 2)
+  .sort((a, b) => b.seconds - a.seconds)
+  .slice(0, 30);
+const youtube = byTitle.filter((r) => /youtube/i.test(r.key));
 ---
 
 <LearningLayout title="Laptop" role="coach" subtitle={human(date)} wide>
@@ -163,6 +177,36 @@ const maxOf = (rows: Array<{ seconds: number }>) => Math.max(1, ...rows.map((r) 
               </section>
             ))}
           </div>
+        )}
+
+        {youtube.length > 0 && (
+          <section class="mt-6 rounded-2xl border border-rose-200 bg-rose-50/40 p-5">
+            <h2 class="mb-3 text-sm font-semibold tracking-wide text-rose-700 uppercase">What was on YouTube</h2>
+            <ul class="space-y-1 text-sm">
+              {youtube.map((r) => (
+                <li class="flex justify-between gap-3">
+                  <span class="truncate">{r.key.replace(/\s*[-–]\s*YouTube.*$/i, '')}</span>
+                  <span class="tabular-nums whitespace-nowrap text-slate-500">{dur(r.seconds)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
+
+        {byTitle.length > 0 && (
+          <section class="mt-6 rounded-2xl border border-slate-200 p-5">
+            <h2 class="mb-3 text-sm font-semibold tracking-wide text-slate-500 uppercase">
+              What was on screen (window titles)
+            </h2>
+            <ul class="space-y-1 text-sm">
+              {byTitle.map((r) => (
+                <li class="flex justify-between gap-3">
+                  <span class="truncate">{r.key}</span>
+                  <span class="tabular-nums whitespace-nowrap text-slate-500">{dur(r.seconds)}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
       </>
     )

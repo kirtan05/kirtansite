@@ -51,9 +51,11 @@ if [[ "$samples" == "0" ]]; then
 No activity recorded (laptop off, or tracker not running).
 Detail: $SITE/learning/coach/activity/$DATE"
 else
-  # Tab-separate so app names containing spaces survive the read.
-  tops=$(jq -r '.topApps[]? | "\(.key)\t\(.seconds)"' <<<"$json" \
+  # Tab-separate so app names containing spaces survive the read; skip anything
+  # under a minute so the message isn't cluttered with 0m entries.
+  tops=$(jq -r '.topApps[]? | select(.seconds>=60) | "\(.key)\t\(.seconds)"' <<<"$json" \
     | while IFS=$'\t' read -r k s; do printf '%s %s · ' "$k" "$(hms "$s")"; done | sed 's/ · $//')
+  [[ -z "$tops" ]] && tops='(light use)'
   window=""
   [[ -n "$first" ]] && window=" ($(ist "$first")–$(ist "$last"))"
   tracker_line="Tracker: reporting normally"

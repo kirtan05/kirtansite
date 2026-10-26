@@ -90,6 +90,9 @@ export const POST: APIRoute = async (ctx) => {
     const v = body.settings?.[k];
     if (typeof v === 'string' && DAY.test(v)) set(k, v);
   }
+  // Prep-session ticks: "YYYY-MM-DD:id,id,..."
+  const prep = body.settings?.toefl_prep;
+  if (typeof prep === 'string' && /^\d{4}-\d{2}-\d{2}:[a-z,]{0,200}$/.test(prep)) set('toefl_prep', prep);
 
   if (stmts.length) await db.batch(stmts);
   return json({ ok: true, wrote: stmts.length });

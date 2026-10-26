@@ -267,6 +267,23 @@ if (!signedIn && Astro.request.method === 'POST') {
       .chip.on { border-color: var(--ink); }
       .chip:disabled { opacity: 0.35; cursor: default; }
       .tf-script { margin-top: 0.8rem; }
+      .tf-script h4 { margin: 0.9rem 0 0.3rem; font: 600 0.9rem var(--sans); }
+      .sp-prep { margin: 0.5rem 0 1.5rem; }
+      .sp-step { display: flex; gap: 0.8rem; align-items: center; justify-content: space-between; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
+      .sp-step label { display: flex; gap: 0.6rem; align-items: baseline; cursor: pointer; }
+      .sp-step input { transform: scale(1.25); }
+      .sp-step.done span { text-decoration: line-through; color: var(--ink-2); }
+      .sp-stage { background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem; margin: 0.8rem 0; }
+      .sp-status { font-size: 1.15rem; font-weight: 600; }
+      .sp-row { display: flex; gap: 1rem; align-items: center; margin-top: 0.6rem; }
+      .sp-timer { font-size: 2.6rem; font-weight: 700; font-variant-numeric: tabular-nums; min-width: 3ch; }
+      .sp-bar { height: 6px; background: var(--rule); border-radius: 3px; overflow: hidden; margin-top: 0.4rem; }
+      .sp-bar > div { height: 100%; width: 0; background: var(--bad); transition: width 0.2s linear; }
+      .sp-rec { color: var(--bad); }
+      .sp-ok { color: var(--ok); }
+      .sp-miss { color: var(--bad); text-decoration: line-through; }
+      .sp-ans { padding: 0.8rem 0; border-bottom: 1px solid var(--rule); }
+      .sp-copy { width: 100%; min-height: 10rem; font: 0.85rem/1.4 ui-monospace, monospace; margin-top: 1rem; }
       .tf-script summary { cursor: pointer; font-weight: 500; }
 
       .verdict { margin: 1rem 0; padding: 0.8rem 1rem; border-radius: 10px; }

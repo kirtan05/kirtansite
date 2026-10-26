@@ -3,7 +3,7 @@ export const prerender = false;
 import type { APIRoute } from 'astro';
 import { json, requireApi } from '../../../lib/gree/guard';
 
-const TASKS = new Set(['gre_issue', 'toefl_email', 'toefl_discussion', 'free']);
+const TASKS = new Set(['gre_issue', 'toefl_email', 'toefl_discussion', 'toefl_speaking', 'free']);
 
 /** GET ?id= returns one essay in full; the list comes with /state. */
 export const GET: APIRoute = async (ctx) => {

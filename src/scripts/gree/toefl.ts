@@ -7,6 +7,7 @@
  * exam. The transcript is shown only after checking.
  */
 import { shuffle, type Card } from './engine';
+import { NAMES, SPEAK_SETS, speakBusy, speakStart } from './speak';
 
 export type TType = 'ctw' | 'rdl' | 'rap' | 'lcr' | 'lcv' | 'lan' | 'lat' | 'bas';
 export interface TQ { q: string; choices: string[]; answer: number; explain: string }
@@ -39,6 +40,10 @@ export interface Ctx {
   ladder: (id: string, right: boolean) => void;
   write: (task: 'toefl_email' | 'toefl_discussion') => void;
   done: () => void;
+  /** Save a speaking transcript where Claude grades essays. */
+  save: (prompt: string, body: string, seconds: number) => Promise<void>;
+  pref: (key: string) => string | undefined;
+  setPref: (key: string, value: string) => void;
 }
 
 interface TypeInfo { id: TType; section: 'Reading' | 'Listening' | 'Writing'; name: string; per: number; hint: string }
@@ -71,11 +76,72 @@ interface Run {
   results: { id: string; ok: number; of: number }[];
 }
 let run: Run | null = null;
-export const toeflBusy = () => !!run;
+export const toeflBusy = () => !!run || speakBusy();
 
 export function toeflView(c: Ctx) {
+  if (speakBusy()) return;
   if (run) renderItem(c);
   else home(c);
+}
+
+// ═══════════════════════════════════════════ prep session
+
+const toeflDay = (c: Ctx) => c.pref('toefl_date') ?? '2026-10-28';
+
+interface Step { id: string; what: string; act?: string }
+const STEPS: Step[] = [
+  { id: 'ets', what: 'Official ETS practice test, timed, in one sitting (~90 min). Note your section results for Claude.',
+    act: '<a class="btn" href="https://www.ets.org/toefl/test-takers/ibt/prepare.html" target="_blank" rel="noopener">Open ETS</a>' },
+  { id: 'bas', what: '10 Build a Sentence. Find the verb first; one piece is a decoy.', act: '<button class="btn" data-go="bas">Start</button>' },
+  { id: 'disc', what: 'Academic Discussion, 10 min: name a student, one specific example, 130+ words.', act: '<button class="btn" data-write="toefl_discussion">Write</button>' },
+  { id: 'email', what: 'Email, 7 min: all three bullets, specific, thank-you line last. Done by 6:30.', act: '<button class="btn" data-write="toefl_email">Write</button>' },
+  { id: 'lis', what: 'One Listening set (Conversation or Academic Talk). Notes on paper.', act: '<button class="btn" data-go="lcv">Conversation</button> <button class="btn" data-go="lat">Talk</button>' },
+  { id: 'rap', what: 'One Academic Passage, about 6 min.', act: '<button class="btn" data-go="rap">Start</button>' },
+  { id: 'lar', what: 'Listen and Repeat set. Wait for the beep; say every -ed.', act: '<button class="btn" data-speak="lab">Lab</button> <button class="btn" data-speak="dorm">Hall</button>' },
+  { id: 'iv', what: 'Interview set. Answer, reason, Samsung/IIT example, wrap up at 40 s.', act: '<button class="btn" data-speak="city">City</button> <button class="btn" data-speak="learn">Tech</button>' },
+  { id: 'scores', what: 'Pick 4 free score recipients by 10 PM: CMU 2074, Northwestern 1565, UPenn, UChicago.',
+    act: '<a class="btn" href="https://toeflibt.ets.org/" target="_blank" rel="noopener">ETS account</a>' },
+  { id: 'pack', what: 'Passport in the bag. Leave by 9:00 for Sector 63 (arrive 9:30). Eat, sleep by 11.' },
+];
+
+function prepCard(c: Ctx) {
+  const t = c.today(), day = toeflDay(c);
+  if (t > day) return '';
+  if (t === day)
+    return `<div class="note sp-prep"><h3 style="margin-top:0">Test day</h3><ul>
+      <li>Arrive by 9:30 with your passport. Eat and use the bathroom first: no breaks in ~90 min.</li>
+      <li>Reading and Listening adapt: if it gets harder, you're doing well.</li>
+      <li>Listening plays once: short notes on the scratch paper.</li>
+      <li>Speaking: start after the beep, never before. Full 45 s on every interview answer.</li>
+      <li>Writing: email by 6:30, then check spelling. No spellcheck on the test.</li></ul></div>`;
+  const [d, ids = ''] = (c.pref('toefl_prep') ?? '').split(':');
+  const ticked = new Set(d === t ? ids.split(',').filter(Boolean) : []);
+  const left = STEPS.length - STEPS.filter((x) => ticked.has(x.id)).length;
+  return `<div class="note sp-prep">
+    <h3 style="margin-top:0">Prep session · ${left ? `${left} of ${STEPS.length} left` : 'all done, rest now'}</h3>
+    <p class="muted small">TOEFL ${day === t ? 'today' : `on ${day}`}. Tick things off as you go; it syncs across devices.</p>
+    ${STEPS.map((x) => `<div class="sp-step${ticked.has(x.id) ? ' done' : ''}">
+      <label><input type="checkbox" data-tick="${x.id}" ${ticked.has(x.id) ? 'checked' : ''}> <span>${c.esc(x.what)}</span></label>
+      ${x.act ? `<div class="tf-go">${x.act}</div>` : ''}</div>`).join('')}
+    ${CHEAT}
+  </div>`;
+}
+
+const CHEAT = `<details class="tf-script"><summary>Cheat sheet: templates and traps</summary>
+  <h4>Build a Sentence</h4><ul><li>Find the verb, then its subject. A question reply starts with Do / Did / Have / Could.</li><li>One piece is a decoy (was/were, has/have, much/many). Read the finished sentence once.</li><li>30 to 40 s each, then guess and move on.</li></ul>
+  <h4>Email (7 min)</h4><p class="small">Dear Professor X, → I am writing to [purpose]. → two sentences per bullet, with invented specifics → "Could you please…?" → Thank you for your time. → Best regards, Kirtan</p>
+  <ul><li>Cover all three bullets specifically. Avoid "request you to kindly" and Capitalised Common Nouns.</li></ul>
+  <h4>Academic Discussion (10 min)</h4><p class="small">I see [A]'s point that…, but I believe… The main reason is… For example, [one specific example]. While [B] argues…, this overlooks… Therefore…</p>
+  <h4>Interview (45 s)</h4><p class="small">Answer in the first sentence → reason → "For example, at Samsung / at IIT Patna…" → "So overall…" at 40 s. For opinions: pick a side, then qualify ("I mostly agree, except…").</p>
+  <h4>Listen and Repeat</h4><ul><li>Wait for the beep. Words before it are lost.</li><li>Hold the first two words and the last nouns; keep numbers and limits.</li><li>Say past tense fully: closed, rescued, borrowed (BOR-oh).</li></ul>
+  <h4>Your error checklist</h4><ul><li>-ed endings · it gives / it makes · a / the · spell what you know</li></ul>
+</details>`;
+
+function speakRows(c: Ctx) {
+  const btn = (kind: 'repeat' | 'interview') =>
+    SPEAK_SETS.filter((s) => s.kind === kind).map((s) => `<button class="btn" data-speak="${s.id}">${c.esc(NAMES[s.id])}</button>`).join(' ');
+  return `<div class="tf-row"><div><b>Listen and Repeat</b><br><span class="muted small">7 sentences, 8–12 s each, scored from your transcript.</span></div><div class="tf-go">${btn('repeat')}</div></div>
+    <div class="tf-row"><div><b>Take an Interview</b><br><span class="muted small">4 questions, 45 s each. Saved for Claude to grade.</span></div><div class="tf-go">${btn('interview')}</div></div>`;
 }
 
 // ═══════════════════════════════════════════ home
@@ -103,6 +169,7 @@ function home(c: Ctx) {
 
   c.view.innerHTML = `
     <h2>TOEFL</h2>
+    ${prepCard(c)}
     <p class="muted">The 2026 TOEFL iBT, task by task. Reading, Listening and Build a Sentence are checked instantly; anything you miss comes back the next day. Emails and discussion posts are graded by Claude.</p>
     ${all.length ? '' : '<p class="err">No TOEFL content on this device yet. Reload once you are online.</p>'}
     <h3>Reading <span class="muted small">· ~30 min on test day</span></h3>${rows('Reading')}
@@ -115,7 +182,18 @@ function home(c: Ctx) {
     <div class="tf-row"><div><b>Academic Discussion</b><br><span class="muted small">10 minutes, 100+ words. Take a side, add something new.</span></div>
       <div class="tf-go"><button class="btn primary" data-write="toefl_discussion">Write</button></div></div>
     <h3>Speaking <span class="muted small">· ~8 min</span></h3>
-    <p class="muted small">7× Listen and Repeat (8–12 s each), then 4 interview questions (45 s each, no prep). Practised together with Claude on the laptop.</p>`;
+    <p class="muted small">Use Chrome with headphones and allow the microphone. Audio plays once; speak after the beep.</p>
+    ${speakRows(c)}`;
+
+  c.on('[data-speak]', (_e, el) => speakStart({ ...c, back: () => home(c) }, el.dataset.speak!));
+  c.on('[data-tick]', (_e, el) => {
+    const t = c.today(), [d, ids = ''] = (c.pref('toefl_prep') ?? '').split(':');
+    const set = new Set(d === t ? ids.split(',').filter(Boolean) : []);
+    if ((el as HTMLInputElement).checked) set.add(el.dataset.tick!);
+    else set.delete(el.dataset.tick!);
+    c.setPref('toefl_prep', `${t}:${[...set].join(',')}`);
+    home(c);
+  });
 
   c.on('[data-write]', (_e, el) => c.write(el.dataset.write as 'toefl_email' | 'toefl_discussion'));
   c.on('[data-go], [data-redo]', (_e, el) => {
@@ -241,7 +319,7 @@ function wire(c: Ctx, it: TItem) {
       const ch = r.pieces;
       (c.view.querySelector('#built') as HTMLElement).innerHTML = (r.built.length
         ? r.built.map((k, p) => `<button class="chip on" data-un="${p}">${c.esc(ch[k])}</button>`).join('')
-        : '<span class="muted small">Tap the pieces below in order. One piece is not used.</span>') + `<b>${c.esc(r.end)}</b>`;
+        : '<span class="muted small">Tap the pieces below in order (one piece is not used)</span>') + `<b>${c.esc(r.end)}</b>`;
       (c.view.querySelector('#chunks') as HTMLElement).innerHTML = r.order
         .map((k) => `<button class="chip" data-k="${k}" ${r.built.includes(k) ? 'disabled' : ''}>${c.esc(ch[k])}</button>`)
         .join('');

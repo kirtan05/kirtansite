@@ -86,8 +86,8 @@ let logs: { id: string; day: string; kind: string; minutes: number; note: string
 let essays: { id: string; day: string; task: string; prompt: string; words: number; seconds: number | null; graded: number; at: string }[] = [];
 
 const npd = () => Number(settings.new_per_day ?? 20);
-const greDate = () => settings.gre_date ?? '2026-10-31';
-const toeflDate = () => settings.toefl_date ?? '2026-10-17';
+const greDate = () => settings.gre_date ?? '2026-11-06';
+const toeflDate = () => settings.toefl_date ?? '2026-10-28';
 
 function dayStat(d = today()): DayStat {
   return (days[d] ??= { s: 0, n: 0, ok: 0, new: 0, q: 0, qok: 0, logm: 0 });
@@ -788,6 +788,16 @@ const toeflCtx: ToeflCtx = {
     location.hash = '#write';
   },
   done: () => flush(),
+  save: async (prompt, body, seconds) => {
+    await api('/gree/api/essay', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ id: uid(), task: 'toefl_speaking', prompt, body, day: today(), seconds }),
+    });
+    await pullState().catch(() => {});
+  },
+  pref: (k) => settings[k],
+  setPref: (k, v) => saveSetting(k, v),
 };
 
 // ═══════════════════════════════════════════ WRITING

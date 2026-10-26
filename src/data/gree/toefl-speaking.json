@@ -1,0 +1,88 @@
+{
+  "repeat": [
+    {
+      "id": "lib",
+      "scenario": "You are training as a student assistant at the university library. Listen to the librarian and repeat what she says.",
+      "lines": [
+        "Welcome to the main library.",
+        "Please scan your student card at the front gate.",
+        "Books on the second floor can be borrowed for two weeks.",
+        "If you need help finding a book, ask anyone at the information desk.",
+        "Group study rooms must be reserved online at least one day in advance.",
+        "Remember to keep your phone on silent and avoid eating near the computers.",
+        "Students who return books after the due date will have to pay a small fine before borrowing again."
+      ]
+    },
+    {
+      "id": "zoo",
+      "scenario": "You are learning to welcome visitors to a city zoo. Listen to your manager and repeat what she says.",
+      "lines": [
+        "Thanks for joining today's tour.",
+        "The gift shop is next to the main entrance.",
+        "Please don't feed the animals, even if they look hungry.",
+        "The penguin show starts at eleven, so try to arrive a few minutes early.",
+        "Our elephants were rescued from a reserve that closed down last year.",
+        "If you get separated from your group, wait by the large fountain near the cafe.",
+        "Visitors who buy an annual pass can enter for free on weekends and receive discounts on special events."
+      ]
+    },
+    {
+      "id": "lab",
+      "scenario": "You are a new student in a chemistry course. Listen to the lab instructor and repeat what he says.",
+      "lines": [
+        "This is the chemistry lab.",
+        "Safety glasses must be worn at all times.",
+        "The sinks on the left are only for washing equipment.",
+        "Write down every measurement in your notebook before you leave.",
+        "If anything spills, tell the teaching assistant immediately instead of cleaning it yourself.",
+        "Chemicals that are no longer needed go into the labeled containers by the back door.",
+        "Anyone who misses the safety training will not be allowed to take part in next week's experiments."
+      ]
+    },
+    {
+      "id": "dorm",
+      "scenario": "You are helping new students move into a residence hall. Listen to the hall director and repeat what she says.",
+      "lines": [
+        "Welcome to Maple Hall.",
+        "Your room key is inside this envelope.",
+        "Laundry machines are in the basement and accept card payments.",
+        "Quiet hours begin at ten on weeknights and at midnight on weekends.",
+        "If something in your room is broken, submit a repair request through the housing website.",
+        "Each floor has a resident assistant who can help with roommate problems or homesickness.",
+        "Residents planning to stay during the winter break must sign up at the front desk by the end of November."
+      ]
+    }
+  ],
+  "interview": [
+    {
+      "id": "learn",
+      "intro": "Thank you for taking part in our research study on how people use technology to learn. I'm going to ask you a few questions.",
+      "qs": [
+        "How do you usually learn something new, like a skill or a school subject?",
+        "Tell me about an app or a website that helped you learn something.",
+        "Some people say online courses are just as effective as classroom courses. Do you agree? Why or why not?",
+        "Should universities require every student to take at least one course completely online? Explain your view."
+      ]
+    },
+    {
+      "id": "city",
+      "intro": "Thanks for joining our study about life in cities. I'd like to ask you some questions about where you live.",
+      "qs": [
+        "Do you live in a big city or a smaller town? What do you like about it?",
+        "Describe a public place in your area where people like to spend their free time.",
+        "Many cities are replacing parking spaces with parks and bike lanes. Do you think this is a good idea?",
+        "Some people believe public transportation should be free for everyone. What is your opinion?"
+      ]
+    },
+    {
+      "id": "work",
+      "intro": "We're researching how young people make decisions about their careers. I have a few questions for you.",
+      "qs": [
+        "What do you do right now for work or study?",
+        "Tell me about a person who influenced your choice of career.",
+        "Is it better to stay at one company for a long time, or to change jobs every few years? Why?",
+        "Some people think companies should let employees work from home permanently. Do you agree or disagree?"
+      ]
+    }
+  ]
+}

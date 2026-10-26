@@ -3,7 +3,7 @@
  * each task; ETS publishes the real GRE Issue pool too (linked in the app).
  */
 
-export type Task = 'gre_issue' | 'toefl_email' | 'toefl_discussion' | 'free';
+export type Task = 'gre_issue' | 'toefl_email' | 'toefl_discussion' | 'toefl_speaking' | 'free';
 
 export interface TaskInfo {
   id: Task;
@@ -106,4 +106,6 @@ export const TASKS: TaskInfo[] = [
   },
 ];
 
-export const taskById = (id: string) => TASKS.find((t) => t.id === id) ?? TASKS[0];
+/** Speaking transcripts are stored with the essays but never written in the editor. */
+const SPEAKING: TaskInfo = { id: 'toefl_speaking', name: 'TOEFL speaking', minutes: 8, target: [0, 0], brief: '', checks: [], prompts: [] };
+export const taskById = (id: string) => (id === 'toefl_speaking' ? SPEAKING : TASKS.find((t) => t.id === id) ?? TASKS[0]);

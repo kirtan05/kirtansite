@@ -65,6 +65,9 @@ interface Run {
   picks: number[];     // MCQ choice per question
   built: number[];     // bas: chunk indexes in the order tapped
   order: number[];     // bas: shuffled chunk indexes as shown
+  pieces: string[];    // bas: chunks as shown (lowercased, split, plus one decoy)
+  decoy: number;       // bas: index in pieces that belongs nowhere
+  end: string;         // bas: closing punctuation, fixed in place
   results: { id: string; ok: number; of: number }[];
 }
 let run: Run | null = null;
@@ -126,7 +129,7 @@ function home(c: Ctx) {
           .sort((a, b) => rank[a.diff] - rank[b.diff] + (Math.random() - 0.5) * 1.2)
           .slice(0, per);
     if (!list.length) return;
-    run = { type, list, pos: 0, checked: false, t0: 0, played: false, picks: [], built: [], order: [], results: [] };
+    run = { type, list, pos: 0, checked: false, t0: 0, played: false, picks: [], built: [], order: [], pieces: [], decoy: -1, end: '', results: [] };
     renderItem(c);
   });
 }
@@ -144,7 +147,8 @@ function renderItem(c: Ctx) {
   r.picks = (it.qs ?? []).map(() => -1);
   r.built = [];
   if (it.type === 'bas') {
-    const n = it.chunks!.length;
+    Object.assign(r, basPieces(it, c.items()));
+    const n = r.pieces.length;
     do r.order = shuffle([...Array(n).keys()]);
     while (n > 1 && r.order.every((v, i) => v === i));
   }
@@ -234,14 +238,14 @@ function wire(c: Ctx, it: TItem) {
     check.disabled = false;
   } else if (it.type === 'bas') {
     const draw = () => {
-      const ch = it.chunks!;
-      (c.view.querySelector('#built') as HTMLElement).innerHTML = r.built.length
+      const ch = r.pieces;
+      (c.view.querySelector('#built') as HTMLElement).innerHTML = (r.built.length
         ? r.built.map((k, p) => `<button class="chip on" data-un="${p}">${c.esc(ch[k])}</button>`).join('')
-        : '<span class="muted small">Tap the pieces below in order.</span>';
+        : '<span class="muted small">Tap the pieces below in order. One piece is not used.</span>') + `<b>${c.esc(r.end)}</b>`;
       (c.view.querySelector('#chunks') as HTMLElement).innerHTML = r.order
         .map((k) => `<button class="chip" data-k="${k}" ${r.built.includes(k) ? 'disabled' : ''}>${c.esc(ch[k])}</button>`)
         .join('');
-      check.disabled = r.built.length !== ch.length;
+      check.disabled = r.built.length !== ch.length - 1;
       if (r.checked) return;
       c.on('[data-k]', (_e, el) => { r.built.push(Number(el.dataset.k)); draw(); });
       c.on('[data-un]', (_e, el) => { r.built.splice(Number(el.dataset.un), 1); draw(); });
@@ -285,7 +289,7 @@ function grade(c: Ctx, it: TItem) {
     clean = of - ok <= 1; // one slip in ten still counts as a clean paragraph
     c.ladder(it.id, clean);
   } else if (it.type === 'bas') {
-    const got = r.built.map((k) => it.chunks![k]).join(' ');
+    const got = r.built.map((k) => r.pieces[k]).join(' ') + r.end;
     const right = norm(got) === norm(it.answer!);
     ok = +right;
     of = 1;
@@ -334,6 +338,40 @@ function grade(c: Ctx, it: TItem) {
     renderItem(c);
     window.scrollTo(0, 0);
   });
+}
+
+// Build a Sentence as the real test shows it: lowercase pieces, the end mark
+// fixed in place, short pieces, and one decoy that fits nowhere.
+const SWAP: Record<string, string> = {
+  is: 'are', are: 'is', was: 'were', were: 'was', has: 'have', have: 'has', do: 'does', does: 'do',
+  did: 'does', this: 'these', these: 'this', it: 'they', them: 'it', me: 'my', my: 'me', much: 'many',
+  many: 'much', than: 'then', which: 'who', who: 'which', been: 'being', its: "it's",
+};
+function basPieces(it: TItem, all: TItem[]) {
+  const m = it.answer!.trim().match(/[.?!]$/);
+  const end = m ? m[0] : '';
+  const pieces = it.chunks!.map((p) => p.trim().replace(/[.?!]$/, ''));
+  if (!/^I\b/.test(pieces[0])) pieces[0] = pieces[0][0].toLowerCase() + pieces[0].slice(1);
+  for (let min = 3; pieces.length < 6; ) {
+    let at = -1;
+    pieces.forEach((p, i) => { if (p.split(' ').length >= min && (at < 0 || p.length > pieces[at].length)) at = i; });
+    if (at < 0) { if (--min < 2) break; continue; }
+    const w = pieces[at].split(' '), h = Math.ceil(w.length / 2);
+    pieces.splice(at, 1, w.slice(0, h).join(' '), w.slice(h).join(' '));
+  }
+  let decoy = '';
+  for (const p of shuffle([...pieces])) {
+    const w = p.split(' '), i = w.findIndex((x) => SWAP[x.toLowerCase()]);
+    if (i < 0) continue;
+    w[i] = SWAP[w[i].toLowerCase()];
+    const v = w.join(' ');
+    if (!pieces.includes(v)) { decoy = v; break; }
+  }
+  if (!decoy) {
+    const pool = all.filter((x) => x.type === 'bas' && x.id !== it.id).flatMap((x) => x.chunks!);
+    decoy = (shuffle(pool).find((p) => !/^I\b/.test(p)) ?? 'also').replace(/[.?!]$/, '').toLowerCase();
+  }
+  return { pieces: [...pieces, decoy], decoy: pieces.length, end };
 }
 
 const norm = (s: string) => s.replace(/\s+/g, ' ').replace(/\s+([.,?!])/g, '$1').trim().toLowerCase();

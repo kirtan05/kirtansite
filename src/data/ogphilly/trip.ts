@@ -86,9 +86,9 @@ export const legs: Leg[] = [
       [119.275, 10.47], [118.935, 10.13], [118.93, 10.11], [118.78, 9.96], [118.735, 9.945], [118.725, 9.815],
       [118.755, 9.79], 'pps'
     ],
-    status: 'open'
+    status: 'booked'
   },
-  { id: 'pps-mnl', mode: 'air', via: ['pps', 'mnl'], status: 'open' },
+  { id: 'pps-mnl', mode: 'air', via: ['pps', 'mnl'], status: 'booked' },
   { id: 'mnl-hkg', mode: 'air', via: ['mnl', 'hkg'], status: 'booked' },
   { id: 'hkg-del', mode: 'air', via: ['hkg', 'del'], status: 'booked' },
   { id: 'mnl-del', mode: 'air', via: ['mnl', 'del'], status: 'unverified' },
@@ -170,7 +170,7 @@ export const days: Day[] = [
     lines: [
       'The flight leaves from Clark, not NAIA. Clark is about 100 km north: 1 h 20 min with empty roads, two hours to be safe. Van leaves at 08:30. The van is not booked.',
       'Cebgo DG6039, Clark 13:15 to Busuanga 14:40. Six seats: Ankur, Dabad, KJ, Martin, Parth, Sid. 20 kg checked, 7 kg cabin.',
-      'Busuanga airport to Coron town is another 40 minutes by van. Coron stay for the next three nights is not booked.'
+      'Busuanga airport to Coron town is another 40 minutes by van. Aryan booked the stay: Kokosnuss Garden Resort, three nights, check-in from 14:00. The hotel offers an airport pickup. The chat expects to be there by about 16:00, so a sunset hike that evening is possible. The booking covers six, so DJ is not on it.'
     ]
   },
   {
@@ -197,8 +197,8 @@ export const days: Day[] = [
     at: 'coron',
     view: { center: [120.17, 12.03], dist: 0.95 },
     legs: [],
-    status: 'open',
-    statusText: 'Stay not booked',
+    status: 'booked',
+    statusText: 'Stay booked',
     lines: [
       'First day with all seven, if DJ has sorted his flight.',
       'Barracuda Lake, where the water changes temperature as you go down. The Japanese supply ships sunk in 1944 are shallow enough to snorkel.',
@@ -213,12 +213,12 @@ export const days: Day[] = [
     at: 'darocotan',
     view: { center: [119.8, 11.62], dist: 2.9 },
     legs: ['coron-elnido', 'elnido-teneguiban', 'teneguiban-darocotan'],
-    status: 'unverified',
+    status: 'open',
     statusText: 'Island booked, ferry not',
     lines: [
       'Fast ferry, Coron to El Nido, four to five hours across the Linapacan Strait. One or two sailings a day and this is the busiest week of the year. Seven seats, not booked.',
       'Then an hour by road across the top of Palawan to Teneguiban, and a ten-minute boat to Darocotan Island.',
-      'Backpackers Island, 28 Dec to 1 Jan, booked for seven. DJ did it on 10 Oct.'
+      'Backpackers Island is booked for seven, 28 Dec to 1 Jan. DJ did it on 10 Oct.'
     ],
     quote: { text: 'Maritime accidents are common in the Philippines.', by: 'BBC, forwarded by KJ, 12 Sep' }
   },
@@ -230,8 +230,8 @@ export const days: Day[] = [
     at: 'darocotan',
     view: { center: [119.525, 11.36], dist: 0.42 },
     legs: [],
-    status: 'unverified',
-    statusText: 'Booked, no confirmation seen',
+    status: 'booked',
+    statusText: 'Island booked',
     lines: [
       'A small island with a beach camp on it. No town, no cars, patchy signal.',
       'Kayaks, a reef off the beach, a hammock each.'
@@ -246,8 +246,8 @@ export const days: Day[] = [
     at: 'darocotan',
     view: { center: [119.44, 11.26], dist: 1.0 },
     legs: [],
-    status: 'unverified',
-    statusText: 'Booked, no confirmation seen',
+    status: 'booked',
+    statusText: 'Island booked',
     lines: [
       "Day trip into Bacuit Bay if anyone wants the famous El Nido lagoons: the island-hopping tours leave from town, an hour's drive away.",
       'Or do nothing. This is the only day in the plan with nothing in it.'
@@ -261,12 +261,12 @@ export const days: Day[] = [
     at: 'elnido',
     view: { center: [119.46, 11.27], dist: 0.8 },
     legs: ['teneguiban-darocotan!', 'elnido-teneguiban!'],
-    status: 'open',
-    statusText: 'Where we sleep is undecided',
+    status: 'booked',
+    statusText: 'Room booked, boat back not',
     lines: [
-      'The doc says: back to El Nido town today, New Year there.',
-      'The booking says: Darocotan until 1 Jan. So the island night is paid for, and a room in town is not booked.',
-      'Pick one. Town has the party and puts us an hour closer to tomorrow. The island has seven people and a beach.'
+      'Back to El Nido town today, New Year there. KJ booked Guest Transient House on 24 Oct for seven: one night, 160 m from the Calle Hama beach strip where the party is, free cancellation until 17 Dec.',
+      'The island booking runs to 1 Jan, so the night of the 31st may now be paid for twice. Ask the camp whether it can be cut short.',
+      'Sleeping in town also puts us an hour closer to tomorrow, and the van collects from the door.'
     ]
   },
   {
@@ -277,12 +277,12 @@ export const days: Day[] = [
     at: 'pps',
     view: { center: [120.1, 12.1], dist: 10.5 },
     legs: ['elnido-pps', 'pps-mnl'],
-    status: 'open',
-    statusText: 'Nothing booked',
+    status: 'booked',
+    statusText: 'Van and flight booked',
     lines: [
-      'The tight day. El Nido to Puerto Princesa is five to six hours by van, then a flight to Manila. Neither is booked.',
-      'Parth and Ankur leave Manila at 22:55 on Air India, direct to Delhi. The doc says Dabad too. That means a Puerto Princesa flight by mid-afternoon, which means leaving El Nido by 07:00. On New Year morning.',
-      'The way out: AirSwift flies El Nido to Manila direct. It costs more and removes the van. Worth pricing before anything else on this page.'
+      'The tight day. El Nido to Puerto Princesa is five to six hours by van, then a flight to Manila. Both are booked.',
+      'Aryan booked a private Shuttle Palawan van for seven, 7,500 pesos, cash or GCash to the driver on the day. It collects from the town room and tracks the flight, and the exact pickup time arrives by message the day before.',
+      'Parth and Ankur leave Manila at 22:55 on Air India, direct to Delhi. The doc says Dabad too. Cebu Pacific 5J0642 leaves Puerto Princesa at 14:40 and lands in Manila at 16:15, all seven on one booking, bought 1 Nov. The van form still lists a 13:30 flight, so the company needs the right time.'
     ]
   },
   {
@@ -340,19 +340,15 @@ export interface Todo {
 /** Ordered by what runs out first. */
 export const todos: Todo[] = [
   {
-    what: 'Flight out of Palawan',
-    when: '1 Jan',
-    why: 'Puerto Princesa to Manila, or El Nido to Manila direct on AirSwift. New Year’s Day seats go first, and three people have a 22:55 international flight hanging off this.'
-  },
-  {
     what: 'Coron to El Nido ferry',
     when: '28 Dec',
     why: 'Seven seats on a fast ferry in peak week. If this sells out, the fallback is a much slower boat or a flight back through Manila.'
   },
   {
-    what: 'Coron stay',
-    when: '25 to 28 Dec, three nights',
-    why: 'Six people on the 25th, seven once DJ lands. Pick it around where the island-hopping boats leave from.'
+    what: 'Coron tours',
+    when: '26 to 27 Dec',
+    why: 'Martin is adding activities to the doc. The choice is between two Klook tours: Super Ultimate with the shipwreck stop, or the plain Super Ultimate day tour. Peak week, so book early.',
+    link: { href: 'https://www.klook.com/en-IN/activity/91806-coron-super-ultimate-tour-shipwreck/', text: 'Klook, with shipwreck' }
   },
   {
     what: 'DJ: Manila to Busuanga',
@@ -360,20 +356,15 @@ export const todos: Todo[] = [
     why: 'He lands after the group has flown out of Clark. Also: update the ticket in the Drive to whichever date is real.'
   },
   {
-    what: 'New Year’s Eve',
-    when: '31 Dec',
-    why: 'Stay on Darocotan, which is paid for, or book a room in El Nido town. Decide before town fills up.'
+    what: 'Shorten the island stay',
+    when: 'By 17 Dec',
+    why: 'The town room on the 31st is free to cancel until 17 Dec, so decide by then. If we sleep in town, ask the island camp to end the booking on the 31st.'
   },
   {
     what: 'Van, Makati to Clark',
     when: '25 Dec, 08:30',
     why: 'Christmas morning, six people with bags. One van.',
     link: { href: 'https://www.klook.com/en-IN/activity/163551-manila-to-clark-airport-private-transfer/', text: 'Klook private transfer' }
-  },
-  {
-    what: 'Van, El Nido to Puerto Princesa',
-    when: '1 Jan',
-    why: 'Only if we do not fly out of El Nido directly.'
   },
   {
     what: 'A bed near the airport',

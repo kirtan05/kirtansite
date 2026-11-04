@@ -4,7 +4,7 @@
  * nothing is lost when the office wifi drops or the phone sleeps.
  */
 import {
-  addDays, dayOf, daysBetween, isCorrect, makeTest, modeFor, promote, shuffle, stageOf,
+  addDays, dayOf, daysBetween, isCorrect, makeTest, modeFor, numRight, promote, shuffle, stageOf,
   type Card, type Question, type Test, type Word,
 } from './engine';
 import { TASKS, taskById, type Task } from './prompts';
@@ -205,11 +205,13 @@ async function pullState() {
 }
 
 async function loadContent(version: string) {
-  const cached = LS.get<{ version: string; words: Word[]; questions: Question[]; toefl?: TItem[] }>('gree.content');
+  const cached = LS.get<{ version: string; words: Word[]; questions: Question[]; formulas?: typeof formulas; toefl?: TItem[] }>('gree.content');
   const c = cached?.version === version ? cached : await api('/gree/api/content');
   if (c !== cached) LS.set('gree.content', c);
   words = c.words;
   questions = c.questions;
+  formulas = c.formulas ?? [];
+  passages = new Map(questions.filter((q) => q.type === 'rc' && q.passage).map((q) => [q.pid!, q.passage!]));
   toefl = c.toefl ?? [];
   byId = new Map(words.map((w) => [w.id, w]));
   byLemma = new Map(words.map((w) => [w.w.toLowerCase(), w]));
@@ -220,7 +222,7 @@ async function loadContent(version: string) {
 
 let lastInput = Date.now();
 let pendingSeconds = 0;
-let area = 'study';
+let area = 'practice';
 for (const ev of ['pointerdown', 'keydown', 'scroll', 'input', 'touchstart']) {
   addEventListener(ev, () => (lastInput = Date.now()), { passive: true, capture: true });
 }
@@ -257,11 +259,11 @@ document.addEventListener('visibilitychange', async () => {
 
 // ═══════════════════════════════════════════ router
 
-type Tab = 'study' | 'practice' | 'toefl' | 'write' | 'progress';
-const TABS: Tab[] = ['study', 'practice', 'toefl', 'write', 'progress'];
+type Tab = 'study' | 'practice' | 'formulas' | 'toefl' | 'write' | 'progress';
+const TABS: Tab[] = ['study', 'practice', 'formulas', 'toefl', 'write', 'progress'];
 const currentTab = (): Tab => {
   const h = location.hash.slice(1).split('/')[0] as Tab;
-  return TABS.includes(h) ? h : 'study';
+  return TABS.includes(h) ? h : 'practice';
 };
 
 function render() {
@@ -273,6 +275,7 @@ function render() {
   });
   if (tab === 'study') session ? renderStep() : studyHome();
   else if (tab === 'practice') qset ? renderQ() : practiceHome();
+  else if (tab === 'formulas') formulasView();
   else if (tab === 'toefl') toeflView(toeflCtx);
   else if (tab === 'write') writing ? renderEditor() : writeHome();
   else progressView();
@@ -537,28 +540,56 @@ function finishSession() {
   on('[data-home]', studyHome);
 }
 
-// ═══════════════════════════════════════════ QUESTIONS
+// ═══════════════════════════════════════════ QUESTIONS (GRE bank: verbal TC/SE/RC + quant)
 
 const QTYPES = [
-  { id: 'mixed', name: 'Mixed' },
-  { id: 'se', name: 'Sentence Equivalence' },
-  { id: 'tc1', name: 'Text Completion, 1 blank' },
-  { id: 'tcm', name: 'Text Completion, 2–3 blanks' },
+  { id: 'verbal', name: 'Verbal mix' },
+  { id: 'tcm', name: 'TC 2–3 blank' },
+  { id: 'se', name: 'Sentence Eq.' },
+  { id: 'rc', name: 'Reading' },
+  { id: 'quant', name: 'Quant traps' },
 ] as const;
-const typeName: Record<string, string> = { se: 'Sentence Equivalence', tc1: 'Text Completion', tc2: 'Text Completion, 2 blanks', tc3: 'Text Completion, 3 blanks' };
-let qfilter: string = LS.get('gree.qfilter') ?? 'mixed';
-const matches = (q: Question, f = qfilter) => f === 'mixed' || q.type === f || (f === 'tcm' && (q.type === 'tc2' || q.type === 'tc3'));
+const typeName: Record<string, string> = {
+  se: 'Sentence Equivalence', tc1: 'Text Completion', tc2: 'Text Completion, 2 blanks', tc3: 'Text Completion, 3 blanks',
+  rc: 'Reading Comprehension', qc: 'Quantitative Comparison', qmc: 'Quant, one answer', qmcm: 'Quant, select all', qnum: 'Quant, numeric entry',
+};
+const isQuant = (q: Question) => q.type[0] === 'q';
+const VERBAL = ['tc2', 'tc3', 'se', 'rc'];
+let qfilter: string = LS.get('gree.qfilter2') ?? 'verbal';
+const matches = (q: Question, f = qfilter) =>
+  f === 'verbal' ? VERBAL.includes(q.type) : f === 'quant' ? isQuant(q) : f === 'tcm' ? q.type === 'tc2' || q.type === 'tc3' : q.type === f;
+let passages = new Map<string, string>();
+let formulas: { section: string; items: { name: string; formula: string; note?: string }[] }[] = [];
 
 interface QSet {
   list: Question[];
   pos: number;
   picked: number[];
+  typed: string;
   checked: boolean;
   startedAt: number;
   results: { q: Question; right: boolean; ms: number }[];
   timer?: number;
 }
 let qset: QSet | null = null;
+
+/** Questions on one passage stay together and in order; everything else is its own unit. */
+function units(list: Question[]): Question[][] {
+  const by = new Map<string, Question[]>();
+  for (const q of list) {
+    const k = q.type === 'rc' && q.pid ? `p:${q.pid}` : q.id;
+    (by.get(k) ?? by.set(k, []).get(k)!).push(q);
+  }
+  return [...by.values()].map((u) => u.sort((a, b) => a.id.localeCompare(b.id)));
+}
+function pickSet(list: Question[], n = 10) {
+  const out: Question[] = [];
+  for (const u of shuffle(units(list))) {
+    if (out.length >= n) break;
+    out.push(...u);
+  }
+  return out;
+}
 
 function practiceHome() {
   const t = today();
@@ -574,15 +605,22 @@ function practiceHome() {
     }
     return r + w ? `${Math.round((r / (r + w)) * 100)}%` : '–';
   };
-  const rows = (['se', 'tc1', 'tc2', 'tc3'] as const).map((ty) => {
-    const all = questions.filter((q) => q.type === ty);
+  const groups: [string, (q: Question) => boolean][] = [
+    ['Text Completion, 2 blanks', (q) => q.type === 'tc2'],
+    ['Text Completion, 3 blanks', (q) => q.type === 'tc3'],
+    ['Sentence Equivalence', (q) => q.type === 'se'],
+    ['Reading Comprehension', (q) => q.type === 'rc'],
+    ['Quant traps', isQuant],
+  ];
+  const rows = groups.map(([name, f]) => {
+    const all = questions.filter(f);
     const done = all.filter((q) => qstate.has(q.id));
-    return `<tr><td>${typeName[ty]}</td><td class="num">${done.length} / ${all.length}</td><td class="num">${acc(done)}</td></tr>`;
+    return `<tr><td>${name}</td><td class="num">${done.length} / ${all.length}</td><td class="num">${acc(done)}</td></tr>`;
   });
 
   $view.innerHTML = `
-    <h2>Questions</h2>
-    <p class="muted">GRE-style Text Completion and Sentence Equivalence, built on your word list. Missed questions come back the next day, then later and later.</p>
+    <h2>GRE bank</h2>
+    <p class="muted">Hard-section questions only. Read the explanation on every question, even the ones you get right. Missed ones come back tomorrow.</p>
     <div class="seg" role="group" aria-label="Question type" style="margin:1rem 0">
       ${QTYPES.map((x) => `<button data-f="${x.id}" aria-pressed="${qfilter === x.id}">${x.name}</button>`).join('')}
     </div>
@@ -590,42 +628,26 @@ function practiceHome() {
       <button class="btn primary" data-start="new" ${fresh.length ? '' : 'disabled'}>10 new questions</button>
       <button class="btn" data-start="due" ${due.length ? '' : 'disabled'}>Redo missed (${due.length})</button>
     </div>
-    <p class="muted small">${fresh.length} new in this type. Aim for about 1½ minutes a question, the GRE pace.</p>
+    <p class="muted small">${fresh.length} new here. Pace: about 1½ min for TC/SE and quant, a passage with its questions in 4–6 min.</p>
     <h3>So far</h3>
     <table class="list"><tr><td class="muted">Type</td><td class="num muted">Done</td><td class="num muted">Right</td></tr>${rows.join('')}
       <tr><td><b>All</b></td><td class="num"><b>${seen.length} / ${questions.length}</b></td><td class="num"><b>${acc(seen)}</b></td></tr></table>
-    <h3>Rules that win these questions</h3>
+    <h3>Your test-day checklist</h3>
     <ul class="plain-list">
-      <li>Cover the choices. Find the clue in the sentence and predict your own word first.</li>
-      <li>Signal words set the direction: <i>although, despite, yet</i> flip it; <i>and, thus, because, indeed</i> keep it.</li>
-      <li>Sentence Equivalence: both answers must fit and give the same meaning. A synonym pair that doesn't fit the sentence is a trap.</li>
-      <li>Multi-blank: start with the blank that has the clearest clue, not always blank (i).</li>
-      <li>Reread the whole sentence with your answers in before you commit.</li>
-    </ul>
-    <h3>Real ETS questions</h3>
-    <p class="muted">The GRE never releases past papers. These official sources use real retired questions:</p>
-    <ul class="plain-list">
-      <li><a href="https://www.ets.org/gre/test-takers/general-test/prepare/powerprep.html" target="_blank" rel="noopener">POWERPREP</a>: 2 free full tests. Keep test 2 for the final week.</li>
-      <li><a href="https://www.ets.org/gre/gre-mini-quiz.html" target="_blank" rel="noopener">GRE Mini Quiz</a>: 5 real verbal questions, good for a first look.</li>
-      <li><a href="https://www.ets.org/gre/test-takers/general-test/prepare/content/verbal-reasoning.html" target="_blank" rel="noopener">ETS Verbal Reasoning overview</a>: official samples of each question type.</li>
-      <li>Official GRE Verbal Reasoning Practice Questions (book, about 150 real questions) is the best paid source.</li>
-    </ul>
-    <p class="muted small">Log time spent on these under Progress so it counts toward your day.</p>`;
+      <li><b>Predict first.</b> Cover the choices, find the clue, say a plain word for the blank and its direction (+/−). Your misses were mostly the opposite word of a pair you know.</li>
+      <li><b>Multi-blank:</b> once all blanks are filled, reread. Do they agree with each other and with every later sentence?</li>
+      <li><b>SE:</b> the two answers must be true synonyms in this sentence. Two words that each "sort of fit" is the trap.</li>
+      <li><b>RC:</b> answer exactly what is asked (the significance, not the fact). Parentheses and "to be sure / while" clauses hide answers.</li>
+      <li><b>Quant:</b> before clicking, reread what is asked (total? more? least?). Flip the sign when you divide by a negative. "Least" usually means most negative. On QC, plug 0, 1, −1, ½ and a big number.</li>
+    </ul>`;
   on('[data-f]', (_e, el) => {
     qfilter = el.dataset.f!;
-    LS.set('gree.qfilter', qfilter);
+    LS.set('gree.qfilter2', qfilter);
     practiceHome();
   });
   on('[data-start]', (_e, el) => {
-    const list =
-      el.dataset.start === 'due'
-        ? shuffle(due).slice(0, 10)
-        : (() => {
-            const rank = { easy: 0, medium: 1, hard: 2 };
-            // Easier first overall, but shuffled so types mix.
-            return shuffle(fresh).sort((a, b) => rank[a.diff] - rank[b.diff] + (Math.random() - 0.5) * 1.2).slice(0, 10);
-          })();
-    qset = { list, pos: 0, picked: [], checked: false, startedAt: performance.now(), results: [] };
+    const list = pickSet(el.dataset.start === 'due' ? due : fresh);
+    qset = { list, pos: 0, picked: [], typed: '', checked: false, startedAt: performance.now(), results: [] };
     renderQ();
   });
 }
@@ -634,66 +656,122 @@ function stemHtml(q: Question) {
   let s = esc(q.stem);
   s = s.replace(/\((i{1,3})\)\s*_{2,}/g, '<span class="blank">($1)</span>');
   s = s.replace(/_{2,}/g, '<span class="blank"></span>');
-  return s;
+  return s.replace(/\n/g, '<br>');
 }
+const paras = (t: string) => t.split(/\n\s*\n|\n/).filter((x) => x.trim()).map((p) => `<p>${esc(p)}</p>`).join('');
+const QC_CHOICES = ['Quantity A is greater.', 'Quantity B is greater.', 'The two quantities are equal.', 'The relationship cannot be determined from the information given.'];
+const multiPick = (q: Question) => q.type === 'se' || q.type === 'qmcm' || (q.type === 'rc' && q.qtype === 'mcm');
 
 function renderQ() {
   const s = qset!;
   const q = s.list[s.pos];
   if (!q) return finishQ();
   clearInterval(s.timer);
-  const blanks = q.blanks ?? [q.choices!];
-  const multi = q.type === 'tc2' || q.type === 'tc3';
-  const instr =
-    q.type === 'se'
-      ? 'Pick the two answers that each complete the sentence and give it the same meaning.'
-      : multi
-        ? 'Pick one answer for each blank.'
-        : 'Pick one answer.';
+  const tc = q.type === 'tc2' || q.type === 'tc3';
+  const rc = q.type === 'rc';
+  const sel = rc && q.qtype === 'sel';
+  const opts: string[][] = q.type === 'qc' ? [QC_CHOICES] : (q.blanks ?? [q.choices ?? []]);
   const roman = ['i', 'ii', 'iii'];
+  const instr =
+    q.type === 'se' ? 'Select the two answers that each complete the sentence and give it the same meaning.'
+    : tc ? 'Pick one answer for each blank.'
+    : sel ? 'Click the sentence in the passage.'
+    : multiPick(q) ? 'Select all that apply. No partial credit.'
+    : q.type === 'qnum' ? 'Type your answer: an integer, a decimal, or a fraction like 7/12.'
+    : 'Pick one answer.';
+  document.getElementById('app')!.classList.toggle('wide', rc);
 
-  $view.innerHTML = `
-    <div class="bar"><span class="kicker">${typeName[q.type]} · ${q.diff} · ${s.pos + 1} of ${s.list.length}</span><span class="clock" id="qclock">0:00</span></div>
+  const passage = rc ? passages.get(q.pid ?? '') ?? '' : '';
+  // Select-in-passage: the sentences themselves are the choices, highlighted inside the passage.
+  const passageHtml = sel
+    ? (() => {
+        let html = esc(passage);
+        (q.choices ?? []).forEach((c, i) => {
+          const e = esc(c);
+          const at = html.indexOf(e);
+          if (at >= 0) html = html.slice(0, at) + `<span class="s" data-sel="${i}">${e}</span>` + html.slice(at + e.length);
+        });
+        return html.split(/\n\s*\n|\n/).filter((x) => x.trim()).map((p) => `<p>${p}</p>`).join('');
+      })()
+    : paras(passage);
+  const missing = sel && (q.choices ?? []).some((c) => !passage.includes(c));
+
+  const body = `
     <p class="prompt">${stemHtml(q)}</p>
+    ${q.type === 'qc' ? `<div class="qcbox"><div><h4>Quantity A</h4>${esc(q.qa)}</div><div><h4>Quantity B</h4>${esc(q.qb)}</div></div>` : ''}
     <p class="muted small">${instr}</p>
     ${
-      multi
-        ? `<div class="blanks n${blanks.length}">${blanks
-            .map((opts, b) => `<div><h4>Blank (${roman[b]})</h4><div class="opts">${opts.map((o, i) => `<button class="opt serif" data-b="${b}" data-i="${i}">${esc(o)}</button>`).join('')}</div></div>`)
+      tc
+        ? `<div class="blanks n${opts.length}">${opts
+            .map((o, b) => `<div><h4>Blank (${roman[b]})</h4><div class="opts">${o.map((x, i) => `<button class="opt serif" data-b="${b}" data-i="${i}">${esc(x)}</button>`).join('')}</div></div>`)
             .join('')}</div>`
-        : `<div class="opts">${blanks[0].map((o, i) => `<button class="opt serif" data-b="0" data-i="${i}"><span class="k">${String.fromCharCode(65 + i)}</span><span>${esc(o)}</span></button>`).join('')}</div>`
+        : q.type === 'qnum'
+          ? `<input class="numin" id="numin" inputmode="decimal" autocomplete="off" aria-label="Your answer">`
+          : sel && !missing
+            ? ''
+            : `<div class="opts">${opts[0].map((o, i) => `<button class="opt ${isQuant(q) ? '' : 'serif'}" data-b="0" data-i="${i}"><span class="k">${multiPick(q) ? '☐' : String.fromCharCode(65 + i)}</span><span>${esc(o)}</span></button>`).join('')}</div>`
     }
     <div id="after" style="margin-top:1rem"><button class="btn primary wide" data-check disabled>Check</button></div>
     <p><button class="btn link" data-quit>End set</button></p>`;
 
+  $view.innerHTML = `
+    <div class="bar"><span class="kicker">${typeName[q.type]} · ${s.pos + 1} of ${s.list.length}</span><span class="clock" id="qclock">0:00</span></div>
+    ${rc ? `<div class="rcgrid"><div class="passage">${passageHtml}</div><div>${body}</div></div>` : body}`;
+
   const t0 = performance.now();
+  const limit = rc ? 120 : 90;
   const clock = $view.querySelector('#qclock') as HTMLElement;
   s.timer = window.setInterval(() => {
     const sec = (performance.now() - t0) / 1000;
     clock.textContent = mmss(sec);
-    clock.classList.toggle('late', sec > 90);
+    clock.classList.toggle('late', sec > limit);
   }, 500);
 
-  s.picked = multi ? blanks.map(() => -1) : [];
+  s.picked = tc ? opts.map(() => -1) : [];
+  s.typed = '';
   s.checked = false;
   const check = $view.querySelector('[data-check]') as HTMLButtonElement;
   const sync = () => {
-    $view.querySelectorAll<HTMLButtonElement>('.opt').forEach((b) => {
-      const bi = Number(b.dataset.b), i = Number(b.dataset.i);
-      b.classList.toggle('sel', multi ? s.picked[bi] === i : s.picked.includes(i));
+    $view.querySelectorAll<HTMLElement>('.opt, .passage .s').forEach((b) => {
+      const i = Number(b.dataset.i ?? b.dataset.sel), bi = Number(b.dataset.b ?? 0);
+      const on = tc ? s.picked[bi] === i : s.picked.includes(i);
+      b.classList.toggle('sel', on);
+      const k = b.querySelector('.k');
+      if (k && multiPick(q)) k.textContent = on ? '☑' : '☐';
     });
-    check.disabled = multi ? s.picked.includes(-1) : s.picked.length !== (q.type === 'se' ? 2 : 1);
+    check.disabled =
+      q.type === 'qnum' ? !s.typed.trim()
+      : tc ? s.picked.includes(-1)
+      : q.type === 'se' ? s.picked.length !== 2
+      : !s.picked.length;
   };
-  on('.opt', (_e, el) => {
+  const pick = (i: number, bi = 0) => {
     if (s.checked) return;
-    const bi = Number(el.dataset.b), i = Number(el.dataset.i);
-    if (multi) s.picked[bi] = i;
+    if (tc) s.picked[bi] = i;
     else if (q.type === 'se') s.picked = s.picked.includes(i) ? s.picked.filter((x) => x !== i) : [...s.picked, i].slice(-2);
+    else if (multiPick(q)) s.picked = s.picked.includes(i) ? s.picked.filter((x) => x !== i) : [...s.picked, i];
     else s.picked = [i];
     sync();
-  });
+  };
+  on('.opt', (_e, el) => pick(Number(el.dataset.i), Number(el.dataset.b)));
+  on('.passage .s', (_e, el) => pick(Number(el.dataset.sel)));
+  const inp = $view.querySelector('#numin') as HTMLInputElement | null;
+  if (inp) {
+    inp.addEventListener('input', () => { s.typed = inp.value; sync(); });
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !check.disabled) check.click(); });
+    inp.focus();
+  }
   check.addEventListener('click', () => checkQ(performance.now() - t0));
   on('[data-quit]', finishQ);
+}
+
+function explainHtml(t: string) {
+  return esc(t)
+    .split(/\n+/)
+    .map((p) => p.replace(/(Lesson:.*)$/s, '</p><p class="lesson">$1'))
+    .map((p) => `<p>${p}</p>`)
+    .join('')
+    .replace(/<p><\/p>/g, '');
 }
 
 function checkQ(ms: number) {
@@ -701,26 +779,28 @@ function checkQ(ms: number) {
   const q = s.list[s.pos];
   clearInterval(s.timer);
   s.checked = true;
-  const right = isCorrect(q, s.picked);
+  const right = q.type === 'qnum' ? numRight(q, s.typed) : isCorrect(q, s.picked);
   s.results.push({ q, right, ms });
   recordAnswer('question', q.id, q.type, right, ms);
   const prev = qstate.get(q.id);
   saveQ(q.id, promote(prev, today(), nowIso(), right, !prev));
 
-  const multi = q.type === 'tc2' || q.type === 'tc3';
-  $view.querySelectorAll<HTMLButtonElement>('.opt').forEach((b) => {
-    const bi = Number(b.dataset.b), i = Number(b.dataset.i);
-    const isAns = multi ? q.answer[bi] === i : q.answer.includes(i);
-    const isPicked = multi ? s.picked[bi] === i : s.picked.includes(i);
-    b.disabled = true;
+  const tc = q.type === 'tc2' || q.type === 'tc3';
+  $view.querySelectorAll<HTMLElement>('.opt, .passage .s').forEach((b) => {
+    const i = Number(b.dataset.i ?? b.dataset.sel), bi = Number(b.dataset.b ?? 0);
+    const isAns = tc ? q.answer[bi] === i : q.answer.includes(i);
+    const isPicked = tc ? s.picked[bi] === i : s.picked.includes(i);
+    if (b instanceof HTMLButtonElement) b.disabled = true;
     b.classList.remove('sel');
     if (isAns) b.classList.add('right');
     else if (isPicked) b.classList.add('wrong');
   });
+  const inp = $view.querySelector('#numin') as HTMLInputElement | null;
+  if (inp) { inp.disabled = true; inp.classList.add(right ? 'right' : 'wrong'); }
 
   // Every choice that is on the word list gets its meaning shown: distractors teach too.
-  const opts = (q.blanks ?? [q.choices!]).flat();
-  const gloss = opts
+  const words2 = isQuant(q) || q.type === 'rc' ? [] : (q.blanks ?? [q.choices ?? []]).flat();
+  const gloss = words2
     .map((o) => byLemma.get(o.toLowerCase()))
     .filter((w): w is Word => !!w)
     .map((w) => `<span><b>${esc(w.w)}</b>: ${esc(w.plain)}</span>`)
@@ -730,7 +810,8 @@ function checkQ(ms: number) {
   after.innerHTML = `
     <div class="verdict ${right ? 'ok' : 'no'}">
       <strong>${right ? 'Correct' : 'Not this time. It comes back tomorrow.'} (${mmss(ms / 1000)})</strong>
-      <p>${esc(q.explain)}</p>
+      ${q.type === 'qnum' ? `<p>Answer: <b>${esc(q.num)}</b></p>` : ''}
+      ${explainHtml(q.explain)}
       ${gloss ? `<div class="gloss">${gloss}</div>` : ''}
     </div>
     <button class="btn primary wide" data-next>${s.pos + 1 < s.list.length ? 'Next question' : 'See results'}</button>`;
@@ -745,6 +826,7 @@ function finishQ() {
   const s = qset;
   if (s) clearInterval(s.timer);
   qset = null;
+  document.getElementById('app')!.classList.remove('wide');
   flush();
   if (!s || !s.results.length) return practiceHome();
   const right = s.results.filter((r) => r.right).length;
@@ -753,18 +835,31 @@ function finishQ() {
     <h2>Set done</h2>
     <div class="stats">
       <div class="stat"><b>${right} / ${s.results.length}</b><span>correct</span></div>
-      <div class="stat"><b>${mmss(avg)}</b><span>per question (aim for 1:30)</span></div>
+      <div class="stat"><b>${mmss(avg)}</b><span>per question</span></div>
     </div>
     ${
       s.results.some((r) => !r.right)
         ? `<h3>Missed, back tomorrow</h3><ul class="plain-list">${s.results
             .filter((r) => !r.right)
-            .map((r) => `<li>${esc(r.q.stem.slice(0, 110))}…</li>`)
+            .map((r) => `<li><span class="muted small">${typeName[r.q.type]}</span><br>${esc(r.q.stem.slice(0, 110))}…</li>`)
             .join('')}</ul>`
         : ''
     }
-    <div class="row" style="margin-top:1.2rem"><button class="btn primary" data-home>More questions</button><a class="btn" href="#study">Words</a></div>`;
+    <div class="row" style="margin-top:1.2rem"><button class="btn primary" data-home>More questions</button><a class="btn" href="#formulas">Formulas</a></div>`;
   on('[data-home]', practiceHome);
+}
+
+function formulasView() {
+  $view.innerHTML = `
+    <h2>Formulas</h2>
+    <p class="muted">The things that are easy to forget under time pressure. Read it once a day until the test.</p>
+    ${formulas
+      .map(
+        (sec) => `<h3 class="fsec">${esc(sec.section)}</h3>${sec.items
+          .map((f) => `<div class="frow"><b>${esc(f.name)}</b><code>${esc(f.formula)}</code>${f.note ? `<span class="muted">${esc(f.note)}</span>` : ''}</div>`)
+          .join('')}`,
+      )
+      .join('') || '<p class="muted">Formulas are loading with the next content update.</p>'}`;
 }
 
 // ═══════════════════════════════════════════ TOEFL (see toefl.ts)

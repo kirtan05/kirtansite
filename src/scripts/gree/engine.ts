@@ -29,13 +29,37 @@ export interface Card {
 
 export interface Question {
   id: string;
-  type: 'se' | 'tc1' | 'tc2' | 'tc3';
+  type: 'se' | 'tc1' | 'tc2' | 'tc3' | 'rc' | 'qc' | 'qmc' | 'qmcm' | 'qnum';
   diff: 'easy' | 'medium' | 'hard';
   stem: string;
   choices?: string[];
   blanks?: string[][];
   answer: number[];
   explain: string;
+  // reading comprehension
+  pid?: string;
+  passage?: string | null;
+  qtype?: 'mc1' | 'mcm' | 'sel';
+  // quant
+  qa?: string;
+  qb?: string;
+  num?: string;
+}
+
+/** Choices can be picked in any order (select-all, SE pairs). */
+export const unordered = (q: Question) => q.type === 'se' || q.type === 'qmcm' || (q.type === 'rc' && q.qtype === 'mcm');
+
+/** "7/12", "2.5", "-36", "1,200" → number; NaN if unreadable. */
+export function parseNum(s: string): number {
+  const t = s.replace(/[,\s]/g, '');
+  const m = t.match(/^(-?\d+(?:\.\d+)?)\/(-?\d+(?:\.\d+)?)$/);
+  if (m) return Number(m[1]) / Number(m[2]);
+  return t === '' ? NaN : Number(t);
+}
+
+export function numRight(q: Question, typed: string): boolean {
+  const a = parseNum(q.num ?? ''), b = parseNum(typed);
+  return Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) < 1e-6 * Math.max(1, Math.abs(a));
 }
 
 // ────────────────────────────────────────── days (always India time)
@@ -194,7 +218,7 @@ export function modeFor(card: Card | undefined, kind: 'new' | 'review' | 'redo',
 // ────────────────────────────────────────── practice questions
 
 export function isCorrect(q: Question, picked: number[]): boolean {
-  if (q.type === 'se') {
+  if (unordered(q)) {
     const a = [...q.answer].sort().join(','), p = [...picked].sort().join(',');
     return a === p;
   }

@@ -67,14 +67,12 @@ if (!signedIn && Astro.request.method === 'POST') {
       signedIn ? (
         <div id="app">
           <nav class="tabs" aria-label="Sections">
-            <a href="#study" data-tab="study">Words</a>
-            <a href="#practice" data-tab="practice">Questions</a>
-            <a href="#toefl" data-tab="toefl">TOEFL</a>
-            <a href="#write" data-tab="write">Writing</a>
+            <a href="#practice" data-tab="practice">GRE bank</a>
+            <a href="#formulas" data-tab="formulas">Formulas</a>
             <a href="#progress" data-tab="progress">Progress</a>
           </nav>
           <main id="view" tabindex="-1">
-            <p class="muted loading">Loading your words…</p>
+            <p class="muted loading">Loading the question bank…</p>
           </main>
           <div id="toast" role="status" aria-live="polite"></div>
         </div>
@@ -220,6 +218,33 @@ if (!signedIn && Astro.request.method === 'POST') {
       .prompt { font: 400 1.2rem/1.6 var(--serif); margin: 0.75rem 0 1.1rem; }
       .prompt .blank { display: inline-block; min-width: 4.5em; border-bottom: 2px solid var(--ink); margin: 0 0.15em; }
       .opts { display: grid; gap: 0.55rem; }
+      #app.wide { max-width: 76rem; }
+      .rcgrid { display: grid; gap: 1.2rem; }
+      @media (min-width: 900px) {
+        .rcgrid { grid-template-columns: 1fr 1fr; align-items: start; }
+        .rcgrid .passage { position: sticky; top: 1rem; max-height: calc(100vh - 2rem); overflow: auto; }
+      }
+      .passage { font: 400 1.05rem/1.65 var(--serif); padding: 0.9rem 1.1rem; border: 1px solid var(--rule); border-radius: 10px; background: var(--card); }
+      .passage p { margin: 0 0 0.8rem; }
+      .passage p:last-child { margin: 0; }
+      .passage .s { cursor: pointer; border-radius: 3px; }
+      .passage .s:hover { background: color-mix(in srgb, var(--hi) 30%, transparent); }
+      .passage .s.sel { background: var(--hi); color: var(--hi-ink); }
+      .passage .s.right { background: color-mix(in srgb, #2f9e58 35%, transparent); }
+      .passage .s.wrong { background: color-mix(in srgb, #d24b4b 35%, transparent); text-decoration: line-through; }
+      .qcbox { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 0 0 1rem; }
+      .qcbox div { border: 1px solid var(--rule); border-radius: 10px; padding: 0.7rem; text-align: center; font: 400 1.1rem/1.5 var(--serif); }
+      .qcbox h4 { margin: 0 0 0.35rem; font: 600 0.85rem var(--sans); color: var(--ink-2); text-decoration: underline; }
+      .numin { font: 600 1.3rem var(--sans); padding: 0.6rem 0.8rem; width: 12rem; max-width: 100%; border: 2px solid var(--rule); border-radius: 10px; background: var(--card); color: var(--ink); }
+      .numin.right { border-color: #2f9e58; }
+      .numin.wrong { border-color: #d24b4b; }
+      .verdict p.lesson { font-weight: 600; }
+      .fsec { margin: 1.4rem 0 0.4rem; }
+      .frow { display: grid; grid-template-columns: minmax(8rem, 1fr) 1.3fr; gap: 0.2rem 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
+      .frow b { font-weight: 600; }
+      .frow code { font: 500 1.02rem var(--serif); }
+      .frow .muted { grid-column: 1 / -1; font-size: 0.88rem; }
+      @media (max-width: 560px) { .frow { grid-template-columns: 1fr; } }
       .opt {
         text-align: left; border: 1px solid var(--rule); background: var(--card); border-radius: 10px;
         padding: 0.8rem 0.95rem; cursor: pointer; min-height: 48px; line-height: 1.4;

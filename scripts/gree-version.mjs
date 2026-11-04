@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const h = createHash('sha256');
-for (const f of ['words.json', 'questions.json', 'toefl-reading.json', 'toefl-listening.json', 'toefl-writing.json']) h.update(readFileSync(new URL(`../src/data/gree/${f}`, import.meta.url)));
+for (const f of ['words.json', 'questions.json', 'gre-bank.json', 'toefl-reading.json', 'toefl-listening.json', 'toefl-writing.json']) h.update(readFileSync(new URL(`../src/data/gree/${f}`, import.meta.url)));
 const v = h.digest('hex').slice(0, 12);
 writeFileSync(
   new URL('../src/data/gree/version.ts', import.meta.url),

@@ -765,13 +765,79 @@ function renderQ() {
   on('[data-quit]', finishQ);
 }
 
-function explainHtml(t: string) {
-  return esc(t)
-    .split(/\n+/)
-    .map((p) => p.replace(/(Lesson:.*)$/s, '</p><p class="lesson">$1'))
-    .map((p) => `<p>${p}</p>`)
-    .join('')
-    .replace(/<p><\/p>/g, '');
+// Explanations are stored as one dense paragraph ("Clue: ... Trap: ... a = b; c = d. Lesson: ...").
+// Split them into labelled sections, bullet the traps, pull definitions into a word list,
+// and colour the answer choices so the eye can find them.
+const EX_LABEL =
+  /^(Clues?|Traps?(?: \d)?|Predict|Signal(?: words)?|Fast method|Formula|Definitions|Words|Check|Conclusion|Structure|Negation test|Test|(?:The )?[Pp]uzzle|First|Second|Third|Blank \(i+\)|(?:Start|Enter) at \(i+\)|Now \(i+\)|[A-F]):\s*/;
+const DEF_ITEM = /^[a-z][a-z' -]{0,30} = /i;
+
+function explainParts(t: string, quant: boolean) {
+  let lesson = '';
+  const body = t.replace(/\s*Lesson:\s*([\s\S]*)$/, (_m, l) => ((lesson = l.trim()), '')).trim();
+  // Sentence split; a lowercase "word = meaning" run also starts a new sentence.
+  const sents = body
+    .split(/(?<=[.!?]['"]?)\s+(?=[A-Z'"(]|[a-z][a-z' -]{0,30} = )/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const sections: { label: string; sents: string[] }[] = [];
+  const defs: [string, string][] = [];
+  for (let s of sents) {
+    const m = s.match(EX_LABEL);
+    let label = m ? m[1] : '';
+    if (m) s = s.slice(m[0].length);
+    // Unlabelled sentences that still open a new topic: "(ii) follows the colon...", "The trap ...".
+    else if (/^\(i+\) /.test(s)) { label = `Blank ${s.match(/^\(i+\)/)![0]}`; s = s.replace(/^\(i+\) /, ''); }
+    else if (/^(The )?[Tt]raps? /.test(s)) label = 'Trap';
+    const isDefs = !quant && (/^(Definitions|Words)$/.test(label) || (!label && DEF_ITEM.test(s)));
+    if (/^(Definitions|Words)$/.test(label) || isDefs) {
+      const items = s.replace(/\.$/, '').split(/;\s*/);
+      if (items.every((x) => x.includes(' = '))) {
+        for (const x of items) {
+          const [w, ...rest] = x.split(' = ');
+          defs.push([w.trim(), rest.join(' = ').trim()]);
+        }
+        continue;
+      }
+    }
+    if (label || !sections.length) sections.push({ label, sents: [s] });
+    else sections[sections.length - 1].sents.push(s);
+  }
+  return { sections, defs, lesson };
+}
+
+function explainHtml(q: Question, words: string[]) {
+  const quant = isQuant(q);
+  const { sections, defs, lesson } = explainParts(q.explain, quant);
+  const ans = new Set<string>();
+  if (q.type === 'tc2' || q.type === 'tc3') q.blanks!.forEach((b, i) => ans.add(b[q.answer[i]].toLowerCase()));
+  else if (q.type === 'se') q.answer.forEach((i) => ans.add(q.choices![i].toLowerCase()));
+  const wordRe = words.length
+    ? new RegExp(`\\b(${words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`, 'gi')
+    : null;
+  const fmt = (s: string) => {
+    // Mark quoted stem phrases first (private-use markers survive escaping), then colour choices.
+    s = s.charAt(0).toUpperCase() + s.slice(1);
+    let h = s.replace(/(^|[\s(])(['"])(.+?)\2(?=[\s.,;:)!?]|$)/g, '$1$2$3$2');
+    h = esc(h);
+    if (wordRe) h = h.replace(wordRe, (w) => `<b class="${ans.has(w.toLowerCase()) ? 'xw-ok' : 'xw-no'}">${w}</b>`);
+    return h.replace(//g, '<span class="xq">').replace(//g, '</span>');
+  };
+  const out = sections.map(({ label, sents }) => {
+    const trap = /^Trap/.test(label);
+    // Traps read best as a list: one sentence (or ;-separated clause in "Traps:") per bullet.
+    const items = trap ? sents.flatMap((x) => (/^Traps/.test(label) ? x.split(/;\s+/) : [x])) : [];
+    const inner = trap && items.length > 1
+      ? `<ul>${items.map((x) => `<li>${fmt(x)}</li>`).join('')}</ul>`
+      : `<p>${sents.map(fmt).join(' ')}</p>`;
+    const tag = label.replace(/s$/, '');
+    return `<div class="xs${trap ? ' xtrap' : ''}">${label ? `<span class="xl">${esc(tag)}</span>` : ''}<div>${inner}</div></div>`;
+  });
+  const defHtml = defs.length
+    ? `<div class="xdefs">${defs.map(([w, m]) => `<span><b>${esc(w)}</b> ${esc(m)}</span>`).join('')}</div>`
+    : '';
+  const lessonHtml = lesson ? `<div class="xlesson"><span class="xl">Lesson</span><p>${fmt(lesson)}</p></div>` : '';
+  return { html: out.join('') + defHtml + lessonHtml, defined: new Set(defs.map(([w]) => w.toLowerCase())) };
 }
 
 function checkQ(ms: number) {
@@ -800,9 +866,10 @@ function checkQ(ms: number) {
 
   // Every choice that is on the word list gets its meaning shown: distractors teach too.
   const words2 = isQuant(q) || q.type === 'rc' ? [] : (q.blanks ?? [q.choices ?? []]).flat();
+  const ex = explainHtml(q, words2);
   const gloss = words2
     .map((o) => byLemma.get(o.toLowerCase()))
-    .filter((w): w is Word => !!w)
+    .filter((w): w is Word => !!w && !ex.defined.has(w.w.toLowerCase()))
     .map((w) => `<span><b>${esc(w.w)}</b>: ${esc(w.plain)}</span>`)
     .join('');
 
@@ -811,7 +878,7 @@ function checkQ(ms: number) {
     <div class="verdict ${right ? 'ok' : 'no'}">
       <strong>${right ? 'Correct' : 'Not this time. It comes back tomorrow.'} (${mmss(ms / 1000)})</strong>
       ${q.type === 'qnum' ? `<p>Answer: <b>${esc(q.num)}</b></p>` : ''}
-      ${explainHtml(q.explain)}
+      ${ex.html}
       ${gloss ? `<div class="gloss">${gloss}</div>` : ''}
     </div>
     <button class="btn primary wide" data-next>${s.pos + 1 < s.list.length ? 'Next question' : 'See results'}</button>`;

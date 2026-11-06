@@ -68,6 +68,7 @@ if (!signedIn && Astro.request.method === 'POST') {
         <div id="app">
           <nav class="tabs" aria-label="Sections">
             <a href="#practice" data-tab="practice">GRE bank</a>
+            <a href="#top100" data-tab="top100">Top 100</a>
             <a href="#formulas" data-tab="formulas">Formulas</a>
             <a href="#progress" data-tab="progress">Progress</a>
           </nav>
@@ -258,6 +259,8 @@ if (!signedIn && Astro.request.method === 'POST') {
       .fsec { margin: 1.4rem 0 0.4rem; }
       .frow { display: grid; grid-template-columns: minmax(8rem, 1fr) 1.3fr; gap: 0.2rem 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
       .frow b { font-weight: 600; }
+      .t100 { cursor: pointer; }
+      .t100.hid > span { visibility: hidden; }
       .frow code { font: 500 1.02rem var(--serif); }
       .frow .muted { grid-column: 1 / -1; font-size: 0.88rem; }
       @media (max-width: 560px) { .frow { grid-template-columns: 1fr; } }

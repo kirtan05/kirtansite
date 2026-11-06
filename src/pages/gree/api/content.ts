@@ -4,6 +4,7 @@ import type { APIRoute } from 'astro';
 import { json, requireApi } from '../../../lib/gree/guard';
 import words from '../../../data/gree/words.json';
 import bank from '../../../data/gree/gre-bank.json';
+import top100 from '../../../data/gree/top100.json';
 import toeflReading from '../../../data/gree/toefl-reading.json';
 import toeflListening from '../../../data/gree/toefl-listening.json';
 import toeflWriting from '../../../data/gree/toefl-writing.json';
@@ -17,5 +18,5 @@ import { CONTENT_VERSION } from '../../../data/gree/version';
 export const GET: APIRoute = async (ctx) => {
   const g = await requireApi(ctx);
   if (!g.ok) return g.response;
-  return json({ version: CONTENT_VERSION, words, questions: bank.questions, formulas: bank.formulas, toefl: [...toeflReading, ...toeflListening, ...toeflWriting] });
+  return json({ version: CONTENT_VERSION, words, questions: bank.questions, formulas: bank.formulas, top100, toefl: [...toeflReading, ...toeflListening, ...toeflWriting] });
 };

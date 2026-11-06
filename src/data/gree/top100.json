@@ -1,0 +1,902 @@
+[
+ {
+  "w": "laconic",
+  "m": "using very few words",
+  "syn": [
+   "terse",
+   "succinct",
+   "pithy"
+  ]
+ },
+ {
+  "w": "equivocal",
+  "m": "deliberately ambiguous or unclear",
+  "syn": [
+   "ambiguous",
+   "evasive",
+   "vague"
+  ]
+ },
+ {
+  "w": "prodigal",
+  "m": "wastefully extravagant",
+  "syn": [
+   "spendthrift",
+   "profligate",
+   "lavish"
+  ]
+ },
+ {
+  "w": "loquacious",
+  "m": "very talkative",
+  "syn": [
+   "garrulous",
+   "voluble",
+   "verbose"
+  ]
+ },
+ {
+  "w": "ephemeral",
+  "m": "lasting a very short time",
+  "syn": [
+   "fleeting",
+   "transient",
+   "evanescent"
+  ]
+ },
+ {
+  "w": "enervate",
+  "m": "to weaken or drain energy",
+  "syn": [
+   "sap",
+   "debilitate",
+   "exhaust"
+  ]
+ },
+ {
+  "w": "mollify",
+  "m": "to calm or soothe anger",
+  "syn": [
+   "placate",
+   "appease",
+   "pacify"
+  ]
+ },
+ {
+  "w": "obdurate",
+  "m": "stubbornly refusing to change",
+  "syn": [
+   "intransigent",
+   "obstinate",
+   "inflexible"
+  ]
+ },
+ {
+  "w": "capricious",
+  "m": "changing mood or behavior suddenly",
+  "syn": [
+   "fickle",
+   "mercurial",
+   "erratic"
+  ]
+ },
+ {
+  "w": "pedantic",
+  "m": "overly concerned with minor rules or details",
+  "syn": [
+   "nitpicking",
+   "fussy",
+   "didactic"
+  ]
+ },
+ {
+  "w": "prevaricate",
+  "m": "to speak evasively; to dodge the truth",
+  "syn": [
+   "equivocate",
+   "hedge",
+   "lie"
+  ]
+ },
+ {
+  "w": "garrulous",
+  "m": "excessively talkative about trivial things",
+  "syn": [
+   "loquacious",
+   "chatty",
+   "voluble"
+  ]
+ },
+ {
+  "w": "lucid",
+  "m": "clear and easy to understand",
+  "syn": [
+   "clear",
+   "intelligible",
+   "transparent"
+  ]
+ },
+ {
+  "w": "venerate",
+  "m": "to regard with deep respect",
+  "syn": [
+   "revere",
+   "honor",
+   "worship"
+  ]
+ },
+ {
+  "w": "zeal",
+  "m": "great energy or enthusiasm for a cause",
+  "syn": [
+   "fervor",
+   "ardor",
+   "passion"
+  ]
+ },
+ {
+  "w": "quiescent",
+  "m": "inactive or dormant",
+  "syn": [
+   "dormant",
+   "latent",
+   "inert"
+  ]
+ },
+ {
+  "w": "placate",
+  "m": "to make less angry",
+  "syn": [
+   "mollify",
+   "appease",
+   "conciliate"
+  ]
+ },
+ {
+  "w": "assuage",
+  "m": "to ease or lessen (pain, worry)",
+  "syn": [
+   "alleviate",
+   "mitigate",
+   "allay"
+  ]
+ },
+ {
+  "w": "anomaly",
+  "m": "something that deviates from the normal",
+  "syn": [
+   "aberration",
+   "oddity",
+   "irregularity"
+  ]
+ },
+ {
+  "w": "aberrant",
+  "m": "departing from the norm",
+  "syn": [
+   "deviant",
+   "abnormal",
+   "anomalous"
+  ]
+ },
+ {
+  "w": "ameliorate",
+  "m": "to make something bad better",
+  "syn": [
+   "improve",
+   "enhance",
+   "alleviate"
+  ]
+ },
+ {
+  "w": "mitigate",
+  "m": "to make less severe",
+  "syn": [
+   "alleviate",
+   "temper",
+   "attenuate"
+  ]
+ },
+ {
+  "w": "exacerbate",
+  "m": "to make worse",
+  "syn": [
+   "aggravate",
+   "intensify",
+   "worsen"
+  ]
+ },
+ {
+  "w": "obsequious",
+  "m": "excessively eager to please or obey",
+  "syn": [
+   "fawning",
+   "sycophantic",
+   "servile"
+  ]
+ },
+ {
+  "w": "sycophant",
+  "m": "a flatterer who seeks favor",
+  "syn": [
+   "toady",
+   "flatterer",
+   "lackey"
+  ]
+ },
+ {
+  "w": "pragmatic",
+  "m": "dealing with things practically",
+  "syn": [
+   "practical",
+   "realistic",
+   "sensible"
+  ]
+ },
+ {
+  "w": "dogmatic",
+  "m": "asserting opinions as undeniably true",
+  "syn": [
+   "doctrinaire",
+   "opinionated",
+   "rigid"
+  ]
+ },
+ {
+  "w": "didactic",
+  "m": "intended to teach, often preachy",
+  "syn": [
+   "instructive",
+   "moralizing",
+   "pedagogic"
+  ]
+ },
+ {
+  "w": "insipid",
+  "m": "lacking flavor or interest",
+  "syn": [
+   "bland",
+   "vapid",
+   "dull"
+  ]
+ },
+ {
+  "w": "vapid",
+  "m": "offering nothing stimulating",
+  "syn": [
+   "insipid",
+   "banal",
+   "jejune"
+  ]
+ },
+ {
+  "w": "banal",
+  "m": "so ordinary as to be boring",
+  "syn": [
+   "trite",
+   "hackneyed",
+   "commonplace"
+  ]
+ },
+ {
+  "w": "trite",
+  "m": "overused and unoriginal",
+  "syn": [
+   "banal",
+   "clichéd",
+   "hackneyed"
+  ]
+ },
+ {
+  "w": "hackneyed",
+  "m": "made dull by overuse",
+  "syn": [
+   "trite",
+   "stale",
+   "clichéd"
+  ]
+ },
+ {
+  "w": "prosaic",
+  "m": "dull and unimaginative",
+  "syn": [
+   "mundane",
+   "pedestrian",
+   "humdrum"
+  ]
+ },
+ {
+  "w": "mundane",
+  "m": "ordinary, everyday",
+  "syn": [
+   "prosaic",
+   "routine",
+   "quotidian"
+  ]
+ },
+ {
+  "w": "esoteric",
+  "m": "understood by only a few",
+  "syn": [
+   "arcane",
+   "abstruse",
+   "recondite"
+  ]
+ },
+ {
+  "w": "arcane",
+  "m": "known or understood by very few",
+  "syn": [
+   "esoteric",
+   "obscure",
+   "recondite"
+  ]
+ },
+ {
+  "w": "abstruse",
+  "m": "difficult to understand",
+  "syn": [
+   "recondite",
+   "esoteric",
+   "obscure"
+  ]
+ },
+ {
+  "w": "inscrutable",
+  "m": "impossible to understand or interpret",
+  "syn": [
+   "enigmatic",
+   "impenetrable",
+   "cryptic"
+  ]
+ },
+ {
+  "w": "enigmatic",
+  "m": "mysterious and hard to understand",
+  "syn": [
+   "puzzling",
+   "inscrutable",
+   "cryptic"
+  ]
+ },
+ {
+  "w": "opaque",
+  "m": "not transparent; hard to understand",
+  "syn": [
+   "obscure",
+   "unclear",
+   "impenetrable"
+  ]
+ },
+ {
+  "w": "ambivalent",
+  "m": "having mixed feelings",
+  "syn": [
+   "conflicted",
+   "equivocal",
+   "uncertain"
+  ]
+ },
+ {
+  "w": "apathy",
+  "m": "lack of interest or concern",
+  "syn": [
+   "indifference",
+   "unconcern",
+   "lethargy"
+  ]
+ },
+ {
+  "w": "indifferent",
+  "m": "having no particular interest",
+  "syn": [
+   "apathetic",
+   "unconcerned",
+   "detached"
+  ]
+ },
+ {
+  "w": "diffident",
+  "m": "shy; lacking self-confidence",
+  "syn": [
+   "timid",
+   "reticent",
+   "bashful"
+  ]
+ },
+ {
+  "w": "reticent",
+  "m": "reserved; not revealing thoughts",
+  "syn": [
+   "taciturn",
+   "reserved",
+   "restrained"
+  ]
+ },
+ {
+  "w": "taciturn",
+  "m": "habitually silent",
+  "syn": [
+   "reticent",
+   "uncommunicative",
+   "laconic"
+  ]
+ },
+ {
+  "w": "candid",
+  "m": "truthful and straightforward",
+  "syn": [
+   "frank",
+   "forthright",
+   "blunt"
+  ]
+ },
+ {
+  "w": "disingenuous",
+  "m": "not sincere; pretending to know less",
+  "syn": [
+   "insincere",
+   "duplicitous",
+   "deceitful"
+  ]
+ },
+ {
+  "w": "duplicity",
+  "m": "deceitfulness; double-dealing",
+  "syn": [
+   "deceit",
+   "guile",
+   "chicanery"
+  ]
+ },
+ {
+  "w": "guile",
+  "m": "sly or cunning intelligence",
+  "syn": [
+   "cunning",
+   "craftiness",
+   "artifice"
+  ]
+ },
+ {
+  "w": "artless",
+  "m": "without guile; natural and simple",
+  "syn": [
+   "ingenuous",
+   "naive",
+   "guileless"
+  ]
+ },
+ {
+  "w": "ingenuous",
+  "m": "innocent and unsuspecting",
+  "syn": [
+   "naive",
+   "artless",
+   "guileless"
+  ]
+ },
+ {
+  "w": "credulous",
+  "m": "too ready to believe things",
+  "syn": [
+   "gullible",
+   "naive",
+   "trusting"
+  ]
+ },
+ {
+  "w": "skeptical",
+  "m": "not easily convinced; doubting",
+  "syn": [
+   "doubtful",
+   "dubious",
+   "incredulous"
+  ]
+ },
+ {
+  "w": "cynical",
+  "m": "believing people act only out of self-interest",
+  "syn": [
+   "distrustful",
+   "jaded",
+   "skeptical"
+  ]
+ },
+ {
+  "w": "erudite",
+  "m": "having great knowledge or learning",
+  "syn": [
+   "learned",
+   "scholarly",
+   "knowledgeable"
+  ]
+ },
+ {
+  "w": "pedestrian",
+  "m": "lacking inspiration; dull",
+  "syn": [
+   "prosaic",
+   "uninspired",
+   "ordinary"
+  ]
+ },
+ {
+  "w": "profound",
+  "m": "very great or intense; insightful",
+  "syn": [
+   "deep",
+   "penetrating",
+   "sagacious"
+  ]
+ },
+ {
+  "w": "sagacious",
+  "m": "wise; having keen judgment",
+  "syn": [
+   "shrewd",
+   "astute",
+   "perspicacious"
+  ]
+ },
+ {
+  "w": "astute",
+  "m": "accurately assessing situations",
+  "syn": [
+   "shrewd",
+   "perceptive",
+   "canny"
+  ]
+ },
+ {
+  "w": "perspicacious",
+  "m": "having keen insight",
+  "syn": [
+   "discerning",
+   "astute",
+   "perceptive"
+  ]
+ },
+ {
+  "w": "myopic",
+  "m": "lacking foresight; nearsighted",
+  "syn": [
+   "shortsighted",
+   "narrow-minded",
+   "insular"
+  ]
+ },
+ {
+  "w": "insular",
+  "m": "narrow-minded; isolated",
+  "syn": [
+   "parochial",
+   "provincial",
+   "myopic"
+  ]
+ },
+ {
+  "w": "parochial",
+  "m": "having a narrow, limited outlook",
+  "syn": [
+   "provincial",
+   "insular",
+   "small-minded"
+  ]
+ },
+ {
+  "w": "cosmopolitan",
+  "m": "worldly; from many cultures",
+  "syn": [
+   "sophisticated",
+   "urbane",
+   "worldly"
+  ]
+ },
+ {
+  "w": "urbane",
+  "m": "suave, courteous, refined",
+  "syn": [
+   "sophisticated",
+   "polished",
+   "debonair"
+  ]
+ },
+ {
+  "w": "gregarious",
+  "m": "sociable; fond of company",
+  "syn": [
+   "outgoing",
+   "convivial",
+   "affable"
+  ]
+ },
+ {
+  "w": "affable",
+  "m": "friendly and easy to talk to",
+  "syn": [
+   "amiable",
+   "genial",
+   "cordial"
+  ]
+ },
+ {
+  "w": "amiable",
+  "m": "having a friendly manner",
+  "syn": [
+   "affable",
+   "genial",
+   "agreeable"
+  ]
+ },
+ {
+  "w": "austere",
+  "m": "severe or strict; plain and unadorned",
+  "syn": [
+   "stern",
+   "ascetic",
+   "spartan"
+  ]
+ },
+ {
+  "w": "ascetic",
+  "m": "practicing severe self-discipline",
+  "syn": [
+   "austere",
+   "abstemious",
+   "spartan"
+  ]
+ },
+ {
+  "w": "frugal",
+  "m": "economical with money or food",
+  "syn": [
+   "thrifty",
+   "parsimonious",
+   "sparing"
+  ]
+ },
+ {
+  "w": "parsimonious",
+  "m": "extremely unwilling to spend money",
+  "syn": [
+   "stingy",
+   "miserly",
+   "penurious"
+  ]
+ },
+ {
+  "w": "profligate",
+  "m": "recklessly wasteful",
+  "syn": [
+   "prodigal",
+   "extravagant",
+   "dissolute"
+  ]
+ },
+ {
+  "w": "lavish",
+  "m": "very rich, generous or elaborate",
+  "syn": [
+   "extravagant",
+   "sumptuous",
+   "opulent"
+  ]
+ },
+ {
+  "w": "munificent",
+  "m": "very generous",
+  "syn": [
+   "bountiful",
+   "lavish",
+   "magnanimous"
+  ]
+ },
+ {
+  "w": "magnanimous",
+  "m": "generous or forgiving toward a rival",
+  "syn": [
+   "big-hearted",
+   "noble",
+   "charitable"
+  ]
+ },
+ {
+  "w": "benevolent",
+  "m": "well-meaning and kindly",
+  "syn": [
+   "kind",
+   "charitable",
+   "altruistic"
+  ]
+ },
+ {
+  "w": "malevolent",
+  "m": "wishing harm to others",
+  "syn": [
+   "malicious",
+   "spiteful",
+   "malign"
+  ]
+ },
+ {
+  "w": "belligerent",
+  "m": "hostile and aggressive",
+  "syn": [
+   "bellicose",
+   "combative",
+   "pugnacious"
+  ]
+ },
+ {
+  "w": "pugnacious",
+  "m": "eager to argue or fight",
+  "syn": [
+   "combative",
+   "belligerent",
+   "truculent"
+  ]
+ },
+ {
+  "w": "truculent",
+  "m": "eager to fight; defiant",
+  "syn": [
+   "belligerent",
+   "pugnacious",
+   "surly"
+  ]
+ },
+ {
+  "w": "conciliatory",
+  "m": "intended to placate or pacify",
+  "syn": [
+   "appeasing",
+   "propitiatory",
+   "peacemaking"
+  ]
+ },
+ {
+  "w": "intransigent",
+  "m": "unwilling to change one's views",
+  "syn": [
+   "obdurate",
+   "uncompromising",
+   "inflexible"
+  ]
+ },
+ {
+  "w": "recalcitrant",
+  "m": "stubbornly uncooperative",
+  "syn": [
+   "refractory",
+   "unruly",
+   "defiant"
+  ]
+ },
+ {
+  "w": "tractable",
+  "m": "easy to control or influence",
+  "syn": [
+   "docile",
+   "compliant",
+   "amenable"
+  ]
+ },
+ {
+  "w": "docile",
+  "m": "ready to accept control",
+  "syn": [
+   "submissive",
+   "compliant",
+   "tractable"
+  ]
+ },
+ {
+  "w": "amenable",
+  "m": "open and responsive to suggestion",
+  "syn": [
+   "agreeable",
+   "receptive",
+   "compliant"
+  ]
+ },
+ {
+  "w": "obstinate",
+  "m": "stubbornly refusing to change",
+  "syn": [
+   "obdurate",
+   "headstrong",
+   "intractable"
+  ]
+ },
+ {
+  "w": "tenacious",
+  "m": "holding firmly; persistent",
+  "syn": [
+   "persistent",
+   "dogged",
+   "resolute"
+  ]
+ },
+ {
+  "w": "vacillate",
+  "m": "to waver between opinions",
+  "syn": [
+   "waver",
+   "oscillate",
+   "dither"
+  ]
+ },
+ {
+  "w": "resolute",
+  "m": "determined and unwavering",
+  "syn": [
+   "steadfast",
+   "firm",
+   "unwavering"
+  ]
+ },
+ {
+  "w": "inexorable",
+  "m": "impossible to stop or prevent",
+  "syn": [
+   "relentless",
+   "unstoppable",
+   "implacable"
+  ]
+ },
+ {
+  "w": "implacable",
+  "m": "unable to be appeased",
+  "syn": [
+   "unappeasable",
+   "relentless",
+   "merciless"
+  ]
+ },
+ {
+  "w": "ubiquitous",
+  "m": "present everywhere",
+  "syn": [
+   "pervasive",
+   "omnipresent",
+   "universal"
+  ]
+ },
+ {
+  "w": "pervasive",
+  "m": "spreading throughout",
+  "syn": [
+   "ubiquitous",
+   "prevalent",
+   "widespread"
+  ]
+ },
+ {
+  "w": "prolific",
+  "m": "producing a lot",
+  "syn": [
+   "productive",
+   "fertile",
+   "fecund"
+  ]
+ },
+ {
+  "w": "nascent",
+  "m": "just coming into existence",
+  "syn": [
+   "emerging",
+   "budding",
+   "incipient"
+  ]
+ },
+ {
+  "w": "incipient",
+  "m": "beginning to develop",
+  "syn": [
+   "nascent",
+   "embryonic",
+   "inchoate"
+  ]
+ }
+]

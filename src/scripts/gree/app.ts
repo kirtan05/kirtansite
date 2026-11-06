@@ -205,12 +205,13 @@ async function pullState() {
 }
 
 async function loadContent(version: string) {
-  const cached = LS.get<{ version: string; words: Word[]; questions: Question[]; formulas?: typeof formulas; toefl?: TItem[] }>('gree.content');
+  const cached = LS.get<{ version: string; words: Word[]; questions: Question[]; formulas?: typeof formulas; top100?: typeof top100; toefl?: TItem[] }>('gree.content');
   const c = cached?.version === version ? cached : await api('/gree/api/content');
   if (c !== cached) LS.set('gree.content', c);
   words = c.words;
   questions = c.questions;
   formulas = c.formulas ?? [];
+  top100 = c.top100 ?? [];
   passages = new Map(questions.filter((q) => q.type === 'rc' && q.passage).map((q) => [q.pid!, q.passage!]));
   toefl = c.toefl ?? [];
   byId = new Map(words.map((w) => [w.id, w]));
@@ -259,8 +260,8 @@ document.addEventListener('visibilitychange', async () => {
 
 // ═══════════════════════════════════════════ router
 
-type Tab = 'study' | 'practice' | 'formulas' | 'toefl' | 'write' | 'progress';
-const TABS: Tab[] = ['study', 'practice', 'formulas', 'toefl', 'write', 'progress'];
+type Tab = 'study' | 'practice' | 'top100' | 'formulas' | 'toefl' | 'write' | 'progress';
+const TABS: Tab[] = ['study', 'practice', 'top100', 'formulas', 'toefl', 'write', 'progress'];
 const currentTab = (): Tab => {
   const h = location.hash.slice(1).split('/')[0] as Tab;
   return TABS.includes(h) ? h : 'practice';
@@ -275,6 +276,7 @@ function render() {
   });
   if (tab === 'study') session ? renderStep() : studyHome();
   else if (tab === 'practice') qset ? renderQ() : practiceHome();
+  else if (tab === 'top100') top100View();
   else if (tab === 'formulas') formulasView();
   else if (tab === 'toefl') toeflView(toeflCtx);
   else if (tab === 'write') writing ? renderEditor() : writeHome();
@@ -914,6 +916,25 @@ function finishQ() {
     }
     <div class="row" style="margin-top:1.2rem"><button class="btn primary" data-home>More questions</button><a class="btn" href="#formulas">Formulas</a></div>`;
   on('[data-home]', practiceHome);
+}
+
+let top100: { w: string; m: string; syn: string[] }[] = [];
+let top100Hide = false;
+function top100View() {
+  $view.innerHTML = `
+    <h2>Top 100 words</h2>
+    <p class="muted">High-frequency GRE words. Turn on quiz mode to hide meanings, then tap a word to check yourself.</p>
+    <div class="row" style="margin:0.6rem 0"><button class="btn" data-hide>${top100Hide ? 'Show all meanings' : 'Quiz mode: hide meanings'}</button></div>
+    ${top100
+      .map(
+        (t, i) => `<div class="frow t100${top100Hide ? ' hid' : ''}" data-i="${i}"><b>${i + 1}. ${esc(t.w)}</b><span>${esc(t.m)}</span><span class="muted">${esc(t.syn.join(', '))}</span></div>`,
+      )
+      .join('') || '<p class="muted">The list is loading with the next content update.</p>'}`;
+  on('[data-hide]', () => {
+    top100Hide = !top100Hide;
+    top100View();
+  });
+  on('.t100', (_e, el) => el.classList.toggle('hid'));
 }
 
 function formulasView() {

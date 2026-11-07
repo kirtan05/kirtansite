@@ -8,8 +8,13 @@
 [Unit]
 Description=Nightly laptop activity report to WhatsApp
 After=network-online.target
+# Right after a wake from sleep the network (and DNS) is not up yet: retry.
+StartLimitIntervalSec=3h
+StartLimitBurst=8
 
 [Service]
 Type=oneshot
+Restart=on-failure
+RestartSec=10min
 EnvironmentFile=%h/.config/activity-report.env
 ExecStart=%h/Desktop/projects/kirtansite/scripts/activity/report.sh

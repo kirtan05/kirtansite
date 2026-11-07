@@ -59,10 +59,10 @@ else
   [[ -n "$first" ]] && window=" ($(hm12 "$first")–$(hm12 "$last"))"
 
   # YouTube videos watched (names from the window title).
-  yt=$(jq -r '.youtube[]? | "• \(.name) — \(.seconds)"' <<<"$json" \
-    | while IFS= read -r line; do s="${line##* — }"; printf '%s — %s\n' "${line% — *}" "$(hms "$s")"; done | head -5)
+  yt=$(jq -r '(.youtube // [])[:5][] | "• \(.name) — \(.seconds)"' <<<"$json" \
+    | while IFS= read -r line; do s="${line##* — }"; printf '%s — %s\n' "${line% — *}" "$(hms "$s")"; done)
   # Any real YouTube links (only when the browser extension is present).
-  links=$(jq -r '.youtubeLinks[]?' <<<"$json" | head -5)
+  links=$(jq -r '(.youtubeLinks // [])[:5][]' <<<"$json")
   # Websites visited, plain host names.
   sites=$(jq -r '[.topHosts[]? | select(.seconds>=60) | .key] | join(", ")' <<<"$json")
 

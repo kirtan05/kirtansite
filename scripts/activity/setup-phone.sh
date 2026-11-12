@@ -40,7 +40,9 @@ asset() { # repo, jq filter on asset name → download url
   curl -fsSL "https://api.github.com/repos/$1/releases/latest" | jq -r --arg abi "$ABI" "$2"
 }
 fetch() { # url → path
-  local f="$CACHE/$(basename "$1")"; [[ -s "$f" ]] || curl -fL --retry 3 -o "$f" "$1"; echo "$f"
+  # Release URLs encode '+' as %2B; the checksum files use the real name.
+  local n; n="$(basename "$1")"; local f="$CACHE/${n//\%2B/+}"
+  [[ -s "$f" ]] || curl -fsSL --retry 3 -o "$f" "$1"; echo "$f"
 }
 AW_URL="$(asset ActivityWatch/aw-android '.assets[] | select(.name == ("aw-android-" + $abi + ".apk")) | .browser_download_url')"
 [[ -n "$AW_URL" ]] || AW_URL="$(asset ActivityWatch/aw-android '.assets[] | select(.name == "aw-android.apk") | .browser_download_url')"

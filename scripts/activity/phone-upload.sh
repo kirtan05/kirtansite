@@ -18,7 +18,9 @@
 # reports a 'stopped' tracker event — once, on the transition — and 'started'
 # when it comes back, so a force-stopped or uninstalled tracker shows up.
 #
-# Config: $HOME/.aw-phone/env  (AW_TOKEN=..., optional AW_LABEL / AW_INGEST)
+# Config: $HOME/.aw-phone/env  (AW_TOKEN=..., AW_API_KEY=..., optional AW_LABEL / AW_INGEST)
+# AW_API_KEY is aw-android's own local API key (Settings → Authentication);
+# recent aw-android requires it, which also keeps other apps out of its data.
 set -uo pipefail
 
 STATE="$HOME/.aw-phone"
@@ -29,6 +31,8 @@ INGEST="${AW_INGEST:-https://kirtanjain.com/learning/api/activity/ingest}"
 LABEL="${AW_LABEL:-his-phone}"
 TOKEN="${AW_TOKEN:?AW_TOKEN missing from $STATE/env}"
 CHUNK=25 # must stay <= the server's MAX_EVENTS
+AWH=(); [[ -n "${AW_API_KEY:-}" ]] && AWH=(-H "Authorization: Bearer $AW_API_KEY")
+aw() { curl -fsS "${AWH[@]}" "$@"; } # talk to aw-android
 LOG="$STATE/upload.log"
 
 mkdir -p "$STATE"
@@ -54,7 +58,7 @@ tracker() { # $1 kind, $2 detail → a one-element tracker array
 
 # ── Is aw-android up?
 DOWN_FLAG="$STATE/down"
-if ! buckets="$(curl -fsS --max-time 15 "$SERVER/api/0/buckets/")"; then
+if ! buckets="$(aw --max-time 15 "$SERVER/api/0/buckets/")"; then
   echo "aw-android unreachable"
   if [[ ! -f "$DOWN_FLAG" ]]; then
     body=$(jq -cn --arg l "$LABEL" --arg id "$DEVICE_ID" --argjson t "$(tracker stopped 'aw-android not reachable on the phone')" \
@@ -81,7 +85,7 @@ while IFS=$'\t' read -r id type; do
   esac
   since="$(jq -r --arg id "$id" '.[$id] // empty' "$CUR")"
   if [[ -n "$since" ]]; then q="?start=$(jq -rn --arg s "$since" '$s|@uri')&limit=-1"; else q='?limit=2000'; fi
-  rows="$(curl -fsS --max-time 60 "$SERVER/api/0/buckets/$(jq -rn --arg s "$id" '$s|@uri')/events$q")" || { echo "read $id failed"; exit 1; }
+  rows="$(aw --max-time 60 "$SERVER/api/0/buckets/$(jq -rn --arg s "$id" '$s|@uri')/events$q")" || { echo "read $id failed"; exit 1; }
   # Inclusive from the cursor: the still-open tail is re-sent and upserted server-side.
   jq -c --arg k "$kind" '.[] | {bucket:$k, timestamp, duration, data}' <<<"$rows" >>"$events_file"
   maxts="$(jq -r 'map(.timestamp) | max // empty' <<<"$rows")"

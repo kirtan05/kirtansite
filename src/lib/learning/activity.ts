@@ -8,7 +8,7 @@
  * blocks. See docs/superpowers/specs/2026-10-14-learning-activity-monitor-design.md.
  */
 
-export type Bucket = 'window' | 'afk' | 'web';
+export type Bucket = 'window' | 'afk' | 'web' | 'media';
 export type Category = 'games' | 'video' | 'social' | 'study' | 'browsing' | 'other';
 
 /** A raw ActivityWatch event as the uploader sends it. Everything is a claim. */
@@ -70,13 +70,18 @@ const HOST_RULES: Array<[Category, string[]]> = [
 ];
 
 const APP_RULES: Array<[Category, string[]]> = [
-  ['games', ['roblox', 'minecraft', 'steam', 'epicgames', 'fortnite', 'valorant', 'leagueoflegends']],
-  ['video', ['vlc', 'netflix', 'youtube', 'mpc-hc', 'potplayer']],
-  ['social', ['discord', 'whatsapp', 'telegram', 'instagram', 'snapchat']],
-  ['study', ['code', 'scratch', 'word', 'excel', 'powerpoint', 'acrobat', 'typing']],
+  // Phone apps (aw-android reports the app's label, e.g. "Free Fire MAX") sit
+  // alongside the Windows executables.
+  ['games', ['roblox', 'minecraft', 'steam', 'epicgames', 'fortnite', 'valorant', 'leagueoflegends',
+    'free fire', 'bgmi', 'battlegrounds', 'pubg', 'call of duty', 'clash of', 'clash royale', 'brawl stars',
+    'subway surf', 'candy crush', 'ludo', 'among us', 'stumble guys', 'genshin', 'asphalt', 'pokémon go', 'pokemon go']],
+  ['video', ['vlc', 'netflix', 'youtube', 'mpc-hc', 'potplayer', 'mx player', 'jiocinema', 'hotstar', 'prime video', 'zee5', 'sonyliv']],
+  ['social', ['discord', 'whatsapp', 'telegram', 'instagram', 'snapchat', 'facebook', 'threads', 'sharechat', 'moj', 'josh']],
+  ['study', ['code', 'scratch', 'word', 'excel', 'powerpoint', 'acrobat', 'typing',
+    'khan academy', 'duolingo', 'byju', 'photomath', 'classroom', 'google docs', 'desmos', 'geogebra']],
 ];
 
-const BROWSERS = ['chrome', 'firefox', 'msedge', 'edge', 'brave', 'opera'];
+const BROWSERS = ['chrome', 'firefox', 'msedge', 'edge', 'brave', 'opera', 'samsung internet', 'duckduckgo'];
 
 // Keywords matched against a browser window TITLE when there is no URL — the
 // case for Edge on a non-domain machine, where the web extension can't be
@@ -122,7 +127,7 @@ function str(v: unknown): string | null {
 export function validateEvent(raw: RawEvent, now: Date = new Date()): CleanEvent | null {
   if (!raw || typeof raw !== 'object') return null;
   const bucket = raw.bucket;
-  if (bucket !== 'window' && bucket !== 'afk' && bucket !== 'web') return null;
+  if (bucket !== 'window' && bucket !== 'afk' && bucket !== 'web' && bucket !== 'media') return null;
 
   const ts = typeof raw.timestamp === 'string' ? new Date(raw.timestamp) : null;
   if (!ts || Number.isNaN(ts.getTime())) return null;
@@ -138,18 +143,20 @@ export function validateEvent(raw: RawEvent, now: Date = new Date()): CleanEvent
   if (dur < 0 || dur > 86_400) return null;
 
   const data = (raw.data ?? {}) as Record<string, unknown>;
-  const url = str(data.url);
+  const url = bucket === 'media' ? null : str(data.url);
   const cap = (v: string | null, n: number) => (v ? v.slice(0, n) : v);
+  // Media (phone): "title · artist", so a YouTube video carries its channel.
+  const mediaTitle = [str(data.title), str(data.artist)].filter(Boolean).join(' · ') || null;
 
   return {
     bucket,
     started_at: ts.toISOString(),
     duration_s: dur,
     app: cap(str(data.app), 200),
-    title: cap(str(data.title), 500),
+    title: cap(bucket === 'media' ? mediaTitle : str(data.title), 500),
     url: cap(url, 2000),
     host: hostOf(url),
-    status: bucket === 'afk' ? str(data.status) : null,
+    status: bucket === 'afk' ? str(data.status) : bucket === 'media' ? cap(str(data.state), 20) : null,
     day: istDay(ts),
   };
 }
@@ -317,4 +324,43 @@ export function dur(seconds: number): string {
   if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
   return `${h}h ${String(m % 60).padStart(2, '0')}m`;
+}
+
+// ────────────────────────────────────────────────── devices
+
+/**
+ * Is this device his phone? The phone uploader registers with a label
+ * containing "phone" (default "his-phone"); every other device is treated as
+ * the laptop. Laptop and phone are summarised separately — their time must
+ * not be added together or cut by each other's AFK periods.
+ */
+export function isPhoneLabel(label: string | null | undefined): boolean {
+  return /phone/i.test(label ?? '');
+}
+
+/** Split a day's events (each tagged with its device label) into laptop and phone. */
+export function splitByDevice<T extends { label?: string | null }>(rows: T[]): { laptop: T[]; phone: T[] } {
+  const laptop: T[] = [];
+  const phone: T[] = [];
+  for (const r of rows) (isPhoneLabel(r.label) ? phone : laptop).push(r);
+  return { laptop, phone };
+}
+
+/**
+ * What was playing (phone media watcher): seconds per "title · artist",
+ * counting only the 'playing' segments. On the phone this is the list of
+ * YouTube videos, the way window titles are on the laptop.
+ */
+export function mediaTotals(events: CleanEvent[]): Array<{ name: string; app: string | null; seconds: number }> {
+  const m = new Map<string, { app: string | null; seconds: number }>();
+  for (const e of events) {
+    if (e.bucket !== 'media' || e.status !== 'playing' || !e.title) continue;
+    const cur = m.get(e.title) ?? { app: e.app, seconds: 0 };
+    cur.seconds += e.duration_s;
+    m.set(e.title, cur);
+  }
+  return [...m.entries()]
+    .map(([name, v]) => ({ name, app: v.app, seconds: v.seconds }))
+    .filter((r) => r.seconds > 5)
+    .sort((a, b) => b.seconds - a.seconds);
 }

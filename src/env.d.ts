@@ -25,6 +25,7 @@ interface Env {
   ACTIVITY_DB?: D1Database;
   /** Per-device bearer token the laptop uploader presents to the ingest route. */
   ACTIVITY_INGEST_TOKEN?: string;
+  ACTIVITY_INGEST_TOKEN_PHONE?: string; // his phone's own ingest token (optional)
   /** Read-only bearer token for the nightly summary endpoint. Writers can't read, readers can't write. */
   ACTIVITY_READ_TOKEN?: string;
 

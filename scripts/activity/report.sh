@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# report.sh — nightly laptop summary to WhatsApp, run by activity-report.timer
+# report.sh — nightly laptop + phone summary to WhatsApp, run by activity-report.timer
 # at 23:30 IST on Kirtan's Arch box.
 #
 # Pulls aggregates only (no raw URLs/titles) from the summary endpoint and
@@ -48,12 +48,9 @@ human_date="$(TZ=Asia/Kolkata date -d "$DATE" '+%a %-d %b')"
 
 hm12() { TZ=Asia/Kolkata date -d "$1" '+%-I:%M %p' 2>/dev/null | sed 's/AM/am/;s/PM/pm/'; }
 
+# ── Laptop
 if [[ "$samples" == "0" ]]; then
-  body="📱 Laptop report — $human_date
-
-The laptop wasn't used today (it was off, or not signed in).
-
-See everything: $SITE/learning/coach/activity/$DATE"
+  laptop="💻 Laptop: not used (it was off, or not signed in)."
 else
   window=""
   [[ -n "$first" ]] && window=" ($(hm12 "$first")–$(hm12 "$last"))"
@@ -66,31 +63,78 @@ else
   # Websites visited, plain host names.
   sites=$(jq -r '[.topHosts[]? | select(.seconds>=60) | .key] | join(", ")' <<<"$json")
 
-  late_line=""
-  (( ${late%.*} >= 60 )) && late_line="
-⚠️ Late night (10pm–6am): $(hms "$late")"
-  tracker_line=""
-  [[ "$stops" != "0" ]] && tracker_line="
-⚠️ Tracker was switched off $stops time(s) today."
-
-  body="📱 Laptop report — $human_date
-
-On the laptop: $(hms "$active")$window"
-  [[ -n "$yt" ]] && body="$body
+  laptop="💻 Laptop: $(hms "$active")$window"
+  [[ -n "$yt" ]] && laptop="$laptop
 
 ▶️ Watched on YouTube:
 $yt"
-  [[ -n "$links" ]] && body="$body
+  [[ -n "$links" ]] && laptop="$laptop
 
 Links:
 $links"
-  [[ -n "$sites" ]] && body="$body
+  [[ -n "$sites" ]] && laptop="$laptop
 
 🌐 Websites: $sites"
-  body="$body$late_line$tracker_line
+  (( ${late%.*} >= 60 )) && laptop="$laptop
+⚠️ Late night (10pm–6am): $(hms "$late")"
+  [[ "$stops" != "0" ]] && laptop="$laptop
+⚠️ Tracker was switched off $stops time(s) today."
+fi
+
+# ── Phone (only once a phone has ever checked in)
+phone=""
+if [[ "$(jq -r '.phone != null' <<<"$json")" == "true" ]]; then
+  p_samples=$(jq -r '.phone.sampleCount // 0' <<<"$json")
+  p_seen=$(jq -r '.phone.lastSeen // empty' <<<"$json")
+  p_stops=$(jq -r '.phone.stops | length' <<<"$json")
+  seen_line=""
+  if [[ -n "$p_seen" ]]; then
+    seen_age=$(( $(date +%s) - $(date -d "$p_seen" +%s) ))
+    # The uploader checks in every 15 min; over 2 h silent means it is not running.
+    (( seen_age > 7200 )) && seen_line="
+⚠️ Phone tracker last checked in $(TZ=Asia/Kolkata date -d "$p_seen" '+%a %-I:%M %p' | sed 's/AM/am/;s/PM/pm/')."
+  fi
+  if [[ "$p_samples" == "0" ]]; then
+    phone="📱 Phone: no data today.$seen_line"
+  else
+    p_active=$(jq -r '.phone.activeSeconds // 0' <<<"$json")
+    p_late=$(jq -r '.phone.lateNightSeconds // 0' <<<"$json")
+    p_first=$(jq -r '.phone.firstAt // empty' <<<"$json")
+    p_last=$(jq -r '.phone.lastAt // empty' <<<"$json")
+    p_window=""; [[ -n "$p_first" ]] && p_window=" ($(hm12 "$p_first")–$(hm12 "$p_last"))"
+    p_apps=$(jq -r '.phone.topApps[]? | select(.seconds>=60) | "\(.key)\t\(.seconds)"' <<<"$json" \
+      | while IFS=$'\t' read -r k v; do printf '%s %s, ' "$k" "$(hms "$v")"; done | sed 's/, $//')
+    p_media=$(jq -r '(.phone.media // [])[:5][] | "\(.name)\t\(.seconds)"' <<<"$json" \
+      | while IFS=$'\t' read -r n v; do printf '• %s — %s\n' "$n" "$(hms "$v")"; done)
+    p_sites=$(jq -r '[.phone.topHosts[]? | select(.seconds>=60) | .key] | join(", ")' <<<"$json")
+
+    phone="📱 Phone: $(hms "$p_active")$p_window"
+    [[ -n "$p_apps" ]] && phone="$phone
+Apps: $p_apps"
+    [[ -n "$p_media" ]] && phone="$phone
+
+▶️ Played on the phone:
+$p_media"
+    [[ -n "$p_sites" ]] && phone="$phone
+
+🌐 Websites (phone): $p_sites"
+    (( ${p_late%.*} >= 60 )) && phone="$phone
+⚠️ Late night (10pm–6am): $(hms "$p_late")"
+    phone="$phone$seen_line"
+  fi
+  [[ "$p_stops" != "0" ]] && phone="$phone
+⚠️ ActivityWatch on the phone was off/unreachable $p_stops time(s)."
+fi
+
+body="📊 Daily report — $human_date
+
+$laptop"
+[[ -n "$phone" ]] && body="$body
+
+$phone"
+body="$body
 
 See everything: $SITE/learning/coach/activity/$DATE"
-fi
 
 if [[ -z "${WA_GROUP:-}" ]]; then
   echo "[report] WA_GROUP unset — not sending. Message would have been:"

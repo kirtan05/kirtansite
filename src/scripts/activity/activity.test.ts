@@ -11,12 +11,15 @@ import {
   mergeIntervals,
   subtractIntervals,
   dur,
+  isPhoneLabel,
+  splitByDevice,
+  mediaTotals,
   type CleanEvent,
   type Interval,
 } from '../../lib/learning/activity.ts';
 
 // Helper to build a window/afk/web CleanEvent tersely.
-function ev(bucket: 'window' | 'afk' | 'web', startedAt: string, dur_s: number, extra: Partial<CleanEvent> = {}): CleanEvent {
+function ev(bucket: 'window' | 'afk' | 'web' | 'media', startedAt: string, dur_s: number, extra: Partial<CleanEvent> = {}): CleanEvent {
   return {
     bucket,
     started_at: startedAt,
@@ -179,4 +182,59 @@ test('dur formats sensibly', () => {
   assert.equal(dur(30), '30s');
   assert.equal(dur(90), '2m');
   assert.equal(dur(3900), '1h 05m');
+});
+
+// ────────────────────────────────────────────────── phone
+
+test('phone labels are recognised; the laptop default is not', () => {
+  assert.equal(isPhoneLabel('his-phone'), true);
+  assert.equal(isPhoneLabel('Phone'), true);
+  assert.equal(isPhoneLabel('his-laptop'), false);
+  assert.equal(isPhoneLabel(null), false);
+});
+
+test('splitByDevice keeps laptop and phone apart', () => {
+  const rows = [{ label: 'his-laptop', n: 1 }, { label: 'his-phone', n: 2 }, { label: null, n: 3 }];
+  const { laptop, phone } = splitByDevice(rows);
+  assert.deepEqual(laptop.map((r) => r.n), [1, 3]);
+  assert.deepEqual(phone.map((r) => r.n), [2]);
+});
+
+test('validateEvent accepts aw-android media and joins title with artist', () => {
+  const now = new Date('2026-11-12T12:00:00Z');
+  const c = validateEvent(
+    {
+      bucket: 'media',
+      timestamp: '2026-11-12T10:00:00Z',
+      duration: 300,
+      data: { app: 'YouTube', title: 'Minecraft but…', artist: 'Some Channel', state: 'playing', url: 'x' },
+    },
+    now,
+  );
+  assert.ok(c);
+  assert.equal(c!.bucket, 'media');
+  assert.equal(c!.title, 'Minecraft but… · Some Channel');
+  assert.equal(c!.status, 'playing');
+  assert.equal(c!.url, null); // media never carries a url
+});
+
+test('aw-android app labels categorise sensibly', () => {
+  assert.equal(categorize({ app: 'Free Fire MAX' }), 'games');
+  assert.equal(categorize({ app: 'YouTube' }), 'video');
+  assert.equal(categorize({ app: 'Instagram' }), 'social');
+  assert.equal(categorize({ app: 'Chrome' }), 'browsing');
+  assert.equal(categorize({ app: 'Khan Academy' }), 'study');
+});
+
+test('phone day: media does not add to screen time; mediaTotals counts only playing', () => {
+  const evs = [
+    ev('window', '2026-11-12T10:00:00Z', 600, { app: 'YouTube' }),
+    ev('media', '2026-11-12T10:00:00Z', 400, { app: 'YouTube', title: 'Video A · Ch', status: 'playing' }),
+    ev('media', '2026-11-12T10:06:40Z', 200, { app: 'YouTube', title: 'Video A · Ch', status: 'paused' }),
+    ev('media', '2026-11-12T10:20:00Z', 3, { app: 'YouTube', title: 'Blip', status: 'playing' }),
+  ];
+  const s = summariseDay(evs);
+  assert.equal(s.activeSeconds, 600); // no AFK bucket on the phone: window time is screen time
+  assert.deepEqual(s.byCategory, [{ key: 'video', seconds: 600 }]);
+  assert.deepEqual(mediaTotals(evs), [{ name: 'Video A · Ch', app: 'YouTube', seconds: 400 }]);
 });

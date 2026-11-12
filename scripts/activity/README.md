@@ -64,6 +64,38 @@ group it prints the report but never sends. When the group is decided, pass it
 bash scripts/activity/setup-report.sh '<READ_TOKEN>' 'Exact Group Name'
 ```
 
+## 4. His Android phone — from this box, over USB
+
+The phone runs **ActivityWatch for Android** (aw-android, kept alive by its own
+visible notification) and a small **Termux** job that uploads every 15 min to
+the same ingest route, as device `his-phone`. What it records: app time
+(screen on), Chrome URLs (accessibility service), and what was *playing*
+(media watcher: YouTube video title + channel). Laptop and phone are summarised
+separately on the coach page and in the nightly report.
+
+One-time site side (the phone has its own token, revocable on its own):
+
+```bash
+npx wrangler d1 execute activity --remote --file migrations-activity/0002_phone_media.sql -y
+openssl rand -hex 32   # the PHONE token; keep it for the next two steps
+npx wrangler pages secret put ACTIVITY_INGEST_TOKEN_PHONE   # paste it
+```
+
+Deploy, then on the phone: Developer options → USB debugging on, plug in,
+accept the prompt, and run:
+
+```bash
+bash scripts/activity/setup-phone.sh '<PHONE_TOKEN>'
+```
+
+It installs aw-android + Termux + Termux:API (GitHub releases), grants usage
+access / accessibility / notification access, exempts them from battery
+optimisation, and types the Termux install command (`phone-install.sh`). If
+aw-android is force-stopped or removed the uploader reports it once as a
+`stopped` event; if Termux itself stops, the report says when the phone last
+checked in. Pair with **Google Family Link** on his account for the controls
+(app-install approval, uninstall protection) this deliberately does not do.
+
 ## Maintenance
 
 - Re-run `chrome-policy.ps1`'s `chrome://policy` check after major Chrome updates.

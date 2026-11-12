@@ -12,7 +12,7 @@ export const prerender = false;
 import LearningLayout from '../../../../layouts/LearningLayout.astro';
 import { requireRole } from '../../../../lib/learning/guard';
 import { addDays, human, today } from '../../../../lib/learning/dates';
-import { summariseDay, dur, istDay, type CleanEvent } from '../../../../lib/learning/activity';
+import { isPhoneLabel, mediaTotals, splitByDevice, summariseDay, dur, istDay, type CleanEvent } from '../../../../lib/learning/activity';
 
 const gate = await requireRole(Astro, 'coach');
 if (!gate.ok) return gate.response;
@@ -28,32 +28,60 @@ let deviceLabel: string | null = null;
 let lastSeen: string | null = null;
 let events: CleanEvent[] = [];
 let trackerRows: Array<{ kind: string; at: string; detail: string | null }> = [];
+// His phone, kept apart from the laptop: its time is never added to the
+// laptop's, nor cut by the laptop's AFK periods.
+let phoneEvents: CleanEvent[] = [];
+let phoneTracker: Array<{ kind: string; at: string; detail: string | null }> = [];
+let phoneLabel: string | null = null;
+let phoneLastSeen: string | null = null;
 
 if (db) {
   // Aggregate across all devices for the day (see ingest route's blast-radius note).
-  const device = await db
-    .prepare('SELECT label, MAX(last_seen) AS last_seen FROM activity_device')
-    .first<{ label: string | null; last_seen: string | null }>();
-  deviceLabel = device?.label ?? null;
-  lastSeen = device?.last_seen ?? null;
+  const devs = ((await db.prepare('SELECT label, last_seen FROM activity_device').all<{
+    label: string | null;
+    last_seen: string | null;
+  }>()).results ?? []) as Array<{ label: string | null; last_seen: string | null }>;
+  for (const d of devs) {
+    if (isPhoneLabel(d.label)) {
+      if (d.last_seen && (!phoneLastSeen || d.last_seen > phoneLastSeen)) [phoneLabel, phoneLastSeen] = [d.label, d.last_seen];
+      else phoneLabel ??= d.label;
+    } else if (d.last_seen && (!lastSeen || d.last_seen > lastSeen)) [deviceLabel, lastSeen] = [d.label, d.last_seen];
+    else deviceLabel ??= d.label;
+  }
 
   const evRes = await db
     .prepare(
-      `SELECT bucket, started_at, duration_s, app, title, url, host, status, day
-         FROM activity_event WHERE day = ? ORDER BY started_at`,
+      `SELECT e.bucket, e.started_at, e.duration_s, e.app, e.title, e.url, e.host, e.status, e.day, d.label
+         FROM activity_event e JOIN activity_device d ON d.id = e.device_id
+        WHERE e.day = ? ORDER BY e.started_at`,
     )
     .bind(date)
-    .all<CleanEvent>();
-  events = (evRes.results ?? []) as CleanEvent[];
+    .all<CleanEvent & { label: string | null }>();
+  const ev = splitByDevice((evRes.results ?? []) as Array<CleanEvent & { label: string | null }>);
+  events = ev.laptop;
+  phoneEvents = ev.phone;
 
   const trk = await db
-    .prepare(`SELECT kind, at, detail FROM activity_tracker_event WHERE day = ? ORDER BY at`)
+    .prepare(
+      `SELECT t.kind, t.at, t.detail, d.label FROM activity_tracker_event t JOIN activity_device d ON d.id = t.device_id
+        WHERE t.day = ? ORDER BY t.at`,
+    )
     .bind(date)
-    .all<{ kind: string; at: string; detail: string | null }>();
-  trackerRows = trk.results ?? [];
+    .all<{ kind: string; at: string; detail: string | null; label: string | null }>();
+  const tr = splitByDevice(trk.results ?? []);
+  trackerRows = tr.laptop;
+  phoneTracker = tr.phone;
 }
 
 const s = summariseDay(events);
+const ps = summariseDay(phoneEvents);
+const phoneStops = phoneTracker.filter((t) => t.kind === 'stopped');
+const phoneMedia = mediaTotals(phoneEvents).slice(0, 20);
+const phonePanels: Array<{ title: string; rows: Array<{ key: string; seconds: number }>; empty?: string }> = [
+  { title: 'Phone · by category', rows: ps.byCategory },
+  { title: 'Phone · top apps', rows: ps.byApp.slice(0, 12) },
+  { title: 'Phone · sites (Chrome)', rows: ps.byHost.slice(0, 12), empty: 'No browser URLs recorded.' },
+];
 const istTime = (iso: string) =>
   new Intl.DateTimeFormat('en-GB', {
     timeZone: 'Asia/Kolkata',
@@ -93,7 +121,7 @@ const byTitle = [...titleTotals.entries()]
 const youtube = byTitle.filter((r) => /youtube/i.test(r.key));
 ---
 
-<LearningLayout title="Laptop" role="coach" subtitle={human(date)} wide>
+<LearningLayout title="Laptop & phone" role="coach" subtitle={human(date)} wide>
   <nav class="mb-6 flex items-center justify-between text-sm">
     <a class="text-slate-500 hover:text-slate-800" href={`/learning/coach/activity/${addDays(date, -1)}`}>
       &larr; {human(addDays(date, -1))}
@@ -207,6 +235,92 @@ const youtube = byTitle.filter((r) => /youtube/i.test(r.key));
               ))}
             </ul>
           </section>
+        )}
+
+        {phoneLabel && (
+          <>
+            <h2 class="mt-10 mb-4 text-lg font-semibold">Phone</h2>
+            <section
+              class:list={[
+                'mb-6 rounded-2xl border p-5',
+                ps.sampleCount === 0
+                  ? 'border-slate-300 bg-slate-50 text-slate-600'
+                  : 'border-emerald-300 bg-emerald-50 text-emerald-900',
+              ]}
+            >
+              {ps.sampleCount === 0 ? (
+                <p>
+                  <strong>No phone data for this day.</strong> Uploader last checked in:{' '}
+                  {phoneLastSeen ? `${istTime(phoneLastSeen)} IST, ${human(istDay(phoneLastSeen))}` : 'never'}.
+                </p>
+              ) : (
+                <p>
+                  Screen time <strong>{dur(ps.activeSeconds)}</strong>
+                  {ps.firstAt && (
+                    <>
+                      {' '}&middot; {istTime(ps.firstAt)}–{ps.lastAt ? istTime(ps.lastAt) : ''}
+                    </>
+                  )}{' '}
+                  &middot; late (22:00–06:00): <strong>{dur(ps.lateNightSeconds)}</strong>
+                </p>
+              )}
+              {phoneStops.length > 0 && (
+                <p class="mt-2 text-sm">
+                  Phone tracker unreachable {phoneStops.length} time{phoneStops.length > 1 ? 's' : ''} (
+                  {phoneStops.map((t) => istTime(t.at)).join(', ')}).
+                </p>
+              )}
+            </section>
+
+            {ps.sampleCount > 0 && (
+              <div class="grid gap-6 md:grid-cols-3">
+                {phonePanels.map((p) => (
+                  <section class="rounded-2xl border border-slate-200 p-5">
+                    <h2 class="mb-3 text-sm font-semibold tracking-wide text-slate-500 uppercase">{p.title}</h2>
+                    {p.rows.length === 0 ? (
+                      <p class="text-sm text-slate-400">{p.empty ?? 'Nothing recorded.'}</p>
+                    ) : (
+                      <ul class="space-y-2">
+                        {p.rows.map((r) => (
+                          <li>
+                            <div class="flex justify-between text-sm">
+                              <span class="truncate pr-2">{r.key}</span>
+                              <span class="tabular-nums text-slate-500">{dur(r.seconds)}</span>
+                            </div>
+                            <div class="mt-1 h-1.5 rounded bg-slate-100">
+                              <div
+                                class="h-1.5 rounded bg-indigo-300"
+                                style={`width:${Math.round((r.seconds / maxOf(p.rows)) * 100)}%`}
+                              />
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </section>
+                ))}
+              </div>
+            )}
+
+            {phoneMedia.length > 0 && (
+              <section class="mt-6 rounded-2xl border border-rose-200 bg-rose-50/40 p-5">
+                <h2 class="mb-3 text-sm font-semibold tracking-wide text-rose-700 uppercase">
+                  Played on the phone (YouTube and other media)
+                </h2>
+                <ul class="space-y-1 text-sm">
+                  {phoneMedia.map((r) => (
+                    <li class="flex justify-between gap-3">
+                      <span class="truncate">
+                        {r.name}
+                        {r.app && <span class="text-slate-400"> · {r.app}</span>}
+                      </span>
+                      <span class="tabular-nums whitespace-nowrap text-slate-500">{dur(r.seconds)}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </>
     )

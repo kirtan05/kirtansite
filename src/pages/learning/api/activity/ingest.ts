@@ -14,6 +14,10 @@ export const prerender = false;
  * forged device cannot hide the real data; junk events would show as activity,
  * which is itself a visible signal. Rotate by setting a new secret.
  *
+ * The phone has its own token (ACTIVITY_INGEST_TOKEN_PHONE, optional) so either
+ * device can be revoked without re-keying the other. Both carry the same
+ * write-only blast radius described above.
+ *
  * Writes are idempotent: each event's primary key is deterministic
  * (device|bucket|start), so the uploader deliberately re-sends the still-open
  * tail event each run — whose duration AW grows in place — and the upsert
@@ -51,11 +55,15 @@ export const POST: APIRoute = async (ctx) => {
   const env = (ctx.locals as App.Locals)?.runtime?.env ?? ({} as Env);
   const db = env.ACTIVITY_DB;
   const token = env.ACTIVITY_INGEST_TOKEN;
+  const phoneToken = env.ACTIVITY_INGEST_TOKEN_PHONE;
   if (!db || !token) return new Response('activity monitor not configured here', { status: 503 });
 
   const auth = ctx.request.headers.get('authorization') ?? '';
   const presented = auth.startsWith('Bearer ') ? auth.slice(7) : '';
-  if (!presented || !sameString(presented, token)) return new Response('no', { status: 401 });
+  // Compare against both (no short-circuit), so timing does not reveal which matched.
+  const okLaptop = !!presented && sameString(presented, token);
+  const okPhone = !!presented && !!phoneToken && sameString(presented, phoneToken);
+  if (!(okLaptop || okPhone)) return new Response('no', { status: 401 });
 
   let body: any;
   try {

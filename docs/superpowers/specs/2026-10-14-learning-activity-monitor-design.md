@@ -194,3 +194,23 @@ differs from the sketch above in these ways:
    do you want Cloudflare Access on the `activity` routes from the start?
 2. Retention at 90 days of raw events — longer, shorter, or fine?
 3. Report wording and the after-22:00 cutoff — adjust later when the group is set.
+
+## Addendum — his Android phone (2026-11-12/13)
+
+Same shape, second device. **ActivityWatch for Android** (aw-android ≥ 0.14,
+visible foreground notification) records app time (usage access), Chrome URLs
+(accessibility service) and what was playing (notification access → YouTube
+title + channel). A **Termux** job every 15 min (termux-job-scheduler,
+persisted) uploads to the same ingest route as device `his-phone`, with its own
+token `ACTIVITY_INGEST_TOKEN_PHONE` so either device can be revoked alone.
+
+- Migration `0002_phone_media.sql` adds a `media` bucket.
+- Laptop and phone are **summarised separately** by device label (`/phone/i`),
+  never summed and never cut by each other's AFK; the phone has no AFK bucket —
+  its window events are already screen-on foreground time.
+- The uploader reports aw-android going unreachable as one `stopped` event (and
+  `started` on return); a dead uploader shows as a stale `last_seen`, which the
+  nightly report flags after 2 h.
+- Controls (install approval, uninstall friction) are left to **Google Family
+  Link**; this, like the laptop side, observes and reports, never blocks.
+- Runbook: `scripts/activity/README.md` §4.

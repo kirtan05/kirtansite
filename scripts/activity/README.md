@@ -96,6 +96,30 @@ aw-android is force-stopped or removed the uploader reports it once as a
 checked in. Pair with **Google Family Link** on his account for the controls
 (app-install approval, uninstall protection) this deliberately does not do.
 
+### Installed 13 Nov 2026 — his Redmi Note 10 Pro (MIUI 13, Android 12)
+
+What the script could not do, and was done by hand:
+
+- **MIUI developer options**: turn on *Install via USB* and *USB debugging
+  (Security settings)* before running the script (needs a Mi account), and tap
+  *Install* on each of the three on-phone prompts.
+- **aw-android API key**: recent aw-android puts an API key on its local server
+  (401 without it). Read it from the app's side drawer → *API Authentication*
+  and add `AW_API_KEY=...` to `~/.aw-phone/env` in Termux. Keep auth on — it
+  keeps other apps out of his data.
+- **MIUI background autostart** on for ActivityWatch, Termux, Termux:API
+  (Security → Manage apps → Autostart), and **App info → Battery saver → No
+  restrictions** for all three. Without these MIUI kills them.
+- If more than one adb device is attached, set `ANDROID_SERIAL` to his phone.
+
+Checks, from this box with the phone plugged in: `adb shell dumpsys
+jobscheduler | grep 5600` (job registered), `adb shell dumpsys accessibility |
+grep -i activitywatch` (URL watcher bound). From anywhere: the `his-phone`
+device's `last_seen` should never be more than ~15 min old while the phone is
+on. If he quits ActivityWatch, app time is backfilled from Android's usage
+history when it restarts; URLs and media titles for the gap are lost; the
+uploader records the gap as `stopped`/`started`.
+
 ## Maintenance
 
 - Re-run `chrome-policy.ps1`'s `chrome://policy` check after major Chrome updates.

@@ -130,6 +130,14 @@ function isDone(item: Item): boolean {
   return item.status === 'done' || (item.type === 'book' && finishedTitles.has(normalise(titleOf(item))));
 }
 
+/** What happened to the sign-in, shown beside the box rather than at the foot of the page. */
+function signinStatus(message: string, ok: boolean) {
+  const line = document.getElementById('signin-status')!;
+  line.textContent = message;
+  line.style.color = ok ? 'var(--color-accent)' : '#f87171';
+  line.hidden = false;
+}
+
 function note(message: string) {
   document.getElementById('library-note')!.textContent = message;
 }
@@ -547,6 +555,7 @@ function render() {
   }
 
   document.getElementById('signin-toggle')!.hidden = signedIn;
+  if (signedIn) signinStatus('Signed in ✓  Open any group: every item has Seen and Not for me buttons.', true);
   if (signedIn) document.getElementById('signin-form')!.hidden = true;
 }
 
@@ -619,6 +628,7 @@ async function load() {
   });
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    signinStatus('Checking…', true);
     const response = await fetch(`${ENDPOINT}/login`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -637,7 +647,8 @@ async function load() {
         })
         .catch(() => {});
     } else {
-      note(response ? 'That password was not right.' : 'Could not reach the server.');
+      signinStatus(response ? 'Wrong password ✗  Try again.' : 'Could not reach the server ✗  Try again.', false);
+      password.focus();
     }
   });
 

@@ -43,6 +43,17 @@ const TAB_NOTE: Record<string, string> = {
   place: 'Map links are a Google Maps search for the name, so check the pin before setting out.',
 };
 
+/**
+ * What the "Show" menu offers, one choice for every tab. "Not for me" is what was
+ * dismissed, which the library hands over only when signed in.
+ */
+const SHOW_LABELS: Record<string, string> = {
+  both: 'Want and done',
+  want: 'Want only',
+  done: 'Done only',
+  nope: 'Not for me',
+};
+
 /** Rows shown at a time in a flat list, and how many more "Show more" adds. */
 const PAGE_SIZE = 60;
 /** A search with this many matches or fewer opens every group. */
@@ -57,6 +68,7 @@ let items: Item[] = [];
 let loaded = false;
 let signedIn = false;
 let active = 'book';
+let show = 'both';
 /** What is typed in the search box, once typing has paused. One for the whole page. */
 let query = '';
 let searchTimer: number | undefined;
@@ -110,8 +122,11 @@ function strings(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((line): line is string => str(line) !== '') : [];
 }
 
+const isDismissed = (item: Item): boolean => item.status === 'dismissed';
+
 /** A book spine has finished counts as done here even if nobody ticked it. */
 function isDone(item: Item): boolean {
+  if (isDismissed(item)) return false;
   return item.status === 'done' || (item.type === 'book' && finishedTitles.has(normalise(titleOf(item))));
 }
 
@@ -136,9 +151,7 @@ async function patch(item: Item, body: Record<string, unknown>, button?: HTMLBut
       throw new Error(`HTTP ${response.status}`);
     } else {
       const updated: Item = (await response.json()).item;
-      items = updated.status === 'dismissed'
-        ? items.filter((other) => other.id !== item.id)
-        : items.map((other) => (other.id === item.id ? updated : other));
+      items = items.map((other) => (other.id === item.id ? updated : other));
       note('');
     }
   } catch {
@@ -199,13 +212,6 @@ function fillDetail(detail: HTMLElement, item: Item) {
 
   if (signedIn) {
     const bar = el('div', 'mt-3 flex flex-wrap items-center gap-2 font-mono text-xs text-text-secondary');
-    if (item.status === 'done') {
-      bar.appendChild(action('Back to want', (b) => patch(item, { status: 'want' }, b)));
-    } else {
-      bar.appendChild(action(DONE_VERB[item.type] ?? 'Done', (b) => patch(item, { status: 'done' }, b)));
-    }
-    bar.appendChild(action('Dismiss', (b) => patch(item, { status: 'dismissed' }, b)));
-
     const select = el('select', 'library-select') as HTMLSelectElement;
     select.setAttribute('aria-label', `Kind for ${item.title}`);
     for (const type of TYPES) {
@@ -220,6 +226,21 @@ function fillDetail(detail: HTMLElement, item: Item) {
     if (item.needs_review) bar.appendChild(action('Looks right', (b) => patch(item, { needs_review: false }, b)));
     detail.appendChild(bar);
   }
+}
+
+/** The marks, on the row itself so one click files it without opening anything. */
+function statusBar(item: Item): HTMLElement {
+  const bar = el('div', 'mt-2 flex flex-wrap items-center gap-2 font-mono text-xs text-text-secondary');
+  if (item.status === 'done' || isDismissed(item)) {
+    bar.appendChild(action('Back to want', (b) => patch(item, { status: 'want' }, b)));
+  }
+  if (item.status !== 'done' && !isDismissed(item)) {
+    bar.appendChild(action(DONE_VERB[item.type] ?? 'Done', (b) => patch(item, { status: 'done' }, b)));
+  }
+  if (!isDismissed(item)) {
+    bar.appendChild(action('Not for me', (b) => patch(item, { status: 'dismissed' }, b)));
+  }
+  return bar;
 }
 
 function row(item: Item): HTMLElement {
@@ -280,6 +301,8 @@ function row(item: Item): HTMLElement {
     if (str(body.why)) line.appendChild(document.createTextNode(str(body.why)));
     main.appendChild(line);
   }
+
+  if (signedIn) main.appendChild(statusBar(item));
 
   const detail = el('div', 'library-detail');
   detail.id = `library-detail-${(rowSerial += 1)}`;
@@ -431,10 +454,22 @@ function fillControls(all: Item[]) {
   group.value = choice.group;
   document.getElementById('filter-group-wrap')!.hidden = groupBy.length < 2;
 
-  const menus = [...document.querySelectorAll<HTMLSelectElement>('[data-facet]')];
-  for (const select of menus) fillNarrow(select, select.dataset.facet!, all);
-  document.getElementById('library-menus')!.hidden =
-    groupBy.length < 2 && menus.every((select) => select.hidden);
+  for (const select of document.querySelectorAll<HTMLSelectElement>('[data-facet]')) {
+    fillNarrow(select, select.dataset.facet!, all);
+  }
+
+  // Signing out takes "Not for me" away, and with it the choice.
+  if (show === 'nope' && !signedIn) show = 'both';
+  const showMenu = document.getElementById('filter-show') as HTMLSelectElement;
+  showMenu.textContent = '';
+  for (const [key, label] of Object.entries(SHOW_LABELS)) {
+    if (key === 'nope' && !signedIn) continue;
+    const option = el('option', '', label) as HTMLOptionElement;
+    option.value = key;
+    showMenu.appendChild(option);
+  }
+  showMenu.value = show;
+  document.getElementById('library-menus')!.hidden = false;
 }
 
 function render() {
@@ -452,7 +487,7 @@ function render() {
     const type = tab.dataset.type!;
     // While searching, a hit in another tab shows up here, finished or not.
     const count = items.filter((item) =>
-      item.type === type && (searching ? matchesSearch(item, query) : !isDone(item)),
+      item.type === type && !isDismissed(item) && (searching ? matchesSearch(item, query) : !isDone(item)),
     ).length;
     tab.querySelector('.library-count')!.textContent = count ? String(count) : '';
   }
@@ -466,16 +501,22 @@ function render() {
   tabNote.hidden = !TAB_NOTE[active];
 
   const passes = (item: Item) => matchesNarrow(item, narrow) && matchesSearch(item, query);
-  const wanted = (item: Item) => !isDone(item) && passes(item);
+  const wanted = (item: Item) => !isDone(item) && !isDismissed(item) && passes(item);
   const finished = (item: Item) => isDone(item) && passes(item);
-  const wantCount = all.filter(wanted).length;
-  const doneCount = all.filter(finished).length;
+  const notForMe = (item: Item) => isDismissed(item) && passes(item);
+  const showWant = show === 'both' || show === 'want';
+  const showDone = show === 'both' || show === 'done';
+  const showNope = show === 'nope';
+  const wantCount = showWant ? all.filter(wanted).length : 0;
+  const doneCount = showDone ? all.filter(finished).length : 0;
+  const nopeCount = showNope ? all.filter(notForMe).length : 0;
   // Few enough hits and every group is open, so nothing a search found stays hidden.
-  const autoOpen = searching && wantCount + doneCount <= OPEN_ALL_AT;
+  const autoOpen = searching && wantCount + doneCount + nopeCount <= OPEN_ALL_AT;
 
   document.getElementById('want-count')!.textContent = wantCount ? String(wantCount) : '';
   document.getElementById('done-count')!.textContent = doneCount ? String(doneCount) : '';
 
+  document.getElementById('want-section')!.hidden = !showWant;
   const want = document.getElementById('want')!;
   if (wantCount) {
     fillSection(want, groupItems(all, active, choice, wanted), 'want', choice, autoOpen);
@@ -485,9 +526,24 @@ function render() {
     want.appendChild(el('p', 'font-mono text-sm text-text-secondary', narrowing ? 'Nothing matches.' : 'Nothing waiting here.'));
   }
 
-  document.getElementById('done-section')!.hidden = doneCount === 0;
+  // Beside "Want" an empty "Done" is left out; asked for on its own it says so.
+  document.getElementById('done-section')!.hidden = !showDone || (show === 'both' && doneCount === 0);
+  const done = document.getElementById('done')!;
   if (doneCount) {
-    fillSection(document.getElementById('done')!, groupItems(all, active, choice, finished), 'done', choice, autoOpen);
+    fillSection(done, groupItems(all, active, choice, finished), 'done', choice, autoOpen);
+  } else {
+    done.textContent = '';
+    done.appendChild(el('p', 'font-mono text-sm text-text-secondary', 'Nothing here.'));
+  }
+
+  document.getElementById('nope-section')!.hidden = !showNope;
+  document.getElementById('nope-count')!.textContent = nopeCount ? String(nopeCount) : '';
+  const nope = document.getElementById('nope')!;
+  if (nopeCount) {
+    fillSection(nope, groupItems(all, active, choice, notForMe), 'nope', choice, autoOpen);
+  } else if (showNope) {
+    nope.textContent = '';
+    nope.appendChild(el('p', 'font-mono text-sm text-text-secondary', 'Nothing here.'));
   }
 
   document.getElementById('signin-toggle')!.hidden = signedIn;
@@ -543,6 +599,10 @@ async function load() {
     chosen[active].group = (event.target as HTMLSelectElement).value;
     render();
   });
+  document.getElementById('filter-show')!.addEventListener('change', (event) => {
+    show = (event.target as HTMLSelectElement).value;
+    render();
+  });
   for (const select of document.querySelectorAll<HTMLSelectElement>('[data-facet]')) {
     select.addEventListener('change', () => {
       chosen[active].narrow[select.dataset.facet!] = select.value;
@@ -569,6 +629,13 @@ async function load() {
       signedIn = true;
       note('');
       render();
+      // What was dismissed comes only with the cookie that was just set.
+      getJson(ENDPOINT)
+        .then((library) => {
+          items = library.items || [];
+          render();
+        })
+        .catch(() => {});
     } else {
       note(response ? 'That password was not right.' : 'Could not reach the server.');
     }

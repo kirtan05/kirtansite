@@ -173,6 +173,63 @@ d1 "SELECT t.title, ts.on_date FROM task_state ts
 d1 "UPDATE planned SET on_date='2026-10-10' WHERE session_id='sess:burago-y1:3'"
 ```
 
+## PC Quest (the Windows task app)
+
+Spec: the learning repo, `pcquest/docs/TASK-FORMAT.md`. Routes live under
+`/learning/api/pcquest/`, its database is `pcquest` (binding `PCQUEST_DB`),
+schema in `migrations-pcquest/`. Two bearer tokens: the **kid** token sits on
+his laptop and can only `GET sync` and `POST events`; the **coach** token sits
+in `~/.config/pcquest/coach.env` on your box and does everything else. A pack
+push also needs a signature from `~/.config/pcquest/pack-key.pem`, checked
+against `PCQUEST_PACK_PUBKEY` in `wrangler.jsonc`.
+
+**One-time setup:**
+
+```bash
+node scripts/learning-export.mjs ~/learning-backup-$(date +%F)   # first, as always
+
+npx wrangler d1 create pcquest          # paste the id into wrangler.jsonc (PCQUEST_DB)
+npx wrangler d1 execute pcquest --local  --file migrations-pcquest/0001_init.sql -y
+npx wrangler d1 execute pcquest --remote --file migrations-pcquest/0001_init.sql -y
+
+quest keygen                            # paste the printed key into wrangler.jsonc (PCQUEST_PACK_PUBKEY)
+
+openssl rand -base64 32 | tr -d '\n' | npx wrangler pages secret put PCQUEST_KID_TOKEN   --project-name kirtansite
+openssl rand -base64 32 | tr -d '\n' | npx wrangler pages secret put PCQUEST_COACH_TOKEN --project-name kirtansite
+```
+
+The third value, `PCQUEST_PACK_PUBKEY`, is public and lives in
+`wrangler.jsonc` as a var, not a secret. If you would rather keep it out of
+git, remove the var and set it as a third secret instead:
+
+```bash
+echo -n '<SPKI base64 from quest keygen>' | npx wrangler pages secret put PCQUEST_PACK_PUBKEY --project-name kirtansite
+```
+
+Keep a copy of each token: the kid token goes into the app's config on his
+laptop, the coach token into `~/.config/pcquest/coach.env`
+(`PCQUEST_SERVER=https://kirtanjain.com`, `PCQUEST_COACH_TOKEN=…`, mode 600).
+Rotating either is just putting a new secret.
+
+**Locally:** add `PCQUEST_KID_TOKEN`, `PCQUEST_COACH_TOKEN` (and, to test
+pushes with a throwaway key, `PCQUEST_PACK_PUBKEY`) to `.dev.vars`, then:
+
+```bash
+npx wrangler d1 execute pcquest --local --file migrations-pcquest/0001_init.sql -y
+npm run build && npx wrangler pages dev ./dist
+curl -H "Authorization: Bearer $KID" 'http://localhost:8788/learning/api/pcquest/sync?format=1'
+```
+
+**Useful queries:**
+
+```bash
+pq() { npx wrangler d1 execute pcquest --remote --command "$1"; }
+
+pq "SELECT label, app_version, last_seen FROM pq_device"
+pq "SELECT at, kind, task, step FROM pq_event ORDER BY received_at DESC LIMIT 30"
+pq "SELECT id, version, updated_at, retired FROM pq_pack"
+```
+
 ## Troubleshooting
 
 **Everything under /learning 404s.** The hostname does not match
@@ -197,6 +254,10 @@ in the record, so no code change is needed.
 
 **A sheet link 404s.** The PDF is not in R2 under `sheets/<slug>-STUDENT.pdf`,
 or you are signed in as the kid and asked for a `-COACH.pdf`.
+
+**PC Quest returns 503.** `PCQUEST_DB` is not bound, or the token secret for
+that route (kid or coach) is not set. A pack PUT also 503s without
+`PCQUEST_PACK_PUBKEY`; with the placeholder value it 400s ("bad signature").
 
 **Local D1 commands print a `FileHandle` error.** An old wrangler on Node 26.
 `npm i -D wrangler@latest`. The command usually succeeded anyway.

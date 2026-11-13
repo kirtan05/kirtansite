@@ -18,3 +18,9 @@ GREE_COOKIE_KEY = "another-long-random-string-for-local-use-only"
 # /learning activity monitor — two independent tokens (writer vs reader)
 ACTIVITY_INGEST_TOKEN = "local-ingest-token"
 ACTIVITY_READ_TOKEN = "local-read-token"
+
+# PC Quest — kid token (laptop: sync + events) and coach token (quest CLI).
+PCQUEST_KID_TOKEN = "local-kid-token"
+PCQUEST_COACH_TOKEN = "local-coach-token"
+# Overrides the wrangler.jsonc var; paste a throwaway key's SPKI base64 to test pushes.
+# PCQUEST_PACK_PUBKEY = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE..."

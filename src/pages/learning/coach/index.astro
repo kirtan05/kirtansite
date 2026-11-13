@@ -16,10 +16,12 @@ import { requireRole } from '../../../lib/learning/guard';
 import { weeklyBrief } from '../../../lib/learning/engine';
 import { breaks, coachVerifyQueue, unconfirmedTasks } from '../../../lib/learning/queries';
 import { ago, daysBetween, human, today } from '../../../lib/learning/dates';
+import { coachView } from '../../../lib/learning/pcquest-db';
+import { istDay } from '../../../lib/learning/activity';
 
 const gate = await requireRole(Astro, 'coach');
 if (!gate.ok) return gate.response;
-const { db } = gate.ctx;
+const { db, env } = gate.ctx;
 
 const on = today();
 const [brief, queue, allBreaks, claimed] = await Promise.all([
@@ -31,6 +33,40 @@ const [brief, queue, allBreaks, claimed] = await Promise.all([
 
 const staleDays = brief.lastGraded ? daysBetween(brief.lastGraded, on) : null;
 const stale = staleDays === null || staleDays > 14;
+
+// PC Quest — only when its database is bound, and never the reason this page
+// fails: a missing table or a bad row just hides the card.
+let pq: null | {
+  devices: Awaited<ReturnType<typeof coachView>>['devices'];
+  doneThisWeek: number;
+  rungs: Awaited<ReturnType<typeof coachView>>['rungs'];
+  flagged: Array<{ task: string; step: string; at: string; selfReported: boolean; pointed: boolean }>;
+  waiting: Array<{ id: string; title?: string }>;
+} = null;
+if (env.PCQUEST_DB) {
+  try {
+    const v = await coachView(env.PCQUEST_DB);
+    const titles = new Map(v.meta.map((t) => [t.id, t.title ?? t.id]));
+    const weekAgo = new Date(Date.now() - 7 * 86_400_000).toISOString();
+    const progress = Object.entries(v.progress);
+    pq = {
+      devices: v.devices,
+      doneThisWeek: progress.filter(([, p]) => p.doneAt && p.doneAt >= weekAgo).length,
+      rungs: v.rungs,
+      flagged: progress
+        .flatMap(([task, p]) =>
+          Object.entries(p.steps)
+            .filter(([, s]) => s.selfReported || s.pointed)
+            .map(([step, s]) => ({ task: titles.get(task) ?? task, step, ...s })),
+        )
+        .sort((a, b) => (a.at < b.at ? 1 : -1))
+        .slice(0, 15),
+      waiting: v.waiting,
+    };
+  } catch {
+    pq = null;
+  }
+}
 ---
 
 <LearningLayout title="Coach" role="coach" subtitle={human(on)} wide>
@@ -255,6 +291,104 @@ const stale = staleDays === null || staleDays > 14;
             </li>
           ))}
         </ul>
+      </section>
+    )
+  }
+
+  {/* ── PC Quest ─────────────────────────────────────────────────── */}
+  {
+    pq && (
+      <section class="mt-8 rounded-2xl border border-border bg-surface p-5">
+        <h2 class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">PC Quest</h2>
+        <dl class="mt-4 space-y-5 text-sm">
+          <div>
+            <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Last seen</dt>
+            <dd class="mt-2">
+              {pq.devices.length === 0 ? (
+                <span class="text-text-secondary">the app has not synced yet</span>
+              ) : (
+                <ul class="space-y-1">
+                  {pq.devices.map((d) => (
+                    <li class="font-mono text-xs">
+                      {d.label}
+                      <span class="ml-2 text-text-secondary">
+                        {ago(istDay(d.last_seen), on)} ·{' '}
+                        {new Date(d.last_seen).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
+                        {d.app_version && ` · app ${d.app_version}`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </dd>
+          </div>
+
+          <div>
+            <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">This week</dt>
+            <dd class="mt-2">
+              <span class="text-text">{pq.doneThisWeek}</span>
+              <span class="text-text-secondary"> task{pq.doneThisWeek === 1 ? '' : 's'} done in the last 7 days</span>
+            </dd>
+          </div>
+
+          {pq.rungs.length > 0 && (
+            <div>
+              <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">By rung</dt>
+              <dd class="mt-2">
+                <ul class="flex flex-wrap gap-2">
+                  {pq.rungs.map((r) => (
+                    <li class="rounded-lg border border-border px-3 py-1.5 font-mono text-xs">
+                      {r.rung} <span class="ml-1">{r.done}/{r.total}</span>
+                      {r.selfReported > 0 && <span class="ml-2 text-text-secondary">{r.selfReported} self-reported</span>}
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+
+          {pq.waiting.length > 0 && (
+            <div>
+              <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+                Waiting for you — <code>quest approve &lt;task&gt;</code>
+              </dt>
+              <dd class="mt-2">
+                <ul class="space-y-1">
+                  {pq.waiting.map((t) => (
+                    <li class="rounded-lg border border-accent/30 px-3 py-2">
+                      {t.title ?? t.id}
+                      <span class="ml-2 font-mono text-[11px] text-text-secondary">{t.id}</span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+
+          {pq.flagged.length > 0 && (
+            <div>
+              <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+                Steps worth asking about
+              </dt>
+              <dd class="mt-2">
+                <p class="text-xs text-text-secondary">
+                  Self-reported means no check ran; pointed means the app showed him where to click.
+                </p>
+                <ul class="mt-2 space-y-1">
+                  {pq.flagged.map((f) => (
+                    <li class="flex flex-wrap items-baseline gap-x-3 font-mono text-xs">
+                      <span>{f.task}</span>
+                      <span class="text-text-secondary">{f.step}</span>
+                      <span class="ml-auto text-[11px] uppercase tracking-wider text-accent">
+                        {[f.selfReported && 'self-reported', f.pointed && 'pointed'].filter(Boolean).join(' · ')}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+        </dl>
       </section>
     )
   }

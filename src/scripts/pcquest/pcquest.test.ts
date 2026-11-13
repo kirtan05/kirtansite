@@ -37,6 +37,8 @@ test('validate_rejects_unknown_kind', () => {
 test('validate_rejects_missing_device_and_non_object', () => {
   assert.equal(typeof validateEvents(null, NOW), 'string');
   assert.equal(typeof validateEvents({ events: [] }, NOW), 'string');
+  const noLabel = validateEvents({ device_id: DEV, events: [] }, NOW);
+  assert.equal((noLabel as Exclude<typeof noLabel, string>).device, null);
 });
 
 test('validate_clamps_future_at', () => {

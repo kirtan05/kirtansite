@@ -46,7 +46,7 @@ export interface CleanPqEvent {
 
 export interface CleanBatch {
   device_id: string;
-  device: string;
+  device: string | null; // label for humans; null when not sent (the stored label is kept)
   app_version: string | null;
   events: CleanPqEvent[];
 }
@@ -65,7 +65,7 @@ export function validateEvents(body: unknown, now: Date): CleanBatch | string {
   if (!isObj(body)) return 'body must be a JSON object';
   const device_id = body.device_id;
   if (typeof device_id !== 'string' || device_id.length < 8 || device_id.length > 128) return 'missing device_id';
-  const device = typeof body.device === 'string' && body.device ? body.device.slice(0, 64) : 'laptop';
+  const device = typeof body.device === 'string' && body.device ? body.device.slice(0, 64) : null;
   const app_version = typeof body.app_version === 'string' ? body.app_version.slice(0, 32) : null;
 
   if (!Array.isArray(body.events)) return 'events must be an array';

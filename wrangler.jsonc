@@ -17,7 +17,11 @@
     // Same rule for /gree, the GRE/TOEFL English trainer.
     "GREE_HOST": "kirtanjain.com",
     // And for /major, the quiz revision deck.
-    "MAJOR_HOST": "kirtanjain.com"
+    "MAJOR_HOST": "kirtanjain.com",
+    // PC Quest: the public half of the pack-signing key, SPKI base64. Print it
+    // with `quest keygen` (the private half never leaves Kirtan's box). A pack
+    // PUT is refused unless its signature verifies against this.
+    "PCQUEST_PACK_PUBKEY": "REPLACE_WITH_QUEST_KEYGEN_OUTPUT"
   },
 
   // Astro's session store. Nothing in /learning uses Astro sessions, but the
@@ -50,6 +54,14 @@
       "binding": "ACTIVITY_DB",
       "database_name": "activity",
       "database_id": "fa1f33dc-e82c-4928-96bc-cc14a4a91370"
+    },
+    {
+      // PC Quest: task packs, his events, approvals. Its own database. Create
+      // it and paste the id here:
+      //   npx wrangler d1 create pcquest
+      "binding": "PCQUEST_DB",
+      "database_name": "pcquest",
+      "database_id": "00000000-0000-0000-0000-000000000000"
     }
   ],
 

@@ -29,6 +29,15 @@ interface Env {
   /** Read-only bearer token for the nightly summary endpoint. Writers can't read, readers can't write. */
   ACTIVITY_READ_TOKEN?: string;
 
+  /** PC Quest — the Windows task app. Spec: learning repo, pcquest/docs/TASK-FORMAT.md */
+  PCQUEST_DB?: D1Database;
+  /** Bearer token on his laptop: GET sync and POST events only. */
+  PCQUEST_KID_TOKEN?: string;
+  /** Bearer token on Kirtan's box (`quest`): packs, progress, approve, reset, release. */
+  PCQUEST_COACH_TOKEN?: string;
+  /** SPKI base64 public key every pushed pack must be signed by (`quest keygen`). */
+  PCQUEST_PACK_PUBKEY?: string;
+
   /** /gree — GRE/TOEFL English trainer. One user, one password. */
   GREE_DB?: D1Database;
   GREE_HOST?: string;

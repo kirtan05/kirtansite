@@ -3,7 +3,9 @@
  * card. The logic lives in pcquest.ts; this file only fetches rows.
  */
 import {
+  ISSUE_KINDS,
   foldProgress,
+  summariseIssues,
   rungSummary,
   tasksFromPayload,
   waitingApprovals,
@@ -18,7 +20,7 @@ const PROGRESS_KINDS = "('start','step','done','hint','pointed','wrong','reset')
 /**
  * Fold every progress event. Heartbeats and the other kinds that never change
  * progress are not read at all, and `detail` is only fetched for `step`
- * events (the one place the fold looks at it). Order is at, then arrival,
+ * and `start` events (the only places the fold looks at it). Order is at, then arrival,
  * then insertion, so ties are deterministic. Incremental folding is parked:
  * one learner, small volume.
  */
@@ -26,7 +28,7 @@ export async function loadProgress(db: D1Database): Promise<Progress> {
   const rows = ((
     await db
       .prepare(
-        `SELECT at, kind, task, rev, step, CASE WHEN kind = 'step' THEN detail END AS detail FROM pq_event
+        `SELECT at, kind, task, rev, step, CASE WHEN kind IN ('step', 'start') THEN detail END AS detail FROM pq_event
           WHERE task IS NOT NULL AND kind IN ${PROGRESS_KINDS} ORDER BY at, received_at, rowid`,
       )
       .all<any>()
@@ -41,6 +43,35 @@ export async function loadProgress(db: D1Database): Promise<Progress> {
     return { id: '', at: r.at, kind: r.kind, task: r.task, rev: r.rev, step: r.step, detail };
   });
   return foldProgress(events);
+}
+
+/**
+ * blocked_caps / point_miss / bad_sig from the last 30 days (by arrival, which
+ * is indexed), collapsed per kind+task+rev+step. Bounded: at most 500 rows read.
+ */
+export async function loadIssues(db: D1Database) {
+  const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
+  const kinds = ISSUE_KINDS.map((k) => `'${k}'`).join(', ');
+  const rows = ((
+    await db
+      .prepare(
+        `SELECT at, kind, task, rev, step, detail FROM pq_event
+          WHERE received_at >= ? AND kind IN (${kinds}) ORDER BY received_at DESC LIMIT 500`,
+      )
+      .bind(since)
+      .all<any>()
+  ).results ?? []) as any[];
+  return summariseIssues(
+    rows.map((r) => {
+      let detail = null;
+      try {
+        detail = r.detail ? JSON.parse(r.detail) : null;
+      } catch {
+        /* a bad detail is just no detail */
+      }
+      return { id: '', at: r.at, kind: r.kind, task: r.task, rev: r.rev, step: r.step, detail };
+    }),
+  );
 }
 
 export interface PackRow {
@@ -118,13 +149,14 @@ export async function retirePack(db: D1Database, id: string): Promise<boolean> {
 
 /** Everything the coach-facing views need, in one go. */
 export async function coachView(db: D1Database) {
-  const [packs, progress, approvals, resets, devices, app] = await Promise.all([
+  const [packs, progress, approvals, resets, devices, app, issues] = await Promise.all([
     loadPacks(db, true),
     loadProgress(db),
     loadApprovals(db),
     loadResets(db),
     loadDevices(db),
     latestRelease(db),
+    loadIssues(db),
   ]);
   const meta = taskMetaOf(packs);
   return {
@@ -135,6 +167,7 @@ export async function coachView(db: D1Database) {
     resets,
     devices,
     app,
+    issues,
     rungs: rungSummary(progress, meta),
     waiting: waitingApprovals(progress, meta, new Set(approvals.map((a) => a.task))),
   };

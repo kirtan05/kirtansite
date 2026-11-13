@@ -5,6 +5,7 @@ import {
   foldProgress,
   verifyPackSig,
   rungSummary,
+  summariseIssues,
   validatePackPut,
   b64Decode,
   pubkeyUsable,
@@ -28,7 +29,7 @@ function ev(kind: CleanPqEvent['kind'], at: string, extra: Partial<CleanPqEvent>
     at,
     kind,
     task: extra.task === undefined ? 't1' : extra.task,
-    rev: extra.rev ?? 1,
+    rev: extra.rev === undefined ? 1 : extra.rev,
     step: extra.step ?? null,
     detail: extra.detail ?? null,
   };
@@ -129,7 +130,10 @@ test('fold_reset_clears', () => {
     ev('start', '2026-11-10T09:00:00Z', { task: 't2' }),
     ev('reset', '2026-11-11T10:00:00Z'),
   ]);
-  assert.equal(p.t1, undefined);
+  // t1 was done, so the reset keeps it (not_started, everDone); its attempt is cleared.
+  assert.equal(p.t1.state, 'not_started');
+  assert.deepEqual(p.t1.steps, {});
+  assert.equal(p.t1.hints, 0);
   assert.equal(p.t2.state, 'in_progress');
 
   const again = foldProgress([
@@ -242,4 +246,59 @@ test('pubkey_usable_rejects_placeholder', async () => {
   assert.equal(await pubkeyUsable(spki), true);
   assert.equal(await pubkeyUsable('REPLACE_WITH_QUEST_KEYGEN_OUTPUT'), false);
   assert.equal(await pubkeyUsable(undefined), false);
+});
+
+test('fold_ever_done_survives_reset', () => {
+  const p = foldProgress([
+    ev('start', '2026-11-10T10:00:00Z', { detail: { vars: { name: 'Cricket' } } }),
+    ev('step', '2026-11-10T10:01:00Z', { step: 's1' }),
+    ev('done', '2026-11-10T10:02:00Z'),
+    ev('reset', '2026-11-11T10:00:00Z'),
+    ev('start', '2026-11-10T09:00:00Z', { task: 'never' }),
+    ev('reset', '2026-11-11T10:00:00Z', { task: 'never' }),
+  ]);
+  // Done once, then reset with no new attempt: kept, as not_started.
+  assert.deepEqual(p.t1, {
+    state: 'not_started', rev: 1, startedAt: null, doneAt: null, steps: {}, hints: 0, wrong: 0,
+    vars: null, everDone: true, firstDoneAt: '2026-11-10T10:02:00Z',
+  });
+  // Never done, then reset: gone, as before.
+  assert.equal(p.never, undefined);
+
+  const replay = foldProgress([
+    ev('start', '2026-11-10T10:00:00Z'),
+    ev('done', '2026-11-10T10:02:00Z'),
+    ev('reset', '2026-11-11T10:00:00Z'),
+    ev('start', '2026-11-12T10:00:00Z', { detail: { vars: { name: 'School' } } }),
+    ev('hint', '2026-11-12T10:01:00Z', { step: 's1' }),
+  ]);
+  assert.equal(replay.t1.state, 'in_progress');
+  assert.equal(replay.t1.startedAt, '2026-11-12T10:00:00Z');
+  assert.equal(replay.t1.hints, 1);
+  assert.deepEqual(replay.t1.vars, { name: 'School' });
+  assert.equal(replay.t1.everDone, true);
+  assert.equal(replay.t1.firstDoneAt, '2026-11-10T10:02:00Z');
+
+  const fresh = foldProgress([ev('start', '2026-11-10T10:00:00Z')]);
+  assert.equal(fresh.t1.everDone, false);
+  assert.equal(fresh.t1.firstDoneAt, null);
+
+  // The rung summary counts a replayed task as done.
+  assert.deepEqual(rungSummary(replay, [{ id: 't1', rung: 'C1' }]), [{ rung: 'C1', done: 1, total: 1, selfReported: 0 }]);
+});
+
+test('issues_deduped_with_counts', () => {
+  const issues = summariseIssues([
+    ev('blocked_caps', '2026-11-10T10:00:00Z', { task: 'a', rev: 2, detail: { caps: ['newCheck'] } }),
+    ev('blocked_caps', '2026-11-11T10:00:00Z', { task: 'a', rev: 2, detail: { caps: ['newCheck'] } }),
+    ev('blocked_caps', '2026-11-09T10:00:00Z', { task: 'a', rev: 1 }),
+    ev('point_miss', '2026-11-12T10:00:00Z', { task: 'b', step: 's2', detail: { well: 'startButton' } }),
+    ev('bad_sig', '2026-11-08T10:00:00Z', { task: null, rev: null, detail: { pack: 'extra', error: 'bad_json' } }),
+  ]);
+  assert.deepEqual(issues, [
+    { kind: 'point_miss', task: 'b', rev: 1, step: 's2', count: 1, lastAt: '2026-11-12T10:00:00Z', detail: { well: 'startButton' } },
+    { kind: 'blocked_caps', task: 'a', rev: 2, step: null, count: 2, lastAt: '2026-11-11T10:00:00Z', detail: { caps: ['newCheck'] } },
+    { kind: 'blocked_caps', task: 'a', rev: 1, step: null, count: 1, lastAt: '2026-11-09T10:00:00Z', detail: null },
+    { kind: 'bad_sig', task: null, rev: null, step: null, count: 1, lastAt: '2026-11-08T10:00:00Z', detail: { pack: 'extra', error: 'bad_json' } },
+  ]);
 });

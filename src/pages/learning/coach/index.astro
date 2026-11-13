@@ -42,6 +42,8 @@ let pq: null | {
   rungs: Awaited<ReturnType<typeof coachView>>['rungs'];
   flagged: Array<{ task: string; step: string; at: string; selfReported: boolean; pointed: boolean }>;
   waiting: Array<{ id: string; title?: string }>;
+  issues: Awaited<ReturnType<typeof coachView>>['issues'];
+  titles: Map<string, string>;
 } = null;
 if (env.PCQUEST_DB) {
   try {
@@ -51,7 +53,8 @@ if (env.PCQUEST_DB) {
     const progress = Object.entries(v.progress);
     pq = {
       devices: v.devices,
-      doneThisWeek: progress.filter(([, p]) => p.doneAt && p.doneAt >= weekAgo).length,
+      // Finished for the first time this week; a replay or reset never moves it.
+      doneThisWeek: progress.filter(([, p]) => p.everDone && p.firstDoneAt && p.firstDoneAt >= weekAgo).length,
       rungs: v.rungs,
       flagged: progress
         .flatMap(([task, p]) =>
@@ -62,6 +65,8 @@ if (env.PCQUEST_DB) {
         .sort((a, b) => (a.at < b.at ? 1 : -1))
         .slice(0, 15),
       waiting: v.waiting,
+      issues: v.issues.slice(0, 10),
+      titles,
     };
   } catch {
     pq = null;
@@ -358,6 +363,32 @@ if (env.PCQUEST_DB) {
                     <li class="rounded-lg border border-accent/30 px-3 py-2">
                       {t.title ?? t.id}
                       <span class="ml-2 font-mono text-[11px] text-text-secondary">{t.id}</span>
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          )}
+
+          {pq.issues.length > 0 && (
+            <div>
+              <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+                Stuck on the laptop — last 30 days
+              </dt>
+              <dd class="mt-2">
+                <p class="text-xs text-text-secondary">
+                  blocked_caps: the app needs an update for this task · point_miss: the pointer could not
+                  find its button · bad_sig: the app refused a pack.
+                </p>
+                <ul class="mt-2 space-y-1">
+                  {pq.issues.map((i) => (
+                    <li class="flex flex-wrap items-baseline gap-x-3 font-mono text-xs">
+                      <span class="uppercase tracking-wider text-accent">{i.kind}</span>
+                      <span>{i.task ? pq!.titles.get(i.task) ?? i.task : String(i.detail?.pack ?? 'a pack')}</span>
+                      {i.step && <span class="text-text-secondary">{i.step}</span>}
+                      <span class="ml-auto text-[11px] text-text-secondary">
+                        ×{i.count} · {ago(istDay(i.lastAt), on)}
+                      </span>
                     </li>
                   ))}
                 </ul>

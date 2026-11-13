@@ -21,7 +21,7 @@
     // PC Quest: the public half of the pack-signing key, SPKI base64. Print it
     // with `quest keygen` (the private half never leaves Kirtan's box). A pack
     // PUT is refused unless its signature verifies against this.
-    "PCQUEST_PACK_PUBKEY": "REPLACE_WITH_QUEST_KEYGEN_OUTPUT"
+    "PCQUEST_PACK_PUBKEY": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE2LcMFJJ9Ao1hPLj3Rq+aG9RCwYN4kj8onAAzaLBukkJ3xwmUO4nYwNW9auMs4WDw2rKlJ698rP+vDumrmx2ekQ=="
   },
 
   // Astro's session store. Nothing in /learning uses Astro sessions, but the

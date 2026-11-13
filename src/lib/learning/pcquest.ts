@@ -128,47 +128,69 @@ export interface StepRecord {
 }
 
 export interface TaskProgress {
-  state: 'in_progress' | 'done';
+  /** not_started: done before, then reset, and no new attempt yet. */
+  state: 'not_started' | 'in_progress' | 'done';
   rev: number | null;
-  startedAt: string;
-  doneAt: string | null;
+  startedAt: string | null; // null only when not_started
+  doneAt: string | null; // this attempt
   steps: Record<string, StepRecord>;
   hints: number;
   wrong: number;
+  /** The vars the current attempt picked (start event's detail.vars), so a restore keeps them. */
+  vars: Record<string, unknown> | null;
+  /** Finished at least once, ever. A reset does not clear it: XP and "done" only go up. */
+  everDone: boolean;
+  firstDoneAt: string | null;
 }
 
 export type Progress = Record<string, TaskProgress>;
 
+const PROGRESS_EVENT_KINDS = ['start', 'step', 'done', 'hint', 'pointed', 'wrong'];
+
 /**
  * Fold the event log into per-task progress. Events are applied in `at`
- * order (stable for ties). A `reset` drops everything before it for that
- * task; a later `start` begins a fresh attempt. Events without a task, and
- * kinds that say nothing about progress (heartbeat, blocked_caps, bad_sig,
- * point_miss), are ignored.
+ * order (stable for ties). A `reset` clears the current attempt (state,
+ * steps, counts); a later event begins a fresh one. What a reset never
+ * clears is `everDone` / `firstDoneAt`: a task he has finished once stays
+ * finished for XP and the rung summary, and stays in the output (as
+ * not_started) even with no new attempt. A task reset before it was ever
+ * done simply disappears. Events without a task, and kinds that say nothing
+ * about progress (heartbeat, blocked_caps, bad_sig, point_miss), are ignored.
  */
 export function foldProgress(events: CleanPqEvent[]): Progress {
   const out: Progress = {};
   // Steps pointed at before they passed: task -> step ids.
   const pending = new Map<string, Set<string>>();
+  // task -> first time it was done. Survives resets.
+  const firstDone = new Map<string, string>();
   const sorted = [...events].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
+  const blank = (state: TaskProgress['state'], rev: number | null, startedAt: string | null): TaskProgress => ({
+    state, rev, startedAt, doneAt: null, steps: {}, hints: 0, wrong: 0, vars: null, everDone: false, firstDoneAt: null,
+  });
 
   for (const e of sorted) {
     const id = e.task;
     if (!id) continue;
     if (e.kind === 'reset') {
-      delete out[id];
+      if (firstDone.has(id)) out[id] = blank('not_started', out[id]?.rev ?? e.rev, null);
+      else delete out[id];
       pending.delete(id);
       continue;
     }
-    if (!['start', 'step', 'done', 'hint', 'pointed', 'wrong'].includes(e.kind)) continue;
+    if (!PROGRESS_EVENT_KINDS.includes(e.kind)) continue;
 
-    const p = (out[id] ??= { state: 'in_progress', rev: null, startedAt: e.at, doneAt: null, steps: {}, hints: 0, wrong: 0 });
+    let p = out[id];
+    if (!p || p.state === 'not_started') p = out[id] = blank('in_progress', p?.rev ?? null, e.at);
     if (e.rev != null) p.rev = e.rev;
 
     switch (e.kind) {
+      case 'start':
+        if (isObj(e.detail?.vars) && !p.vars) p.vars = e.detail!.vars as Record<string, unknown>;
+        break;
       case 'done':
         p.state = 'done';
         p.doneAt ??= e.at;
+        if (!firstDone.has(id)) firstDone.set(id, e.at);
         break;
       case 'hint':
         p.hints++;
@@ -195,7 +217,47 @@ export function foldProgress(events: CleanPqEvent[]): Progress {
         break;
     }
   }
+  for (const [id, p] of Object.entries(out)) {
+    p.everDone = firstDone.has(id);
+    p.firstDoneAt = firstDone.get(id) ?? null;
+  }
   return out;
+}
+
+// ── issues the coach should see ────────────────────────────────────────
+
+export const ISSUE_KINDS = ['blocked_caps', 'point_miss', 'bad_sig'] as const;
+
+export interface Issue {
+  kind: string;
+  task: string | null;
+  rev: number | null;
+  step: string | null;
+  count: number;
+  lastAt: string;
+  detail: Record<string, unknown> | null; // from the most recent occurrence
+}
+
+/**
+ * Collapse blocked_caps / point_miss / bad_sig events into one row per
+ * (kind, task, rev, step), with a count and the latest time and detail.
+ * Newest first. These are the things that silently stop him (a check this
+ * app can't run, a pointer that can't find its button, a pack the app
+ * refused), so the coach needs to see them.
+ */
+export function summariseIssues(events: CleanPqEvent[]): Issue[] {
+  const by = new Map<string, Issue>();
+  for (const e of events) {
+    if (!(ISSUE_KINDS as readonly string[]).includes(e.kind)) continue;
+    const key = JSON.stringify([e.kind, e.task, e.rev, e.step]);
+    const row = by.get(key);
+    if (!row) by.set(key, { kind: e.kind, task: e.task, rev: e.rev, step: e.step, count: 1, lastAt: e.at, detail: e.detail });
+    else {
+      row.count++;
+      if (e.at >= row.lastAt) Object.assign(row, { lastAt: e.at, detail: e.detail });
+    }
+  }
+  return [...by.values()].sort((a, b) => (a.lastAt < b.lastAt ? 1 : a.lastAt > b.lastAt ? -1 : 0));
 }
 
 // ── packs ──────────────────────────────────────────────────────────────
@@ -269,8 +331,9 @@ export function tasksFromPayload(payload: string): TaskMeta[] {
 }
 
 /**
- * Per curriculum rung: tasks done, tasks available, and how many of the done
- * ones rest on at least one self-reported step. Retired tasks count only if
+ * Per curriculum rung: tasks done (ever, so a replay or reset never lowers
+ * it), tasks available, and how many of the done ones rest on at least one
+ * self-reported step of the current attempt. Retired tasks count only if
  * he finished them (so `done` never exceeds `total`). Tasks without a rung
  * are left out. Sorted C1, C2, …, C10.
  */
@@ -282,7 +345,7 @@ export function rungSummary(
   for (const t of taskMeta) {
     if (!t.rung) continue;
     const p = progress[t.id];
-    const isDone = p?.state === 'done';
+    const isDone = p?.everDone === true;
     if (t.retired && !isDone) continue;
     const row = by.get(t.rung) ?? { rung: t.rung, done: 0, total: 0, selfReported: 0 };
     row.total++;
@@ -299,7 +362,7 @@ export function rungSummary(
 export function waitingApprovals(progress: Progress, taskMeta: TaskMeta[], approved: Set<string>): TaskMeta[] {
   return taskMeta.filter((t) => {
     const p = progress[t.id];
-    if (!p || p.state === 'done' || approved.has(t.id)) return false;
+    if (!p || p.state !== 'in_progress' || approved.has(t.id)) return false;
     return (t.parentSteps ?? []).some((s) => !p.steps[s]);
   });
 }

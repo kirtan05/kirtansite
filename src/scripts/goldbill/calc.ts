@@ -125,3 +125,29 @@ export function rateForWeight(paid: number, weight: number): WeightAnswer | null
   }
   return { bill: closest!, asked: weight, exact: false };
 }
+
+/** The weight the bill lands on if the rate is exactly the starting rate. */
+export const centreWeight = (fine: number) => fine / (PURITY * (1 + GST));
+
+/** A number in [-1, 1] that is always the same for the same inputs. */
+function wobble(paid: number, fine: number, n: number): number {
+  let h = 2166136261;
+  for (const ch of `${paid}|${fine}|${n}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  h = Math.imul(h ^ (h >>> 15), 2246822507);
+  h = Math.imul(h ^ (h >>> 13), 3266489909);
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967295 * 2 - 1;
+}
+
+/** Up to this fraction either side of the centre weight. */
+export const WEIGHT_SPREAD = 0.004;
+
+/**
+ * Every 200 g order would otherwise come out at 211.06 g. Pick a weight a
+ * little off the centre (the same one each time for the same amount, a new
+ * one for each `n`) and fit the rate to it.
+ */
+export function autoBill(paid: number, fine: number, n = 0): WeightAnswer | null {
+  if (!(paid > 0) || !(fine > 0)) return null;
+  const w = r2(centreWeight(fine) * (1 + WEIGHT_SPREAD * wobble(paid, fine, n)));
+  return rateForWeight(paid, w);
+}

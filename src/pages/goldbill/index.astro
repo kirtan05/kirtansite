@@ -56,6 +56,15 @@ const title = 'Gold bill calculator';
           </div>
         </div>
 
+        <div id="vary" class="vary">
+          <div class="vary-top">
+            <span>Change the weight</span>
+            <button type="button" id="another">Try another weight</button>
+          </div>
+          <input id="slider" type="range" step="0.01" aria-label="Weight on bill" />
+          <div class="vary-ends"><span id="s-min"></span><span id="s-max"></span></div>
+        </div>
+
         <table class="bill">
           <tbody>
             <tr><td id="b-rxw"></td><td id="b-value"></td></tr>
@@ -69,15 +78,12 @@ const title = 'Gold bill calculator';
 
         <button type="button" id="share" class="share">Share bill as image</button>
 
-        <details id="alts-box">
-          <summary>Other rate / weight options</summary>
-          <ul id="alts"></ul>
-        </details>
 
         <details class="how">
           <summary>How this is worked out</summary>
           <p>
-            Starting rate = amount ÷ grams × 0.92 = <b id="base"></b>. The rate is moved by a few rupees so that
+            Starting rate = amount ÷ grams × 0.92 = <b id="base"></b>. The weight is picked a little either side of
+            grams ÷ 0.92 ÷ 1.03, so it is not the same every time, and the rate is worked out so that
             rate × weight + 3% GST comes to the paid amount within 50 paise.
           </p>
         </details>
@@ -89,7 +95,7 @@ const title = 'Gold bill calculator';
     </main>
 
     <script>
-      import { baseRate, rateForWeight, solve, type Bill } from '../../scripts/goldbill/calc';
+      import { autoBill, baseRate, centreWeight, rateForWeight, type WeightAnswer } from '../../scripts/goldbill/calc';
 
       const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
       const paidEl = $<HTMLInputElement>('paid');
@@ -206,6 +212,19 @@ const title = 'Gold bill calculator';
         note.hidden = !warn;
       }
 
+      const slider = $<HTMLInputElement>('slider');
+      const vary = $('vary');
+      // Which random weight we are on, and a weight picked on the slider (null = use the random one).
+      let variant = 0;
+      let picked: number | null = null;
+      const SLIDE = 0.005;
+
+      function report(a: WeightAnswer, paid: number) {
+        show(a.bill, paid);
+        if (!a.exact) setNote('Could not match within 50 paise. This is the closest — please check.', true);
+        else setNote('', false);
+      }
+
       function run() {
         const paid = parse(paidEl.value);
         const fine = parse(fineEl.value);
@@ -213,8 +232,6 @@ const title = 'Gold bill calculator';
         document.querySelectorAll<HTMLButtonElement>('.quick button').forEach((btn) =>
           btn.classList.toggle('on', Number(btn.dataset.g) === fine),
         );
-        const altsBox = $<HTMLDetailsElement>('alts-box');
-        const alts = $('alts');
         if (!(paid > 0) || (!(fine > 0) && !(want > 0))) {
           out.hidden = true;
           empty.hidden = false;
@@ -225,47 +242,46 @@ const title = 'Gold bill calculator';
         $('base').textContent = fine > 0 ? num(baseRate(paid, fine)) : '—';
 
         if (want > 0) {
+          vary.hidden = true;
           const a = rateForWeight(paid, want)!;
-          show(a.bill, paid);
-          altsBox.hidden = true;
-          if (!a.exact) setNote('Could not match within 50 paise. This is the closest — please check.', true);
-          else if (a.bill.weight !== a.asked)
+          report(a, paid);
+          if (a.exact && a.bill.weight !== a.asked)
             setNote(`${num(a.asked)} g could not fit to the rupee, so the weight is ${num(a.bill.weight)} g.`, true);
-          else setNote(`Rate worked out for ${num(a.asked)} g.`, false);
           return;
         }
 
-        const a = solve(paid, fine);
-        if (!a.bills.length) return;
-        show(a.bills[0], paid);
-        if (!a.exact) setNote('Could not match within 50 paise. This is the closest — please check.', true);
-        else if (a.spread > 4) setNote(`Rate had to move up to ₹${a.spread} from the starting rate to fit.`, true);
-        else setNote('Matches the paid amount within 50 paise.', false);
-
-        altsBox.hidden = false;
-        alts.replaceChildren(
-          ...a.bills.slice(0, 8).map((b, i) => {
-            const li = document.createElement('li');
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.textContent = `Rate ${num(b.rate)} · Weight ${num(b.weight)} g`;
-            btn.className = i === 0 ? 'on' : '';
-            btn.onclick = () => {
-              alts.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
-              btn.classList.add('on');
-              show(b, paid);
-            };
-            li.append(btn);
-            return li;
-          }),
-        );
+        vary.hidden = false;
+        const a = picked !== null ? rateForWeight(paid, picked)! : autoBill(paid, fine, variant)!;
+        report(a, paid);
+        const c = centreWeight(fine);
+        slider.min = num(c * (1 - SLIDE));
+        slider.max = num(c * (1 + SLIDE));
+        slider.value = num(a.bill.weight);
+        $('s-min').textContent = num(c * (1 - SLIDE)) + ' g';
+        $('s-max').textContent = num(c * (1 + SLIDE)) + ' g';
       }
 
-      for (const el of [paidEl, fineEl, wantEl]) el.addEventListener('input', run);
+      // New amount or grams: start again from the random weight for those numbers.
+      const fresh = () => {
+        variant = 0;
+        picked = null;
+        run();
+      };
+      for (const el of [paidEl, fineEl]) el.addEventListener('input', fresh);
+      wantEl.addEventListener('input', run);
+      slider.addEventListener('input', () => {
+        picked = parseFloat(slider.value);
+        run();
+      });
+      $('another').addEventListener('click', () => {
+        variant++;
+        picked = null;
+        run();
+      });
       document.querySelectorAll<HTMLButtonElement>('.quick button').forEach((btn) =>
         btn.addEventListener('click', () => {
           fineEl.value = btn.dataset.g!;
-          run();
+          fresh();
         }),
       );
       document.querySelectorAll<HTMLButtonElement>('.copy').forEach((btn) =>
@@ -323,14 +339,14 @@ const title = 'Gold bill calculator';
       input:focus { outline: none; border-color: var(--gold); }
       button { font: inherit; cursor: pointer; }
       .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: -4px 0 18px; }
-      .quick button, #alts button {
+      .quick button {
         padding: 10px 6px;
         border: 2px solid var(--line);
         border-radius: 10px;
         background: var(--card);
         color: var(--ink);
       }
-      .quick button.on, #alts button.on { border-color: var(--gold); background: var(--gold-soft); font-weight: 700; }
+      .quick button.on { border-color: var(--gold); background: var(--gold-soft); font-weight: 700; }
       .answer { display: grid; gap: 10px; }
       .big {
         display: grid;
@@ -352,6 +368,12 @@ const title = 'Gold bill calculator';
         font-size: 0.95rem;
       }
       .answer { margin-bottom: 14px; }
+      .vary { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px 8px; margin-bottom: 14px; }
+      .vary[hidden] { display: none; }
+      .vary-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-weight: 600; }
+      #another { border: 2px solid var(--gold); background: var(--gold-soft); color: var(--ink); border-radius: 10px; padding: 6px 10px; font-size: 0.9rem; }
+      #slider { width: 100%; margin: 14px 0 2px; accent-color: var(--gold); height: 28px; }
+      .vary-ends { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
       .share {
         width: 100%;
         margin-top: 14px;
@@ -378,8 +400,6 @@ const title = 'Gold bill calculator';
       .bill .total td { font-weight: 800; background: var(--gold-soft); border-bottom: 0; }
       details { margin: 18px 0 0; }
       summary { cursor: pointer; font-weight: 600; color: var(--gold); padding: 6px 0; }
-      #alts { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
-      #alts button { width: 100%; text-align: left; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
       .how { color: var(--muted); font-size: 0.9rem; }
       .how summary { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
       .hint { color: var(--muted); }

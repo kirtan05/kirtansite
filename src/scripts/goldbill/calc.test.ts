@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { baseRate, bill, fit, rateForWeight, solve } from './calc.ts';
+import { autoBill, baseRate, bill, fit, rateForWeight, solve } from './calc.ts';
 
 const twoDp = (n: number) => Math.abs(Math.round(n * 100) - n * 100) < 1e-6;
 
@@ -49,4 +49,22 @@ test('bad input gives nothing', () => {
   assert.deepEqual(fit(0, 100), []);
   assert.deepEqual(solve(NaN, 100).bills, []);
   assert.equal(rateForWeight(100000, 0), null);
+});
+
+test('autoBill varies the weight, repeatably, and always fits', () => {
+  const weights = new Set<number>();
+  for (let i = 0; i < 2000; i++) {
+    const fine = [100, 150, 200][Math.floor(rnd() * 3)];
+    const paid = Math.round(fine * (11000 + rnd() * 3000));
+    const a = autoBill(paid, fine)!;
+    assert.ok(a.exact, `no fit for ${paid}/${fine}`);
+    assert.ok(Math.abs(a.bill.diff) <= 0.5);
+    const c = fine / (0.92 * 1.03);
+    assert.ok(Math.abs(a.bill.weight / c - 1) <= 0.0045, `weight ${a.bill.weight} for ${fine}`);
+    assert.deepEqual(autoBill(paid, fine), a);
+    if (fine === 200) weights.add(a.bill.weight);
+  }
+  assert.ok(weights.size > 50, `only ${weights.size} different 200 g weights`);
+  assert.notEqual(autoBill(3032000, 200)!.bill.weight, autoBill(2864600, 200)!.bill.weight);
+  assert.notEqual(autoBill(3032000, 200, 0)!.bill.weight, autoBill(3032000, 200, 1)!.bill.weight);
 });

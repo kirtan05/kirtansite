@@ -45,7 +45,7 @@ const title = 'Gold bill calculator';
       <section id="out" hidden>
         <div class="answer">
           <div class="big">
-            <span class="k">Rate (per gram)</span>
+            <span class="k">Rate (per gram 22KT)</span>
             <span class="v" id="rate"></span>
             <button type="button" class="copy" data-copy="rate">Copy</button>
           </div>
@@ -134,7 +134,7 @@ const title = 'Gold bill calculator';
       function billImage(b: Bill, paid: number): Promise<Blob | null> {
         const W = 1080, pad = 70, row = 92;
         const rows: [string, string, string?][] = [
-          ['Rate (per gram)', '₹' + num(b.rate), 'big'],
+          ['Rate (per gram 22KT)', '₹' + num(b.rate), 'big'],
           ['Weight', num(b.weight) + ' g', 'big'],
           ['', '', 'gap'],
           [`${num(b.rate)} × ${num(b.weight)} g`, rs(b.value)],

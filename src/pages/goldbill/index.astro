@@ -55,7 +55,6 @@ const title = 'Gold bill calculator';
             <button type="button" class="copy" data-copy="weight">Copy</button>
           </div>
         </div>
-        <p id="note" class="note"></p>
 
         <table class="bill">
           <tbody>
@@ -68,15 +67,22 @@ const title = 'Gold bill calculator';
           </tbody>
         </table>
 
+        <button type="button" id="share" class="share">Share bill as image</button>
+
         <details id="alts-box">
           <summary>Other rate / weight options</summary>
           <ul id="alts"></ul>
         </details>
 
-        <p class="how">
-          Starting rate = amount ÷ grams × 0.92 = <b id="base"></b>. The rate is moved by a few rupees so that
-          rate × weight + 3% GST comes to the paid amount within 50 paise.
-        </p>
+        <details class="how">
+          <summary>How this is worked out</summary>
+          <p>
+            Starting rate = amount ÷ grams × 0.92 = <b id="base"></b>. The rate is moved by a few rupees so that
+            rate × weight + 3% GST comes to the paid amount within 50 paise.
+          </p>
+        </details>
+
+        <p id="note" class="note" hidden></p>
       </section>
 
       <p id="empty" class="hint">Type the amount to see the bill.</p>
@@ -99,9 +105,11 @@ const title = 'Gold bill calculator';
       const parse = (s: string) => parseFloat(s.replace(/[,₹\s]/g, ''));
 
       let current: Bill | null = null;
+      let currentPaid = 0;
 
       function show(b: Bill, paid: number) {
         current = b;
+        currentPaid = paid;
         $('rate').textContent = num(b.rate);
         $('weight').textContent = num(b.weight);
         $('b-rxw').textContent = `${num(b.rate)} × ${num(b.weight)} g`;
@@ -116,9 +124,86 @@ const title = 'Gold bill calculator';
         $('b-net').textContent = rs(paid);
       }
 
+      // The bill as a picture, for WhatsApp. Only the numbers: no notes, no site name.
+      function billImage(b: Bill, paid: number): Promise<Blob | null> {
+        const W = 1080, pad = 70, row = 92;
+        const rows: [string, string, string?][] = [
+          ['Rate (per gram)', '₹' + num(b.rate), 'big'],
+          ['Weight', num(b.weight) + ' g', 'big'],
+          ['', '', 'gap'],
+          [`${num(b.rate)} × ${num(b.weight)} g`, rs(b.value)],
+          ['CGST 1.5%', rs(b.cgst)],
+          ['SGST 1.5%', rs(b.sgst)],
+          ['Bill total', rs(b.total), 'bold'],
+          [b.diff > 0 ? 'Less' : 'Add', b.diff > 0 ? '−' + num(b.diff) : '+' + num(-b.diff)],
+          ['Net amount (RTGS)', rs(paid), 'net'],
+        ];
+        const H = pad * 2 + 110 + rows.length * row;
+        const c = document.createElement('canvas');
+        c.width = W;
+        c.height = H;
+        const x = c.getContext('2d')!;
+        x.fillStyle = '#fbf7ee';
+        x.fillRect(0, 0, W, H);
+        const font = (size: number, weight = 400) =>
+          `${weight} ${size}px system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif`;
+        x.fillStyle = '#9a7215';
+        x.font = font(54, 800);
+        x.textBaseline = 'middle';
+        x.fillText('Gold bill', pad, pad + 30);
+        x.fillStyle = '#6f6352';
+        x.font = font(34);
+        x.textAlign = 'right';
+        x.fillText(new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }), W - pad, pad + 30);
+        let y = pad + 110;
+        for (const [k, v, kind] of rows) {
+          const mid = y + row / 2;
+          if (kind === 'gap') {
+            x.fillStyle = '#e7dcc4';
+            x.fillRect(pad, mid, W - pad * 2, 3);
+          } else {
+            if (kind === 'net') {
+              x.fillStyle = '#f3e6c4';
+              x.fillRect(pad - 20, y + 6, W - pad * 2 + 40, row - 12);
+            }
+            const big = kind === 'big';
+            x.fillStyle = big ? '#6f6352' : '#2a2116';
+            x.font = font(big ? 40 : 40, kind === 'bold' || kind === 'net' ? 700 : 400);
+            x.textAlign = 'left';
+            x.fillText(k, pad, mid);
+            x.fillStyle = '#2a2116';
+            x.font = font(big ? 64 : 42, big || kind === 'net' ? 800 : kind === 'bold' ? 700 : 400);
+            x.textAlign = 'right';
+            x.fillText(v, W - pad, mid);
+          }
+          y += row;
+        }
+        return new Promise((res) => c.toBlob(res, 'image/png'));
+      }
+
+      $('share').addEventListener('click', async () => {
+        if (!current) return;
+        const blob = await billImage(current, currentPaid);
+        if (!blob) return;
+        const name = `gold-bill-${num(current.weight)}g.png`;
+        const file = new File([blob], name, { type: 'image/png' });
+        if (navigator.canShare?.({ files: [file] })) {
+          try {
+            await navigator.share({ files: [file] });
+          } catch {}
+          return;
+        }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      });
+
       function setNote(text: string, warn: boolean) {
+        // Only warnings are shown, at the bottom: the page gets shown to the supplier.
         note.textContent = text;
-        note.className = warn ? 'note warn' : 'note ok';
+        note.hidden = !warn;
       }
 
       function run() {
@@ -266,9 +351,19 @@ const title = 'Gold bill calculator';
         padding: 8px 14px;
         font-size: 0.95rem;
       }
-      .note { margin: 10px 0 14px; font-weight: 600; }
-      .note.ok { color: var(--ok); }
-      .note.warn { color: var(--warn); }
+      .answer { margin-bottom: 14px; }
+      .share {
+        width: 100%;
+        margin-top: 14px;
+        padding: 14px;
+        border: 0;
+        border-radius: 12px;
+        background: #1f7a3a;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.1rem;
+      }
+      .note { margin: 14px 0 0; font-size: 0.85rem; color: var(--warn); }
       .bill {
         width: 100%;
         border-collapse: collapse;
@@ -285,7 +380,8 @@ const title = 'Gold bill calculator';
       summary { cursor: pointer; font-weight: 600; color: var(--gold); padding: 6px 0; }
       #alts { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
       #alts button { width: 100%; text-align: left; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
-      .how { color: var(--muted); font-size: 0.9rem; margin-top: 22px; }
+      .how { color: var(--muted); font-size: 0.9rem; }
+      .how summary { color: var(--muted); font-weight: 400; font-size: 0.9rem; }
       .hint { color: var(--muted); }
     </style>
   </body>

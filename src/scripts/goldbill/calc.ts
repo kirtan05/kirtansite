@@ -9,9 +9,10 @@
  *   GST   = 3% of value (CGST 1.5% + SGST 1.5%)
  *   total = value + GST                  must equal `paid`, within 50 paise
  *
- * The rate starts at paid / fine x 0.92 and may move a few rupees; rate and
- * weight both have 2 decimals. We pick the rate with the fewest decimals,
- * then the one closest to the starting rate, then the smallest gap.
+ * Rate and weight both have 2 decimals. The page uses autoBill(): pick a
+ * weight a little off the centre (so it varies per order), then fit the rate
+ * with rateForWeight(). fit()/solve() are the older fixed-rate approach.
+ * Full explanation: docs/goldbill/README.md
  */
 
 export const GST = 0.03;

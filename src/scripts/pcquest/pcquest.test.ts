@@ -5,6 +5,12 @@ import {
   foldProgress,
   verifyPackSig,
   rungSummary,
+  validatePackPut,
+  b64Decode,
+  pubkeyUsable,
+  chunk,
+  MAX_ASSET_BYTES,
+  MAX_WIRE_BYTES,
   type CleanPqEvent,
 } from '../../lib/learning/pcquest.ts';
 
@@ -29,50 +35,72 @@ function ev(kind: CleanPqEvent['kind'], at: string, extra: Partial<CleanPqEvent>
 }
 
 test('validate_rejects_unknown_kind', () => {
-  const r = validateEvents(body([{ id: 'a', at: NOW.toISOString(), kind: 'explode', task: 't1' }]), NOW);
-  assert.equal(typeof r, 'string');
-  assert.match(r as string, /kind/);
+  const r = validateEvents(
+    body([
+      { id: 'a', at: NOW.toISOString(), kind: 'explode', task: 't1' },
+      { id: 'b', at: NOW.toISOString(), kind: 'start', task: 't1', rev: 1 },
+      'junk',
+      { id: 'c', at: 'garbage', kind: 'hint', task: 't1' },
+    ]),
+    NOW,
+  );
+  assert.notEqual(typeof r, 'string');
+  const ok = r as Exclude<typeof r, string>;
+  assert.deepEqual(ok.events.map((e) => e.id), ['b']);
+  assert.deepEqual(ok.rejected, [
+    { index: 0, id: 'a', reason: 'unknown kind' },
+    { index: 2, id: null, reason: 'not an object' },
+    { index: 3, id: 'c', reason: 'bad at' },
+  ]);
 });
 
 test('validate_rejects_missing_device_and_non_object', () => {
   assert.equal(typeof validateEvents(null, NOW), 'string');
   assert.equal(typeof validateEvents({ events: [] }, NOW), 'string');
+  assert.equal(typeof validateEvents({ device_id: DEV, events: 'x' }, NOW), 'string');
   const noLabel = validateEvents({ device_id: DEV, events: [] }, NOW);
   assert.equal((noLabel as Exclude<typeof noLabel, string>).device, null);
 });
 
 test('validate_clamps_future_at', () => {
   const future = new Date(NOW.getTime() + 3 * 86_400_000).toISOString();
-  const old = new Date(NOW.getTime() - 40 * 86_400_000).toISOString();
-  const ok = new Date(NOW.getTime() - 5 * 86_400_000).toISOString();
+  const soon = new Date(NOW.getTime() + 3_600_000).toISOString();
   const r = validateEvents(
     body([
       { id: 'a', at: future, kind: 'start', task: 't1', rev: 1 },
-      { id: 'b', at: old, kind: 'hint', task: 't1', rev: 1, step: 's1', detail: { x: 1 } },
-      { id: 'c', at: ok, kind: 'step', task: 't1', rev: 1, step: 's1' },
-      { id: 'd', at: 'garbage', kind: 'heartbeat' },
+      { id: 'b', at: future, kind: 'hint', task: 't1', rev: 1, step: 's1', detail: { x: 1 } },
+      { id: 'c', at: soon, kind: 'step', task: 't1', rev: 1, step: 's1' },
+      { id: 'd', at: NOW.toISOString(), kind: 'heartbeat' },
     ]),
     NOW,
   );
   assert.notEqual(typeof r, 'string');
-  const { events, device_id, device, app_version } = r as Exclude<typeof r, string>;
+  const { events, device_id, device, app_version, rejected } = r as Exclude<typeof r, string>;
   assert.equal(device_id, DEV);
   assert.equal(device, 'Monit laptop');
   assert.equal(app_version, '1.0.0');
+  assert.deepEqual(rejected, []);
   assert.equal(events[0].at, NOW.toISOString());
   assert.deepEqual(events[0].detail, { clamped: true });
-  assert.equal(events[1].at, NOW.toISOString());
   assert.deepEqual(events[1].detail, { x: 1, clamped: true });
-  assert.equal(events[2].at, ok);
+  assert.equal(events[2].at, soon);
   assert.equal(events[2].detail, null);
-  assert.equal(events[3].at, NOW.toISOString());
   assert.equal(events[3].task, null);
+});
+
+test('validate_keeps_old_past_at', () => {
+  const old = new Date(NOW.getTime() - 90 * 86_400_000).toISOString();
+  const r = validateEvents(body([{ id: 'a', at: old, kind: 'start', task: 't1', rev: 1 }]), NOW);
+  const { events } = r as Exclude<typeof r, string>;
+  assert.equal(events[0].at, old);
+  assert.equal(events[0].detail, null);
 });
 
 test('validate_caps_50', () => {
   const mk = (i: number) => ({ id: `id${i}`, at: NOW.toISOString(), kind: 'hint', task: 't1', rev: 1, step: 's' });
   const fifty = validateEvents(body(Array.from({ length: 50 }, (_, i) => mk(i))), NOW);
   assert.notEqual(typeof fifty, 'string');
+  assert.equal((fifty as Exclude<typeof fifty, string>).events.length, 50);
   const fiftyOne = validateEvents(body(Array.from({ length: 51 }, (_, i) => mk(i))), NOW);
   assert.equal(typeof fiftyOne, 'string');
 });
@@ -179,4 +207,39 @@ test('rung_summary_counts', () => {
     { rung: 'C2', done: 2, total: 3, selfReported: 1 },
     { rung: 'C10', done: 1, total: 2, selfReported: 0 },
   ]);
+});
+
+test('pack_put_limits', () => {
+  const b64 = (n: number) => Buffer.alloc(n, 7).toString('base64');
+  const ok = validatePackPut({ wire: '{}', assets: [{ path: 'assets/a.png', b64: b64(10) }] });
+  assert.notEqual(typeof ok, 'string');
+  assert.deepEqual([...(ok as any).assets[0].bytes], Array(10).fill(7));
+  assert.deepEqual((validatePackPut({ wire: '{}' }) as any).assets, []);
+
+  assert.equal(validatePackPut({}), 'missing wire');
+  assert.match(validatePackPut({ wire: 'x'.repeat(MAX_WIRE_BYTES + 1) }) as string, /wire larger/);
+  const many = Array.from({ length: 21 }, (_, i) => ({ path: `a${i}.png`, b64: b64(1) }));
+  assert.match(validatePackPut({ wire: '{}', assets: many }) as string, /too many assets/);
+  assert.notEqual(typeof validatePackPut({ wire: '{}', assets: many.slice(0, 20) }), 'string');
+  assert.match(validatePackPut({ wire: '{}', assets: [{ path: 'big.png', b64: b64(MAX_ASSET_BYTES + 1) }] }) as string, /larger than/);
+  assert.notEqual(typeof validatePackPut({ wire: '{}', assets: [{ path: 'max.png', b64: b64(MAX_ASSET_BYTES) }] }), 'string');
+  assert.match(validatePackPut({ wire: '{}', assets: [{ path: 'x.png', b64: '!!notb64' }] }) as string, /bad base64/);
+  assert.match(
+    validatePackPut({ wire: '{}', assets: [{ path: 'x.png', b64: b64(1) }, { path: 'x.png', b64: b64(2) }] }) as string,
+    /duplicate path/,
+  );
+});
+
+test('b64_decode_and_chunk', () => {
+  assert.deepEqual([...b64Decode(Buffer.from('héllo').toString('base64'))!], [...Buffer.from('héllo')]);
+  assert.equal(b64Decode('a'), null);
+  assert.deepEqual(chunk([1, 2, 3, 4, 5], 2), [[1, 2], [3, 4], [5]]);
+});
+
+test('pubkey_usable_rejects_placeholder', async () => {
+  const kp = (await crypto.subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify'])) as CryptoKeyPair;
+  const spki = Buffer.from(await crypto.subtle.exportKey('spki', kp.publicKey)).toString('base64');
+  assert.equal(await pubkeyUsable(spki), true);
+  assert.equal(await pubkeyUsable('REPLACE_WITH_QUEST_KEYGEN_OUTPUT'), false);
+  assert.equal(await pubkeyUsable(undefined), false);
 });

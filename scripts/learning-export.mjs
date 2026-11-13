@@ -86,13 +86,13 @@ if (pcquestBound) {
     pq[t] = d1(`SELECT * FROM ${t}`, 'pcquest');
     process.stderr.write(` ${pq[t].length}\n`);
   }
-  pq.pq_asset = d1('SELECT sha256, pack_id, path, length(bytes) AS size FROM pq_asset', 'pcquest');
+  pq.pq_asset = d1('SELECT pack_id, path, sha256, length(bytes) AS size FROM pq_asset', 'pcquest');
   writeFileSync(join(dest, `pcquest-${today}.json`), JSON.stringify(pq, null, 2));
   for (const a of pq.pq_asset) {
     const safe = String(a.path).split(/[\\/]/).filter((p) => p && p !== '.' && p !== '..');
     const target = join(dest, 'pcquest-assets', a.pack_id, ...safe);
     mkdirSync(dirname(target), { recursive: true });
-    const [row] = d1(`SELECT hex(bytes) AS hex FROM pq_asset WHERE sha256 = '${a.sha256.replace(/[^0-9a-f]/g, '')}'`, 'pcquest');
+    const [row] = d1(`SELECT hex(bytes) AS hex FROM pq_asset WHERE sha256 = '${a.sha256.replace(/[^0-9a-f]/g, '')}' LIMIT 1`, 'pcquest');
     writeFileSync(target, Buffer.from(row?.hex ?? '', 'hex'));
   }
 } else {

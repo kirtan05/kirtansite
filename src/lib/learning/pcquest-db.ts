@@ -15,12 +15,19 @@ import {
 /** Kinds that can change progress; the rest never need reading back. */
 const PROGRESS_KINDS = "('start','step','done','hint','pointed','wrong','reset')";
 
+/**
+ * Fold every progress event. Heartbeats and the other kinds that never change
+ * progress are not read at all, and `detail` is only fetched for `step`
+ * events (the one place the fold looks at it). Order is at, then arrival,
+ * then insertion, so ties are deterministic. Incremental folding is parked:
+ * one learner, small volume.
+ */
 export async function loadProgress(db: D1Database): Promise<Progress> {
   const rows = ((
     await db
       .prepare(
-        `SELECT id, at, kind, task, rev, step, detail FROM pq_event
-          WHERE task IS NOT NULL AND kind IN ${PROGRESS_KINDS} ORDER BY at, received_at`,
+        `SELECT at, kind, task, rev, step, CASE WHEN kind = 'step' THEN detail END AS detail FROM pq_event
+          WHERE task IS NOT NULL AND kind IN ${PROGRESS_KINDS} ORDER BY at, received_at, rowid`,
       )
       .all<any>()
   ).results ?? []) as any[];
@@ -31,7 +38,7 @@ export async function loadProgress(db: D1Database): Promise<Progress> {
     } catch {
       /* a bad detail is just no detail */
     }
-    return { id: r.id, at: r.at, kind: r.kind, task: r.task, rev: r.rev, step: r.step, detail };
+    return { id: '', at: r.at, kind: r.kind, task: r.task, rev: r.rev, step: r.step, detail };
   });
   return foldProgress(events);
 }

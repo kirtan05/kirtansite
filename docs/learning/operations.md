@@ -256,8 +256,8 @@ in the record, so no code change is needed.
 or you are signed in as the kid and asked for a `-COACH.pdf`.
 
 **PC Quest returns 503.** `PCQUEST_DB` is not bound, or the token secret for
-that route (kid or coach) is not set. A pack PUT also 503s without
-`PCQUEST_PACK_PUBKEY`; with the placeholder value it 400s ("bad signature").
+that route (kid or coach) is not set. A pack PUT also 503s while
+`PCQUEST_PACK_PUBKEY` is missing or still the placeholder.
 
 **Local D1 commands print a `FileHandle` error.** An old wrangler on Node 26.
 `npm i -D wrangler@latest`. The command usually succeeded anyway.

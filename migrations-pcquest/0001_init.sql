@@ -20,13 +20,17 @@ CREATE TABLE pq_pack (
   retired    INTEGER NOT NULL DEFAULT 0
 );
 
--- Images referenced by a pack, content-addressed so the laptop caches by hash.
+-- Images referenced by a pack. One row per (pack, path), so the same picture
+-- in two packs (or at two paths) is two rows and neither pack can lose it.
+-- The laptop caches by sha256 and fetches by it; any row with that hash will do.
 CREATE TABLE pq_asset (
-  sha256  TEXT PRIMARY KEY,                 -- lowercase hex of `bytes`
   pack_id TEXT NOT NULL,
   path    TEXT NOT NULL,                    -- as referenced in the pack, e.g. assets/start.png
-  bytes   BLOB NOT NULL
+  sha256  TEXT NOT NULL,                    -- lowercase hex of `bytes`
+  bytes   BLOB NOT NULL,
+  PRIMARY KEY (pack_id, path)
 );
+CREATE INDEX idx_pq_asset_sha ON pq_asset(sha256);
 
 -- One row per install. The id is chosen by the app; label is for humans.
 CREATE TABLE pq_device (

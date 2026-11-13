@@ -42,13 +42,14 @@ export const GET: APIRoute = async (ctx) => {
   const asset = q.get('asset');
   if (asset !== null) {
     if (!/^[0-9a-f]{64}$/.test(asset)) return bad('bad asset');
-    const row = await db.prepare('SELECT path, bytes FROM pq_asset WHERE sha256 = ?').bind(asset).first<any>();
+    const row = await db.prepare('SELECT path, bytes FROM pq_asset WHERE sha256 = ? LIMIT 1').bind(asset).first<any>();
     if (!row) return bad('no such asset', 404);
     const ext = String(row.path).split('.').pop()?.toLowerCase() ?? '';
     return new Response(new Uint8Array(row.bytes), {
       headers: {
         'content-type': TYPES[ext] ?? 'application/octet-stream',
         'cache-control': 'private, max-age=31536000, immutable',
+        'x-content-type-options': 'nosniff',
       },
     });
   }

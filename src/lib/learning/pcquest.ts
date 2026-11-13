@@ -29,14 +29,13 @@ export const EVENT_KINDS = [
 export type PqKind = (typeof EVENT_KINDS)[number];
 
 export const MAX_EVENTS = 50;
-const PAST_MS = 30 * 86_400_000;
 const FUTURE_MS = 1 * 86_400_000;
 const MAX_DETAIL_CHARS = 2000;
 
 /** A validated event, ready to insert. `detail` is stored as JSON text. */
 export interface CleanPqEvent {
   id: string;
-  at: string; // ISO UTC, normalised (clamped to `now` if out of range)
+  at: string; // ISO UTC, normalised (clamped to `now` only if more than a day in the future)
   kind: PqKind;
   task: string | null;
   rev: number | null;
@@ -44,22 +43,58 @@ export interface CleanPqEvent {
   detail: Record<string, unknown> | null;
 }
 
+/** An event the server would not store, and why. `id` is null when it had none. */
+export interface RejectedEvent {
+  index: number;
+  id: string | null;
+  reason: string;
+}
+
 export interface CleanBatch {
   device_id: string;
   device: string | null; // label for humans; null when not sent (the stored label is kept)
   app_version: string | null;
   events: CleanPqEvent[];
+  rejected: RejectedEvent[];
 }
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const optStr = (v: unknown, max: number): string | null | undefined =>
   v == null ? null : typeof v === 'string' && v.length > 0 && v.length <= max ? v : undefined;
 
+/** One event: the clean form, or the reason it is refused. */
+function validateEvent(r: unknown, nowMs: number): CleanPqEvent | string {
+  if (!isObj(r)) return 'not an object';
+  if (typeof r.id !== 'string' || r.id.length < 1 || r.id.length > 128) return 'bad id';
+  if (typeof r.kind !== 'string' || !(EVENT_KINDS as readonly string[]).includes(r.kind)) return 'unknown kind';
+  const task = optStr(r.task, 128);
+  if (task === undefined) return 'bad task';
+  const step = optStr(r.step, 64);
+  if (step === undefined) return 'bad step';
+  if (r.rev != null && !Number.isInteger(r.rev)) return 'bad rev';
+  if (r.detail != null && !isObj(r.detail)) return 'detail must be an object';
+  let detail = r.detail == null ? null : { ...(r.detail as Record<string, unknown>) };
+  if (detail && JSON.stringify(detail).length > MAX_DETAIL_CHARS) return 'detail too large';
+
+  const t = typeof r.at === 'string' ? Date.parse(r.at) : NaN;
+  if (Number.isNaN(t)) return 'bad at';
+  let at = new Date(t).toISOString();
+  // Any past time is believed (a laptop can be offline for months). Only a
+  // clock running more than a day fast is pulled back to the server's now.
+  if (t > nowMs + FUTURE_MS) {
+    at = new Date(nowMs).toISOString();
+    detail = { ...(detail ?? {}), clamped: true };
+  }
+  return { id: r.id, at, kind: r.kind as PqKind, task, rev: (r.rev as number | null) ?? null, step, detail };
+}
+
 /**
- * Validate a POST /events body. Returns the clean batch, or an error string
- * (the route turns it into a 400). One bad event rejects the whole batch: the
- * app only ever sends kinds it knows, so a bad event means a bug to fix, not
- * data to salvage.
+ * Validate a POST /events body. A structurally bad body (not an object, no
+ * device_id, events not an array, more than 50 events) is an error string,
+ * which the route turns into a 400. Otherwise each event stands alone: the
+ * valid ones are returned in `events`, the rest in `rejected` with a reason,
+ * so one event a newer app knows and this server doesn't can never wedge the
+ * laptop's outbox.
  */
 export function validateEvents(body: unknown, now: Date): CleanBatch | string {
   if (!isObj(body)) return 'body must be a JSON object';
@@ -73,33 +108,15 @@ export function validateEvents(body: unknown, now: Date): CleanBatch | string {
 
   const nowMs = now.getTime();
   const events: CleanPqEvent[] = [];
-  for (const [i, r] of body.events.entries()) {
-    if (!isObj(r)) return `event ${i}: not an object`;
-    if (typeof r.id !== 'string' || r.id.length < 1 || r.id.length > 128) return `event ${i}: bad id`;
-    if (typeof r.kind !== 'string' || !(EVENT_KINDS as readonly string[]).includes(r.kind)) {
-      return `event ${i}: unknown kind`;
-    }
-    const task = optStr(r.task, 128);
-    if (task === undefined) return `event ${i}: bad task`;
-    const step = optStr(r.step, 64);
-    if (step === undefined) return `event ${i}: bad step`;
-    if (r.rev != null && !Number.isInteger(r.rev)) return `event ${i}: bad rev`;
-    if (r.detail != null && !isObj(r.detail)) return `event ${i}: detail must be an object`;
-    let detail = r.detail == null ? null : { ...(r.detail as Record<string, unknown>) };
-    if (detail && JSON.stringify(detail).length > MAX_DETAIL_CHARS) return `event ${i}: detail too large`;
-
-    const t = typeof r.at === 'string' ? Date.parse(r.at) : NaN;
-    let at: string;
-    if (Number.isNaN(t) || t < nowMs - PAST_MS || t > nowMs + FUTURE_MS) {
-      at = now.toISOString();
-      detail = { ...(detail ?? {}), clamped: true };
-    } else {
-      at = new Date(t).toISOString();
-    }
-
-    events.push({ id: r.id, at, kind: r.kind as PqKind, task, rev: (r.rev as number | null) ?? null, step, detail });
+  const rejected: RejectedEvent[] = [];
+  for (const [index, r] of body.events.entries()) {
+    const c = validateEvent(r, nowMs);
+    if (typeof c === 'string') {
+      const id = isObj(r) && typeof r.id === 'string' ? r.id.slice(0, 128) : null;
+      rejected.push({ index, id, reason: c });
+    } else events.push(c);
   }
-  return { device_id, device, app_version, events };
+  return { device_id, device, app_version, events, rejected };
 }
 
 // ── progress ───────────────────────────────────────────────────────────
@@ -285,6 +302,79 @@ export function waitingApprovals(progress: Progress, taskMeta: TaskMeta[], appro
     if (!p || p.state === 'done' || approved.has(t.id)) return false;
     return (t.parentSteps ?? []).some((s) => !p.steps[s]);
   });
+}
+
+// ── pack upload limits ─────────────────────────────────────────────────
+
+export const MAX_WIRE_BYTES = 1_500_000; // D1 caps a row at 2 MB
+export const MAX_ASSETS = 20;
+export const MAX_ASSET_BYTES = 1_000_000;
+
+/** Base64 to bytes, using the fastest decoder the runtime has. Null if invalid. */
+export function b64Decode(b64: string): Uint8Array | null {
+  if (!/^[A-Za-z0-9+/]*={0,2}$/.test(b64) || b64.length % 4 === 1) return null;
+  try {
+    const U8 = Uint8Array as any;
+    if (typeof U8.fromBase64 === 'function') return U8.fromBase64(b64);
+    const B = (globalThis as any).Buffer;
+    if (B) return new Uint8Array(B.from(b64, 'base64'));
+    return Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  } catch {
+    return null;
+  }
+}
+
+export interface PackPut {
+  wire: string;
+  assets: Array<{ path: string; bytes: Uint8Array }>;
+}
+
+/**
+ * Check a PUT /packs/:id body against the size limits, before any crypto.
+ * Returns the decoded body, or an error string (a 400). The signature and the
+ * payload's `pack` are checked separately.
+ */
+export function validatePackPut(body: unknown): PackPut | string {
+  if (!isObj(body) || typeof body.wire !== 'string') return 'missing wire';
+  if (new TextEncoder().encode(body.wire).length > MAX_WIRE_BYTES) return `wire larger than ${MAX_WIRE_BYTES} bytes`;
+  const raw = body.assets == null ? [] : body.assets;
+  if (!Array.isArray(raw)) return 'assets must be an array';
+  if (raw.length > MAX_ASSETS) return `too many assets; at most ${MAX_ASSETS}`;
+
+  const assets: PackPut['assets'] = [];
+  const seen = new Set<string>();
+  for (const a of raw) {
+    if (!isObj(a) || typeof a.path !== 'string' || !a.path || a.path.length > 200 || typeof a.b64 !== 'string') {
+      return 'bad asset';
+    }
+    if (seen.has(a.path)) return `asset ${a.path}: duplicate path`;
+    seen.add(a.path);
+    // Refuse oversize before decoding: base64 is 4 chars per 3 bytes.
+    if (Math.floor((a.b64.length * 3) / 4) - 2 > MAX_ASSET_BYTES) return `asset ${a.path}: larger than ${MAX_ASSET_BYTES} bytes`;
+    const bytes = b64Decode(a.b64);
+    if (!bytes) return `asset ${a.path}: bad base64`;
+    if (bytes.length > MAX_ASSET_BYTES) return `asset ${a.path}: larger than ${MAX_ASSET_BYTES} bytes`;
+    assets.push({ path: a.path, bytes });
+  }
+  return { wire: body.wire, assets };
+}
+
+/** True when `spkiB64` imports as a P-256 public key (so not the placeholder). */
+export async function pubkeyUsable(spkiB64: string | undefined): Promise<boolean> {
+  if (!spkiB64) return false;
+  try {
+    await crypto.subtle.importKey('spki', b64ToBytes(spkiB64), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Split a list into runs of at most n (D1 batches stay under the statement budget). */
+export function chunk<T>(arr: T[], n: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out;
 }
 
 // ── heartbeat retention (spec §10) ─────────────────────────────────────

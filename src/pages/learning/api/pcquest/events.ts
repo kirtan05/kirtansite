@@ -4,8 +4,12 @@ export const prerender = false;
  * POST /learning/api/pcquest/events — the laptop's outbox (kid token).
  *
  * Body: { device_id, device, app_version, events: [{ id, at, kind, task, rev, step, detail }] }
- * At most 50 events; one bad event rejects the batch with a 400 (see
- * validateEvents). Timestamps outside -30d..+1d are clamped to now and marked
+ * At most 50 events. Only a structurally bad body (not an object, no
+ * device_id, events not an array, > 50 events) is a 400. Each event is
+ * otherwise judged alone: valid ones are stored, invalid ones come back in
+ * `rejected` with a reason, and the response is still 200 — so the app can
+ * ack the chunk and one odd event never wedges its outbox. Any past `at` is
+ * believed; one more than a day in the future is set to now and marked
  * detail.clamped.
  *
  * Idempotent: each event's id is the app's UUID and rows go in with INSERT OR
@@ -13,11 +17,9 @@ export const prerender = false;
  * event: it moves the device's last_seen (as every request does) and keeps at
  * most one row per device per IST day, id hb|device|day — spec §10 retention.
  *
- * Statement budget: one device upsert, heartbeats (≤ 50), and the rest as
- * multi-row inserts of 11 (11 × 9 = 99 bound params, under the 100 limit),
- * all in one batch — under the ~50 statements a free-plan invocation allows
- * in the common case, and a batch of 50 heartbeats only ever happens if the
- * app misbehaves.
+ * Statement budget: one device upsert plus multi-row inserts of 11 (11 × 9
+ * = 99 bound params, under the 100 limit; heartbeats are collapsed into the
+ * same rows), so at most 6 statements in one batch.
  */
 import type { APIRoute } from 'astro';
 import { bad, bearer, json, readJson } from '../../../../lib/learning/pcquest-auth';
@@ -37,7 +39,7 @@ export const POST: APIRoute = async (ctx) => {
   const batch = validateEvents(body, now);
   if (typeof batch === 'string') return bad(batch);
 
-  const { device_id, device, app_version, events } = batch;
+  const { device_id, device, app_version, events, rejected } = batch;
   const stmts: D1PreparedStatement[] = [
     db
       .prepare(
@@ -95,5 +97,5 @@ export const POST: APIRoute = async (ctx) => {
     return bad('store failed', 500);
   }
 
-  return json({ ok: true, received: events.length, inserted });
+  return json({ ok: true, accepted: events.length, inserted, rejected });
 };

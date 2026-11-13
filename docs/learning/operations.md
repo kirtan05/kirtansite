@@ -212,7 +212,9 @@ laptop, the coach token into `~/.config/pcquest/coach.env`
 Rotating either is just putting a new secret.
 
 **Locally:** add `PCQUEST_KID_TOKEN`, `PCQUEST_COACH_TOKEN` (and, to test
-pushes with a throwaway key, `PCQUEST_PACK_PUBKEY`) to `.dev.vars`, then:
+pushes with a throwaway key, `PCQUEST_PACK_PUBKEY`) to `.dev.vars`, plus
+`LEARNING_HOST=localhost` (a built `dist` only allows the real host otherwise,
+so every route 404s), then:
 
 ```bash
 npx wrangler d1 execute pcquest --local --file migrations-pcquest/0001_init.sql -y

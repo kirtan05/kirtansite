@@ -20,7 +20,7 @@ const title = 'Gold bill calculator';
       <h1>Gold bill calculator</h1>
       <p class="lead">Enter what you paid by RTGS and how many grams. It gives the rate and weight for the bill.</p>
 
-      <form id="form" autocomplete="off">
+      <form id="form" autocomplete="off" onsubmit="return false">
         <label>
           <span>Amount paid (₹)</span>
           <input id="paid" type="text" inputmode="decimal" placeholder="e.g. 13,00,000" />
@@ -35,6 +35,11 @@ const title = 'Gold bill calculator';
           <button type="button" data-g="150">150 g</button>
           <button type="button" data-g="200">200 g</button>
         </div>
+        <label>
+          <span>Weight on bill <em>(optional)</em></span>
+          <input id="want" type="text" inputmode="decimal" placeholder="leave empty for automatic" />
+          <small>Type a weight like 105 and the rate is worked out for it.</small>
+        </label>
       </form>
 
       <section id="out" hidden>
@@ -54,25 +59,23 @@ const title = 'Gold bill calculator';
 
         <table class="bill">
           <tbody>
-            <tr><td>Rate × Weight</td><td id="b-value"></td></tr>
-            <tr><td>+ Wastage 3%</td><td id="b-wastage"></td></tr>
-            <tr class="sub"><td>Taxable</td><td id="b-taxable"></td></tr>
-            <tr><td>+ CGST 1.5%</td><td id="b-cgst"></td></tr>
-            <tr><td>+ SGST 1.5%</td><td id="b-sgst"></td></tr>
-            <tr class="total"><td>Bill total</td><td id="b-total"></td></tr>
-            <tr><td>Paid by RTGS</td><td id="b-paid"></td></tr>
-            <tr class="diff"><td>Difference</td><td id="b-diff"></td></tr>
+            <tr><td id="b-rxw"></td><td id="b-value"></td></tr>
+            <tr><td>CGST 1.5%</td><td id="b-cgst"></td></tr>
+            <tr><td>SGST 1.5%</td><td id="b-sgst"></td></tr>
+            <tr class="sub"><td>Bill total</td><td id="b-total"></td></tr>
+            <tr><td id="b-adj-k"></td><td id="b-adj"></td></tr>
+            <tr class="total"><td>Net amount (RTGS)</td><td id="b-net"></td></tr>
           </tbody>
         </table>
 
-        <details>
+        <details id="alts-box">
           <summary>Other rate / weight options</summary>
           <ul id="alts"></ul>
         </details>
 
         <p class="how">
-          Starting rate = amount ÷ grams × 22 ÷ 24 = <b id="base"></b>. The rate is moved by a few rupees so that
-          rate × 1.03 (wastage) × weight × 1.03 (GST) comes to the paid amount within 50 paise.
+          Starting rate = amount ÷ grams × 0.92 = <b id="base"></b>. The rate is moved by a few rupees so that
+          rate × weight + 3% GST comes to the paid amount within 50 paise.
         </p>
       </section>
 
@@ -80,13 +83,15 @@ const title = 'Gold bill calculator';
     </main>
 
     <script>
-      import { baseRate, solve, type Bill } from '../../scripts/goldbill/calc';
+      import { baseRate, rateForWeight, solve, type Bill } from '../../scripts/goldbill/calc';
 
       const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
       const paidEl = $<HTMLInputElement>('paid');
       const fineEl = $<HTMLInputElement>('fine');
+      const wantEl = $<HTMLInputElement>('want');
       const out = $('out');
       const empty = $('empty');
+      const note = $('note');
 
       const rs = (n: number) =>
         '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -99,54 +104,66 @@ const title = 'Gold bill calculator';
         current = b;
         $('rate').textContent = num(b.rate);
         $('weight').textContent = num(b.weight);
+        $('b-rxw').textContent = `${num(b.rate)} × ${num(b.weight)} g`;
         $('b-value').textContent = rs(b.value);
-        $('b-wastage').textContent = rs(b.wastage);
-        $('b-taxable').textContent = rs(b.taxable);
         $('b-cgst').textContent = rs(b.cgst);
         $('b-sgst').textContent = rs(b.sgst);
         $('b-total').textContent = rs(b.total);
-        $('b-paid').textContent = rs(paid);
+        // Round-off line, as on the bill: Less when the total is over, Add when under.
         const d = b.diff;
-        $('b-diff').textContent = d === 0 ? '₹0.00 — exact' : (d > 0 ? '+' : '−') + rs(Math.abs(d));
+        $('b-adj-k').textContent = d > 0 ? 'Less' : 'Add';
+        $('b-adj').textContent = d > 0 ? '−' + num(d) : '+' + num(-d);
+        $('b-net').textContent = rs(paid);
+      }
+
+      function setNote(text: string, warn: boolean) {
+        note.textContent = text;
+        note.className = warn ? 'note warn' : 'note ok';
       }
 
       function run() {
         const paid = parse(paidEl.value);
         const fine = parse(fineEl.value);
+        const want = parse(wantEl.value);
         document.querySelectorAll<HTMLButtonElement>('.quick button').forEach((btn) =>
           btn.classList.toggle('on', Number(btn.dataset.g) === fine),
         );
-        if (!(paid > 0) || !(fine > 0)) {
+        const altsBox = $<HTMLDetailsElement>('alts-box');
+        const alts = $('alts');
+        if (!(paid > 0) || (!(fine > 0) && !(want > 0))) {
           out.hidden = true;
           empty.hidden = false;
           return;
         }
-        const a = solve(paid, fine);
-        if (!a.bills.length) return;
         out.hidden = false;
         empty.hidden = true;
-        $('base').textContent = num(baseRate(paid, fine));
-        show(a.bills[0], paid);
+        $('base').textContent = fine > 0 ? num(baseRate(paid, fine)) : '—';
 
-        const note = $('note');
-        if (!a.exact) {
-          note.textContent = 'Could not match within 50 paise. This is the closest — please check.';
-          note.className = 'note warn';
-        } else if (a.spread > 4) {
-          note.textContent = `Rate had to move up to ₹${a.spread} from the starting rate to fit.`;
-          note.className = 'note warn';
-        } else {
-          note.textContent = 'Matches the paid amount within 50 paise.';
-          note.className = 'note ok';
+        if (want > 0) {
+          const a = rateForWeight(paid, want)!;
+          show(a.bill, paid);
+          altsBox.hidden = true;
+          if (!a.exact) setNote('Could not match within 50 paise. This is the closest — please check.', true);
+          else if (a.bill.weight !== a.asked)
+            setNote(`${num(a.asked)} g could not fit to the rupee, so the weight is ${num(a.bill.weight)} g.`, true);
+          else setNote(`Rate worked out for ${num(a.asked)} g.`, false);
+          return;
         }
 
-        const alts = $('alts');
+        const a = solve(paid, fine);
+        if (!a.bills.length) return;
+        show(a.bills[0], paid);
+        if (!a.exact) setNote('Could not match within 50 paise. This is the closest — please check.', true);
+        else if (a.spread > 4) setNote(`Rate had to move up to ₹${a.spread} from the starting rate to fit.`, true);
+        else setNote('Matches the paid amount within 50 paise.', false);
+
+        altsBox.hidden = false;
         alts.replaceChildren(
           ...a.bills.slice(0, 8).map((b, i) => {
             const li = document.createElement('li');
             const btn = document.createElement('button');
             btn.type = 'button';
-            btn.textContent = `Rate ${num(b.rate)} · Weight ${num(b.weight)} · total ${rs(b.total)}`;
+            btn.textContent = `Rate ${num(b.rate)} · Weight ${num(b.weight)} g`;
             btn.className = i === 0 ? 'on' : '';
             btn.onclick = () => {
               alts.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
@@ -159,8 +176,7 @@ const title = 'Gold bill calculator';
         );
       }
 
-      paidEl.addEventListener('input', run);
-      fineEl.addEventListener('input', run);
+      for (const el of [paidEl, fineEl, wantEl]) el.addEventListener('input', run);
       document.querySelectorAll<HTMLButtonElement>('.quick button').forEach((btn) =>
         btn.addEventListener('click', () => {
           fineEl.value = btn.dataset.g!;
@@ -206,6 +222,8 @@ const title = 'Gold bill calculator';
       .lead { margin: 0 0 18px; color: var(--muted); }
       label { display: block; margin-bottom: 14px; }
       label span { display: block; font-weight: 600; margin-bottom: 6px; }
+      label em { font-weight: 400; color: var(--muted); font-style: normal; }
+      label small { display: block; color: var(--muted); font-size: 0.85rem; margin-top: 4px; }
       input {
         width: 100%;
         font: inherit;
@@ -216,9 +234,10 @@ const title = 'Gold bill calculator';
         background: var(--card);
         color: var(--ink);
       }
+      input::placeholder { font-size: 1.05rem; }
       input:focus { outline: none; border-color: var(--gold); }
       button { font: inherit; cursor: pointer; }
-      .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: -4px 0 20px; }
+      .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: -4px 0 18px; }
       .quick button, #alts button {
         padding: 10px 6px;
         border: 2px solid var(--line);
@@ -260,9 +279,8 @@ const title = 'Gold bill calculator';
       }
       .bill td { padding: 9px 12px; border-bottom: 1px solid var(--line); }
       .bill td:last-child { text-align: right; white-space: nowrap; }
-      .bill .sub td, .bill .total td { font-weight: 700; }
-      .bill .total td { background: var(--gold-soft); }
-      .bill .diff td { color: var(--muted); border-bottom: 0; }
+      .bill .sub td { font-weight: 700; }
+      .bill .total td { font-weight: 800; background: var(--gold-soft); border-bottom: 0; }
       details { margin: 18px 0 0; }
       summary { cursor: pointer; font-weight: 600; color: var(--gold); padding: 6px 0; }
       #alts { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }

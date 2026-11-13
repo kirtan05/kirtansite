@@ -1,42 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { baseRate, bill, fit, solve } from './calc.ts';
+import { baseRate, bill, fit, rateForWeight, solve } from './calc.ts';
 
-test('every result fits within 50 paise and 4 rupees of the base rate', () => {
-  for (const [paid, fine] of [
-    [1300000, 100],
-    [1287654, 100],
-    [2575000, 200],
-    [650321, 50],
-  ]) {
-    const results = fit(paid, fine);
-    assert.ok(results.length > 0, `no fit for ${paid}/${fine}`);
-    const base = baseRate(paid, fine);
-    for (const b of results) {
-      assert.ok(Math.abs(b.diff) <= 0.5, `diff ${b.diff}`);
-      assert.ok(Math.abs(b.rate - base) <= 4 + 1e-9);
-      assert.ok(Math.abs(Math.round(b.weight * 100) - b.weight * 100) < 1e-6);
-      assert.ok(Math.abs(Math.round(b.rate * 100) - b.rate * 100) < 1e-6);
-      assert.deepEqual(bill(b.rate, b.weight, paid), b);
-    }
-  }
+const twoDp = (n: number) => Math.abs(Math.round(n * 100) - n * 100) < 1e-6;
+
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+
+test('100 g comes out near 105.5 g on the bill', () => {
+  const [b] = fit(1300000, 100);
+  assert.ok(b.weight > 105 && b.weight < 106, `weight ${b.weight}`);
+  assert.ok(Math.abs(b.rate - baseRate(1300000, 100)) <= 4);
 });
 
-test('prefers whole-rupee rates when one fits', () => {
-  const results = fit(1300000, 100);
-  const whole = results.filter((b) => Number.isInteger(b.rate));
-  if (whole.length) assert.ok(Number.isInteger(results[0].rate));
-});
-
-test('bad input gives nothing', () => {
-  assert.deepEqual(fit(0, 100), []);
-  assert.deepEqual(fit(100000, 0), []);
-  assert.deepEqual(fit(NaN, 100), []);
-});
-
-test('solve always fits orders up to 200 g, weight to 2 decimals', () => {
-  let seed = 7;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+test('solve always fits orders up to 200 g, rate and weight to 2 decimals', () => {
   let widened = 0;
   for (let i = 0; i < 2000; i++) {
     const fine = [50, 100, 100, 100, 150, 200][Math.floor(rnd() * 6)];
@@ -44,10 +21,32 @@ test('solve always fits orders up to 200 g, weight to 2 decimals', () => {
     const a = solve(paid, fine);
     assert.ok(a.exact, `no fit for ${paid}/${fine}`);
     if (a.spread > 4) widened++;
+    const base = baseRate(paid, fine);
     for (const b of a.bills) {
       assert.ok(Math.abs(b.diff) <= 0.5);
-      assert.ok(Math.abs(Math.round(b.weight * 100) - b.weight * 100) < 1e-6);
+      assert.ok(Math.abs(b.rate - base) <= a.spread + 1e-9);
+      assert.ok(twoDp(b.weight) && twoDp(b.rate));
+      assert.deepEqual(bill(b.rate, b.weight, paid), b);
     }
   }
-  assert.ok(widened < 60, `widened ${widened} times`);
+  assert.ok(widened < 20, `widened ${widened} times`);
+});
+
+test('rateForWeight fits a chosen weight, nudging it by at most 0.25 g', () => {
+  for (let i = 0; i < 2000; i++) {
+    const fine = [100, 100, 150, 200][Math.floor(rnd() * 4)];
+    const paid = Math.round(fine * (11000 + rnd() * 3000));
+    const weight = Math.round((fine / (0.92 * 1.03)) * (0.98 + rnd() * 0.04));
+    const a = rateForWeight(paid, weight)!;
+    assert.ok(a.exact, `no fit for ${paid} @ ${weight} g`);
+    assert.ok(Math.abs(a.bill.diff) <= 0.5);
+    assert.ok(Math.abs(a.bill.weight - weight) <= 0.25 + 1e-9);
+    assert.ok(twoDp(a.bill.rate));
+  }
+});
+
+test('bad input gives nothing', () => {
+  assert.deepEqual(fit(0, 100), []);
+  assert.deepEqual(solve(NaN, 100).bills, []);
+  assert.equal(rateForWeight(100000, 0), null);
 });

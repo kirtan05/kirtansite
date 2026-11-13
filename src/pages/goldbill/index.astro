@@ -1,0 +1,274 @@
+---
+// /goldbill — fits the supplier's gold bill to the exact RTGS amount.
+// For Mummy and Papa. Standalone page, all maths in the browser
+// (src/scripts/goldbill/calc.ts). Not indexed, not in the sitemap.
+const title = 'Gold bill calculator';
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="theme-color" content="#7a5a12" />
+    <title>{title}</title>
+    <link rel="icon" href="/favicon.svg" />
+  </head>
+  <body>
+    <main>
+      <h1>Gold bill calculator</h1>
+      <p class="lead">Enter what you paid by RTGS and how many grams. It gives the rate and weight for the bill.</p>
+
+      <form id="form" autocomplete="off">
+        <label>
+          <span>Amount paid (₹)</span>
+          <input id="paid" type="text" inputmode="decimal" placeholder="e.g. 13,00,000" />
+        </label>
+        <label>
+          <span>Gold bought (grams, 24K)</span>
+          <input id="fine" type="text" inputmode="decimal" value="100" />
+        </label>
+        <div class="quick">
+          <button type="button" data-g="50">50 g</button>
+          <button type="button" data-g="100">100 g</button>
+          <button type="button" data-g="150">150 g</button>
+          <button type="button" data-g="200">200 g</button>
+        </div>
+      </form>
+
+      <section id="out" hidden>
+        <div class="answer">
+          <div class="big">
+            <span class="k">Rate (per gram)</span>
+            <span class="v" id="rate"></span>
+            <button type="button" class="copy" data-copy="rate">Copy</button>
+          </div>
+          <div class="big">
+            <span class="k">Weight (grams)</span>
+            <span class="v" id="weight"></span>
+            <button type="button" class="copy" data-copy="weight">Copy</button>
+          </div>
+        </div>
+        <p id="note" class="note"></p>
+
+        <table class="bill">
+          <tbody>
+            <tr><td>Rate × Weight</td><td id="b-value"></td></tr>
+            <tr><td>+ Wastage 3%</td><td id="b-wastage"></td></tr>
+            <tr class="sub"><td>Taxable</td><td id="b-taxable"></td></tr>
+            <tr><td>+ CGST 1.5%</td><td id="b-cgst"></td></tr>
+            <tr><td>+ SGST 1.5%</td><td id="b-sgst"></td></tr>
+            <tr class="total"><td>Bill total</td><td id="b-total"></td></tr>
+            <tr><td>Paid by RTGS</td><td id="b-paid"></td></tr>
+            <tr class="diff"><td>Difference</td><td id="b-diff"></td></tr>
+          </tbody>
+        </table>
+
+        <details>
+          <summary>Other rate / weight options</summary>
+          <ul id="alts"></ul>
+        </details>
+
+        <p class="how">
+          Starting rate = amount ÷ grams × 22 ÷ 24 = <b id="base"></b>. The rate is moved by a few rupees so that
+          rate × 1.03 (wastage) × weight × 1.03 (GST) comes to the paid amount within 50 paise.
+        </p>
+      </section>
+
+      <p id="empty" class="hint">Type the amount to see the bill.</p>
+    </main>
+
+    <script>
+      import { baseRate, solve, type Bill } from '../../scripts/goldbill/calc';
+
+      const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+      const paidEl = $<HTMLInputElement>('paid');
+      const fineEl = $<HTMLInputElement>('fine');
+      const out = $('out');
+      const empty = $('empty');
+
+      const rs = (n: number) =>
+        '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const num = (n: number) => n.toFixed(2);
+      const parse = (s: string) => parseFloat(s.replace(/[,₹\s]/g, ''));
+
+      let current: Bill | null = null;
+
+      function show(b: Bill, paid: number) {
+        current = b;
+        $('rate').textContent = num(b.rate);
+        $('weight').textContent = num(b.weight);
+        $('b-value').textContent = rs(b.value);
+        $('b-wastage').textContent = rs(b.wastage);
+        $('b-taxable').textContent = rs(b.taxable);
+        $('b-cgst').textContent = rs(b.cgst);
+        $('b-sgst').textContent = rs(b.sgst);
+        $('b-total').textContent = rs(b.total);
+        $('b-paid').textContent = rs(paid);
+        const d = b.diff;
+        $('b-diff').textContent = d === 0 ? '₹0.00 — exact' : (d > 0 ? '+' : '−') + rs(Math.abs(d));
+      }
+
+      function run() {
+        const paid = parse(paidEl.value);
+        const fine = parse(fineEl.value);
+        document.querySelectorAll<HTMLButtonElement>('.quick button').forEach((btn) =>
+          btn.classList.toggle('on', Number(btn.dataset.g) === fine),
+        );
+        if (!(paid > 0) || !(fine > 0)) {
+          out.hidden = true;
+          empty.hidden = false;
+          return;
+        }
+        const a = solve(paid, fine);
+        if (!a.bills.length) return;
+        out.hidden = false;
+        empty.hidden = true;
+        $('base').textContent = num(baseRate(paid, fine));
+        show(a.bills[0], paid);
+
+        const note = $('note');
+        if (!a.exact) {
+          note.textContent = 'Could not match within 50 paise. This is the closest — please check.';
+          note.className = 'note warn';
+        } else if (a.spread > 4) {
+          note.textContent = `Rate had to move up to ₹${a.spread} from the starting rate to fit.`;
+          note.className = 'note warn';
+        } else {
+          note.textContent = 'Matches the paid amount within 50 paise.';
+          note.className = 'note ok';
+        }
+
+        const alts = $('alts');
+        alts.replaceChildren(
+          ...a.bills.slice(0, 8).map((b, i) => {
+            const li = document.createElement('li');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.textContent = `Rate ${num(b.rate)} · Weight ${num(b.weight)} · total ${rs(b.total)}`;
+            btn.className = i === 0 ? 'on' : '';
+            btn.onclick = () => {
+              alts.querySelectorAll('button').forEach((x) => x.classList.remove('on'));
+              btn.classList.add('on');
+              show(b, paid);
+            };
+            li.append(btn);
+            return li;
+          }),
+        );
+      }
+
+      paidEl.addEventListener('input', run);
+      fineEl.addEventListener('input', run);
+      document.querySelectorAll<HTMLButtonElement>('.quick button').forEach((btn) =>
+        btn.addEventListener('click', () => {
+          fineEl.value = btn.dataset.g!;
+          run();
+        }),
+      );
+      document.querySelectorAll<HTMLButtonElement>('.copy').forEach((btn) =>
+        btn.addEventListener('click', async () => {
+          if (!current) return;
+          const v = num(btn.dataset.copy === 'rate' ? current.rate : current.weight);
+          try {
+            await navigator.clipboard.writeText(v);
+            btn.textContent = 'Copied';
+            setTimeout(() => (btn.textContent = 'Copy'), 1200);
+          } catch {}
+        }),
+      );
+      run();
+    </script>
+
+    <style is:global>
+      :root {
+        --bg: #fbf7ee;
+        --card: #ffffff;
+        --ink: #2a2116;
+        --muted: #6f6352;
+        --gold: #9a7215;
+        --gold-soft: #f3e6c4;
+        --line: #e7dcc4;
+        --ok: #1f7a3a;
+        --warn: #a3470d;
+        color-scheme: light;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 18px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+      main { max-width: 34rem; margin: 0 auto; padding: 20px 16px 48px; }
+      h1 { font-size: 1.6rem; margin: 0 0 4px; color: var(--gold); }
+      .lead { margin: 0 0 18px; color: var(--muted); }
+      label { display: block; margin-bottom: 14px; }
+      label span { display: block; font-weight: 600; margin-bottom: 6px; }
+      input {
+        width: 100%;
+        font: inherit;
+        font-size: 1.5rem;
+        padding: 12px 14px;
+        border: 2px solid var(--line);
+        border-radius: 12px;
+        background: var(--card);
+        color: var(--ink);
+      }
+      input:focus { outline: none; border-color: var(--gold); }
+      button { font: inherit; cursor: pointer; }
+      .quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: -4px 0 20px; }
+      .quick button, #alts button {
+        padding: 10px 6px;
+        border: 2px solid var(--line);
+        border-radius: 10px;
+        background: var(--card);
+        color: var(--ink);
+      }
+      .quick button.on, #alts button.on { border-color: var(--gold); background: var(--gold-soft); font-weight: 700; }
+      .answer { display: grid; gap: 10px; }
+      .big {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        background: var(--card);
+        border: 2px solid var(--gold);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+      .big .k { grid-column: 1 / -1; color: var(--muted); font-size: 0.95rem; }
+      .big .v { font-size: 2.3rem; font-weight: 800; letter-spacing: 0.01em; font-variant-numeric: tabular-nums; }
+      .copy {
+        border: 0;
+        background: var(--gold);
+        color: #fff;
+        border-radius: 8px;
+        padding: 8px 14px;
+        font-size: 0.95rem;
+      }
+      .note { margin: 10px 0 14px; font-weight: 600; }
+      .note.ok { color: var(--ok); }
+      .note.warn { color: var(--warn); }
+      .bill {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+        border-radius: 12px;
+        overflow: hidden;
+        font-variant-numeric: tabular-nums;
+      }
+      .bill td { padding: 9px 12px; border-bottom: 1px solid var(--line); }
+      .bill td:last-child { text-align: right; white-space: nowrap; }
+      .bill .sub td, .bill .total td { font-weight: 700; }
+      .bill .total td { background: var(--gold-soft); }
+      .bill .diff td { color: var(--muted); border-bottom: 0; }
+      details { margin: 18px 0 0; }
+      summary { cursor: pointer; font-weight: 600; color: var(--gold); padding: 6px 0; }
+      #alts { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+      #alts button { width: 100%; text-align: left; font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+      .how { color: var(--muted); font-size: 0.9rem; margin-top: 22px; }
+      .hint { color: var(--muted); }
+    </style>
+  </body>
+</html>

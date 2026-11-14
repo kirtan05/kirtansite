@@ -61,7 +61,7 @@
       //   npx wrangler d1 create pcquest
       "binding": "PCQUEST_DB",
       "database_name": "pcquest",
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "37be4156-41fa-48cf-809e-296a3eac46cc"
     }
   ],
 

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1747C9"/>
+  <g transform="translate(256 256) scale(0.9) translate(-250 -275)">
+  <!-- paper -->
+  <rect x="122" y="104" width="232" height="290" rx="18" fill="#FFFFFF"/>
+  <rect x="156" y="150" width="164" height="22" rx="11" fill="#1747C9"/>
+  <rect x="156" y="198" width="164" height="16" rx="8" fill="#9DB2EA"/>
+  <rect x="156" y="236" width="120" height="16" rx="8" fill="#9DB2EA"/>
+  <!-- seal with ribbons -->
+  <path d="M318 330 L298 420 L330 400 L350 430 L362 340 Z" fill="#D92B2B"/>
+  <path d="M370 330 L390 420 L358 400 L338 430 L326 340 Z" fill="#B51F1F"/>
+  <circle cx="344" cy="318" r="62" fill="#FFB800" stroke="#FFFFFF" stroke-width="10"/>
+  <circle cx="344" cy="318" r="36" fill="none" stroke="#8A5A00" stroke-width="8"/>
+</g>
+</svg>

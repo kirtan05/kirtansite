@@ -14,7 +14,11 @@ const title = 'Gold bill calculator';
     <meta name="robots" content="noindex, nofollow, noarchive" />
     <meta name="theme-color" content="#7a5a12" />
     <title>{title}</title>
-    <link rel="icon" href="/favicon.svg" />
+    <link rel="icon" href="/goldbill/icon-192.png" type="image/png" />
+    <link rel="manifest" href="/goldbill/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/goldbill/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Gold Bill" />
+    <script is:inline>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/goldbill/sw.js', { scope: '/goldbill/' }).catch(() => {});</script>
   </head>
   <body>
     <main>

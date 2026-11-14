@@ -1,0 +1,17 @@
+{
+  "id": "/goldbill/",
+  "name": "Gold Bill",
+  "short_name": "Gold Bill",
+  "start_url": "/goldbill/",
+  "scope": "/goldbill/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF8E6",
+  "theme_color": "#7a5a12",
+  "icons": [
+    { "src": "/goldbill/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/goldbill/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/goldbill/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/goldbill/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

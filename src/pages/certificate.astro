@@ -2,7 +2,15 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 
-<BaseLayout title="Certificate — Kirtan Jain" description="Internal jewelry certificate generator.">
+<BaseLayout title="Certificate" description="Internal jewelry certificate generator.">
+  <Fragment slot="head">
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#1747C9" />
+    <link rel="manifest" href="/certificate/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/certificate/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Certificate" />
+    <script is:inline>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/certificate/sw.js', { scope: '/certificate/' }).catch(() => {});</script>
+  </Fragment>
   <section class="mx-auto max-w-5xl px-6 py-12 md:py-16">
 
     {/* --- Password gate --- */}
@@ -138,14 +146,14 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       if (val === PASSWORD) {
         gate.classList.add('hidden');
         app.classList.remove('hidden');
-        try { sessionStorage.setItem('cert-ok', '1'); } catch {}
+        try { localStorage.setItem('cert-ok', '1'); } catch {}
         void render();
       } else {
         document.getElementById('gate-error')!.classList.remove('hidden');
       }
     });
-    // remember unlock across navigations within the session
-    try { if (sessionStorage.getItem('cert-ok') === '1') { gate.classList.add('hidden'); app.classList.remove('hidden'); } } catch {}
+    // remember unlock on this device (the installed app starts a new session each open)
+    try { if (localStorage.getItem('cert-ok') === '1') { gate.classList.add('hidden'); app.classList.remove('hidden'); } } catch {}
 
     // ---- purity → KT ----
     const recomputeKT = () => {

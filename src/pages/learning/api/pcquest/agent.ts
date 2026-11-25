@@ -2,7 +2,8 @@ export const prerender = false;
 
 /**
  * POST /learning/api/pcquest/agent — the PC Quest helper agent (coach token).
- * Body: { run?: {laptopOnline, open, note?}, actions?: [{task, action, steps?, reason}] }.
+ * Body: { run?: {laptopOnline, open, note?}, summary?: string, actions?: [{task, action, steps?, reason}] }.
+ * `summary` is the daily "how is he doing" text shown on the coach page.
  *
  * - action "credit": writes a `step` event for each listed step (detail
  *   {by:'agent', reason}) and a `done` event when that finishes the task. The
@@ -36,6 +37,14 @@ export const POST: APIRoute = async (ctx) => {
     stmts.push(
       db.prepare(`INSERT INTO pq_agent_state (key, value) VALUES ('last_run', ?)
                   ON CONFLICT(key) DO UPDATE SET value = excluded.value`).bind(JSON.stringify(run)),
+    );
+  }
+
+  if (typeof body.summary === 'string' && body.summary.trim()) {
+    stmts.push(
+      db.prepare(`INSERT INTO pq_agent_state (key, value) VALUES ('summary', ?)
+                  ON CONFLICT(key) DO UPDATE SET value = excluded.value`)
+        .bind(JSON.stringify({ at, text: body.summary.slice(0, 4000) })),
     );
   }
 

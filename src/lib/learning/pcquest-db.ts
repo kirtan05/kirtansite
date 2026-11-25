@@ -151,16 +151,18 @@ export async function retirePack(db: D1Database, id: string): Promise<boolean> {
 /** The helper agent's recent decisions and its last run. Empty if its tables don't exist yet. */
 export async function loadAgent(db: D1Database) {
   try {
-    const [log, state] = await Promise.all([
+    const [log, state, summary] = await Promise.all([
       db.prepare('SELECT at, task, action, steps, reason FROM pq_agent_log ORDER BY id DESC LIMIT 20').all(),
       db.prepare("SELECT value FROM pq_agent_state WHERE key = 'last_run'").first<{ value: string }>(),
+      db.prepare("SELECT value FROM pq_agent_state WHERE key = 'summary'").first<{ value: string }>(),
     ]);
     return {
       log: (log.results ?? []) as Array<{ at: string; task: string | null; action: string; steps: string | null; reason: string }>,
       lastRun: state ? (JSON.parse(state.value) as { at: string; laptopOnline: boolean; open: number; note: string | null }) : null,
+      summary: summary ? (JSON.parse(summary.value) as { at: string; text: string }) : null,
     };
   } catch {
-    return { log: [], lastRun: null };
+    return { log: [], lastRun: null, summary: null };
   }
 }
 

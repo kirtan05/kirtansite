@@ -354,6 +354,19 @@ if (env.PCQUEST_DB) {
             </div>
           )}
 
+          {pq.agent.summary && (
+            <div>
+              <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
+                How he's doing · {ago(istDay(pq.agent.summary.at), on)}
+              </dt>
+              <dd class="mt-2 space-y-2 text-sm leading-relaxed">
+                {pq.agent.summary.text.split(/\n{2,}/).map((para) => (
+                  <p class="whitespace-pre-line">{para}</p>
+                ))}
+              </dd>
+            </div>
+          )}
+
           <div>
             <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Helper agent</dt>
             <dd class="mt-2 space-y-2">

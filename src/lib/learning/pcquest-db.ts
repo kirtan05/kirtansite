@@ -148,8 +148,24 @@ export async function retirePack(db: D1Database, id: string): Promise<boolean> {
 }
 
 /** Everything the coach-facing views need, in one go. */
+/** The helper agent's recent decisions and its last run. Empty if its tables don't exist yet. */
+export async function loadAgent(db: D1Database) {
+  try {
+    const [log, state] = await Promise.all([
+      db.prepare('SELECT at, task, action, steps, reason FROM pq_agent_log ORDER BY id DESC LIMIT 20').all(),
+      db.prepare("SELECT value FROM pq_agent_state WHERE key = 'last_run'").first<{ value: string }>(),
+    ]);
+    return {
+      log: (log.results ?? []) as Array<{ at: string; task: string | null; action: string; steps: string | null; reason: string }>,
+      lastRun: state ? (JSON.parse(state.value) as { at: string; laptopOnline: boolean; open: number; note: string | null }) : null,
+    };
+  } catch {
+    return { log: [], lastRun: null };
+  }
+}
+
 export async function coachView(db: D1Database) {
-  const [packs, progress, approvals, resets, devices, app, issues] = await Promise.all([
+  const [packs, progress, approvals, resets, devices, app, issues, agent] = await Promise.all([
     loadPacks(db, true),
     loadProgress(db),
     loadApprovals(db),
@@ -157,9 +173,11 @@ export async function coachView(db: D1Database) {
     loadDevices(db),
     latestRelease(db),
     loadIssues(db),
+    loadAgent(db),
   ]);
   const meta = taskMetaOf(packs);
   return {
+    agent,
     packs,
     meta,
     progress,

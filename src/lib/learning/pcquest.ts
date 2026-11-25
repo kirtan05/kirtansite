@@ -304,6 +304,8 @@ export interface TaskMeta {
   retired?: boolean;
   /** Step ids whose check is a `parent` check (needs `quest approve`). */
   parentSteps?: string[];
+  /** Every step id, in order. */
+  stepIds?: string[];
 }
 
 /**
@@ -323,6 +325,9 @@ export function tasksFromPayload(payload: string): TaskMeta[] {
       retired: t.retired === true,
       parentSteps: (Array.isArray(t.steps) ? t.steps : [])
         .filter((s: unknown) => isObj(s) && isObj(s.check) && s.check.type === 'parent' && typeof s.id === 'string')
+        .map((s: any) => s.id as string),
+      stepIds: (Array.isArray(t.steps) ? t.steps : [])
+        .filter((s: unknown) => isObj(s) && typeof s.id === 'string')
         .map((s: any) => s.id as string),
     }));
   } catch {

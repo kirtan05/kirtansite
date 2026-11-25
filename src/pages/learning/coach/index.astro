@@ -44,6 +44,7 @@ let pq: null | {
   waiting: Array<{ id: string; title?: string }>;
   issues: Awaited<ReturnType<typeof coachView>>['issues'];
   titles: Map<string, string>;
+  agent: Awaited<ReturnType<typeof coachView>>['agent'];
 } = null;
 if (env.PCQUEST_DB) {
   try {
@@ -67,6 +68,7 @@ if (env.PCQUEST_DB) {
       waiting: v.waiting,
       issues: v.issues.slice(0, 10),
       titles,
+      agent: v.agent,
     };
   } catch {
     pq = null;
@@ -352,10 +354,42 @@ if (env.PCQUEST_DB) {
             </div>
           )}
 
+          <div>
+            <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">Helper agent</dt>
+            <dd class="mt-2 space-y-2">
+              {pq.agent.lastRun ? (
+                <p class="font-mono text-xs text-text-secondary">
+                  last check {ago(istDay(pq.agent.lastRun.at), on)} ·{' '}
+                  {new Date(pq.agent.lastRun.at).toLocaleTimeString('en-GB', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit' })}
+                  {' · '}laptop {pq.agent.lastRun.laptopOnline ? 'reachable' : 'offline'}
+                  {' · '}{pq.agent.lastRun.open} open task{pq.agent.lastRun.open === 1 ? '' : 's'}
+                  {pq.agent.lastRun.note && <span> · {pq.agent.lastRun.note}</span>}
+                </p>
+              ) : (
+                <p class="text-xs text-text-secondary">the helper has not run yet</p>
+              )}
+              {pq.agent.log.length > 0 && (
+                <ul class="space-y-1.5">
+                  {pq.agent.log.map((l) => (
+                    <li class="rounded-lg border border-border px-3 py-2 text-xs">
+                      <span class="font-mono uppercase tracking-wider text-accent">{l.action}</span>
+                      {l.task && <span class="ml-2">{pq!.titles.get(l.task) ?? l.task}</span>}
+                      {l.steps && <span class="ml-2 font-mono text-text-secondary">{(JSON.parse(l.steps) as string[]).join(', ')}</span>}
+                      <span class="float-right font-mono text-[11px] text-text-secondary">
+                        {new Date(l.at).toLocaleString('en-GB', { timeZone: 'Asia/Kolkata', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <p class="mt-1 text-text-secondary">{l.reason}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </dd>
+          </div>
+
           {pq.waiting.length > 0 && (
             <div>
               <dt class="font-mono text-[11px] uppercase tracking-widest text-text-secondary">
-                Waiting for you — <code>quest approve &lt;task&gt;</code>
+                Waiting for a check — the helper looks at these on the laptop
               </dt>
               <dd class="mt-2">
                 <ul class="space-y-1">

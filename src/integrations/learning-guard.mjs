@@ -16,8 +16,8 @@
  * but is somehow in the sitemap, and a sitemap config with no filter at all.
  */
 
-// /gree (the GRE trainer) is private in exactly the same way.
-const PREFIXES = ['/learning', '/gree', '/major'];
+// /gree (the GRE trainer) and /net (home router monitor) are private in the same way.
+const PREFIXES = ['/learning', '/gree', '/major', '/net'];
 
 function pathOf(route) {
   return route.pattern ?? route.route ?? route.pathname ?? '';
@@ -62,7 +62,7 @@ function check(routes, logger) {
     );
   }
 
-  logger.info(`${seen} private route${seen === 1 ? '' : 's'} (/learning, /gree, /major) confirmed on-demand`);
+  logger.info(`${seen} private route${seen === 1 ? '' : 's'} (/learning, /gree, /major, /net) confirmed on-demand`);
 }
 
 export default function learningGuard() {

@@ -24,3 +24,8 @@ PCQUEST_KID_TOKEN = "local-kid-token"
 PCQUEST_COACH_TOKEN = "local-coach-token"
 # Overrides the wrangler.jsonc var; paste a throwaway key's SPKI base64 to test pushes.
 # PCQUEST_PACK_PUBKEY = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE..."
+
+# /net — home router & network monitor
+NETMON_PW = "pbkdf2$10000$REPLACE$REPLACE"
+NETMON_COOKIE_KEY = "another-long-random-string-for-local-use-only"
+NETMON_INGEST_TOKEN = "local-netmon-ingest-token"

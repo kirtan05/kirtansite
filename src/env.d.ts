@@ -51,6 +51,15 @@ interface Env {
   /** pbkdf2 record, same format as LEARNING_PW_* */
   MAJOR_PW?: string;
   MAJOR_COOKIE_KEY?: string;
+
+  /** /net — home router & network monitor (devices, DNS, flows, GPON stats). */
+  NETMON_DB?: D1Database;
+  NETMON_HOST?: string;
+  /** pbkdf2 record, same format as LEARNING_PW_* */
+  NETMON_PW?: string;
+  NETMON_COOKIE_KEY?: string;
+  /** Write-only bearer token for collectors (ThinkPad, ESP32, Pi, OpenWrt). */
+  NETMON_INGEST_TOKEN?: string;
 }
 
 type Runtime = import('@astrojs/cloudflare').Runtime<Env>;

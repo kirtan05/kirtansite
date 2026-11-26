@@ -18,6 +18,8 @@
     "GREE_HOST": "kirtanjain.com",
     // And for /major, the quiz revision deck.
     "MAJOR_HOST": "kirtanjain.com",
+    // And for /net, the home router & network monitor.
+    "NETMON_HOST": "kirtanjain.com",
     // PC Quest: the public half of the pack-signing key, SPKI base64. Print it
     // with `quest keygen` (the private half never leaves Kirtan's box). A pack
     // PUT is refused unless its signature verifies against this.
@@ -62,6 +64,12 @@
       "binding": "PCQUEST_DB",
       "database_name": "pcquest",
       "database_id": "37be4156-41fa-48cf-809e-296a3eac46cc"
+    },
+    {
+      // /net: home router & network monitor (devices, DNS, flows, GPON stats).
+      "binding": "NETMON_DB",
+      "database_name": "netmon",
+      "database_id": "673bcbc5-d320-4073-8f1c-e294e9cb0100"
     }
   ],
 
@@ -86,7 +94,8 @@
       "vars": {
         "LEARNING_HOST": "disabled",
         "GREE_HOST": "disabled",
-        "MAJOR_HOST": "disabled"
+        "MAJOR_HOST": "disabled",
+        "NETMON_HOST": "disabled"
       }
     }
   }

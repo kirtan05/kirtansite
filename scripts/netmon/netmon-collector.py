@@ -1501,6 +1501,390 @@ class SyslogListener:
 
 
 # ---------------------------------------------------------------------------
+# Hotspot discovery (`dnsmasq.leases` + `iw dev <iface> station dump`)
+# ---------------------------------------------------------------------------
+
+
+def discover_hotspot_clients(
+    leases_path: str, iface: str, ssid: str
+) -> List[Dict[str, Any]]:
+    """Read dnsmasq hotspot DHCP leases + iw station dump (RSSI, bitrate, packets)."""
+    leases: Dict[str, Dict[str, str]] = {}
+    if leases_path and os.access(leases_path, os.R_OK):
+        try:
+            with open(leases_path, "r", encoding="utf-8", errors="replace") as fh:
+                for line in fh:
+                    parts = line.split()
+                    if len(parts) < 4:
+                        continue
+                    mac = normalize_mac(parts[1])
+                    if not mac:
+                        continue
+                    ip_val = parts[2].strip()
+                    host = parts[3].strip()
+                    if host in ("*", "-", ""):
+                        host = ""
+                    leases[mac] = {"ip": ip_val, "hostname": host}
+        except OSError:
+            pass
+
+    stations: Dict[str, Dict[str, Any]] = {}
+    if iface:
+        out = _run_cmd(["iw", "dev", iface, "station", "dump"], timeout=3.0)
+        cur_mac: Optional[str] = None
+        for line in out.splitlines():
+            m = re.match(r"^Station\s+([0-9a-fA-F:]{17})\b", line.strip())
+            if m:
+                cur_mac = normalize_mac(m.group(1))
+                if cur_mac:
+                    stations[cur_mac] = {"mac": cur_mac, "online": True}
+                continue
+            if not cur_mac or cur_mac not in stations:
+                continue
+            s = line.strip()
+            if s.startswith("signal:"):
+                stations[cur_mac]["rssi"] = parse_int(s.split(":", 1)[1])
+            elif s.startswith("tx bitrate:"):
+                val = parse_float(s.split(":", 1)[1], 0)
+                if val is not None:
+                    stations[cur_mac]["tx_rate_mbps"] = int(val)
+            elif s.startswith("tx packets:"):
+                stations[cur_mac]["tx_packets"] = parse_int(s.split(":", 1)[1])
+            elif s.startswith("rx packets:"):
+                stations[cur_mac]["rx_packets"] = parse_int(s.split(":", 1)[1])
+
+    results: List[Dict[str, Any]] = []
+    all_macs = set(leases.keys()) | set(stations.keys())
+    for mac in all_macs:
+        lease = leases.get(mac, {})
+        sta = stations.get(mac)
+        item: Dict[str, Any] = {
+            "mac": mac,
+            "hostname": lease.get("hostname", ""),
+            "ip": lease.get("ip", ""),
+            "connection": "wifi_2g",
+            "ssid": ssid,
+            "online": bool(sta is not None),
+        }
+        if sta:
+            for k in ("rssi", "tx_rate_mbps", "tx_packets", "rx_packets"):
+                if sta.get(k) is not None:
+                    item[k] = sta[k]
+        results.append(item)
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Zeek JSON Log Tailer (`dns.log`, `ssl.log`, `http.log`, `conn.log`)
+# ---------------------------------------------------------------------------
+
+
+class _JsonFileTailer:
+    """Single-file JSONL tailer with rotation handling (seeks to EOF on startup)."""
+
+    def __init__(self, path: str) -> None:
+        self.path = path
+        self._inode: Optional[int] = None
+        self._offset: int = 0
+        self._initialized = False
+
+    def read_objects(self, limit: int = 200) -> List[Dict[str, Any]]:
+        try:
+            st = os.stat(self.path)
+        except OSError:
+            return []
+        try:
+            fh = open(self.path, "r", encoding="utf-8", errors="replace")
+        except OSError:
+            return []
+        objs: List[Dict[str, Any]] = []
+        try:
+            if not self._initialized:
+                self._inode = st.st_ino
+                self._offset = max(0, st.st_size - 65536)
+                self._initialized = True
+                fh.seek(self._offset)
+                if self._offset > 0:
+                    fh.readline()  # discard partial line
+            elif self._inode != st.st_ino or st.st_size < self._offset:
+                self._inode = st.st_ino
+                self._offset = 0
+                fh.seek(0)
+            else:
+                fh.seek(self._offset)
+
+            for line in fh:
+                s = line.strip()
+                if not s or not s.startswith("{"):
+                    continue
+                try:
+                    obj = json.loads(s)
+                    if isinstance(obj, dict):
+                        objs.append(obj)
+                except json.JSONDecodeError:
+                    continue
+                if len(objs) >= limit:
+                    break
+            self._offset = fh.tell()
+        finally:
+            fh.close()
+        return objs
+
+
+class AdGuardApiPoller:
+    """Polls AdGuard Home HTTP /control/querylog API (no root file perms needed)."""
+
+    def __init__(self, base_url: str, user: str, password: str, timeout: float = 5.0) -> None:
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        raw = f"{user}:{password}".encode("utf-8")
+        self._auth_header = "Basic " + base64.b64encode(raw).decode("ascii")
+        self._seen_keys: "collections.OrderedDict[str, None]" = collections.OrderedDict()
+        self._primed = False
+
+    def read_new(self, limit: int = 120) -> List[Dict[str, Any]]:
+        url = f"{self.base_url}/control/querylog?limit={limit}"
+        req = urllib.request.Request(
+            url,
+            headers={
+                "Authorization": self._auth_header,
+                "Accept": "application/json",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=self.timeout) as resp:
+                data = json.loads(resp.read().decode("utf-8", errors="replace"))
+        except Exception as exc:
+            log(f"AdGuard API poll error: {exc}", "WARN")
+            return []
+
+        rows = data.get("data") if isinstance(data, dict) else None
+        if not isinstance(rows, list):
+            return []
+
+        events: List[Dict[str, Any]] = []
+        # API returns newest first; process oldest first
+        for item in reversed(rows):
+            if not isinstance(item, dict):
+                continue
+            q = item.get("question") or {}
+            domain = str(q.get("name") or "").strip().rstrip(".").lower()
+            client_ip = str(item.get("client") or "").strip()
+            t_str = str(item.get("time") or "")
+            if not domain or not client_ip:
+                continue
+            key = f"{t_str}|{client_ip}|{domain}|{q.get('type', 'A')}"
+            if key in self._seen_keys:
+                continue
+            self._seen_keys[key] = None
+            self._seen_keys.move_to_end(key)
+            while len(self._seen_keys) > 4000:
+                self._seen_keys.popitem(last=False)
+
+            # Parse timestamp to ISO UTC
+            at_iso = utc_now_iso()
+            if t_str:
+                try:
+                    # Trim nanosecond precision for Python fromisoformat
+                    m = re.match(r"^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})?$", t_str)
+                    if m:
+                        norm = m.group(1) + (m.group(2) or "Z")
+                        if norm.endswith("Z"):
+                            norm = norm[:-1] + "+00:00"
+                        dt = datetime.datetime.fromisoformat(norm).astimezone(datetime.timezone.utc)
+                        at_iso = dt.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+                except Exception:
+                    pass
+
+            ans_list = item.get("answer")
+            answers: List[str] = []
+            if isinstance(ans_list, list):
+                for a in ans_list[:3]:
+                    if isinstance(a, dict) and a.get("value"):
+                        answers.append(str(a["value"]))
+            reason = str(item.get("reason") or "")
+            rcode = "BLOCKED" if reason.startswith("Filtered") else str(item.get("status") or "NOERROR")
+            events.append(
+                {
+                    "at": at_iso,
+                    "client_ip": client_ip,
+                    "domain": domain,
+                    "qtype": str(q.get("type") or "A").upper()[:16],
+                    "rcode": rcode[:24],
+                    "answer": ", ".join(answers)[:128],
+                    "source": "adguard",
+                }
+            )
+        self._primed = True
+        return events
+
+
+class ZeekLogTailer:
+    """Tails Zeek JSON logs (dns.log, ssl.log, http.log, conn.log) across one or more dirs."""
+
+    def __init__(self, log_dirs_spec: str) -> None:
+        dirs = [d.strip() for d in log_dirs_spec.split(",") if d.strip()]
+        self.log_dirs = dirs
+        self._tailers = [
+            {
+                "dns": _JsonFileTailer(os.path.join(d, "dns.log")),
+                "ssl": _JsonFileTailer(os.path.join(d, "ssl.log")),
+                "http": _JsonFileTailer(os.path.join(d, "http.log")),
+                "conn": _JsonFileTailer(os.path.join(d, "conn.log")),
+            }
+            for d in dirs
+        ]
+        self._sni_cache: "collections.OrderedDict[str, str]" = collections.OrderedDict()
+
+    @staticmethod
+    def _zeek_ts(val: Any) -> str:
+        if isinstance(val, (int, float)) and val > 1_000_000_000:
+            return (
+                datetime.datetime.fromtimestamp(val, tz=datetime.timezone.utc)
+                .replace(microsecond=0)
+                .isoformat()
+                .replace("+00:00", "Z")
+            )
+        if isinstance(val, str) and val:
+            return val
+        return utc_now_iso()
+
+    def _remember_sni(self, uid: str, host: str) -> None:
+        if not uid or not host:
+            return
+        self._sni_cache[uid] = host
+        self._sni_cache.move_to_end(uid)
+        while len(self._sni_cache) > 2048:
+            self._sni_cache.popitem(last=False)
+
+    def read_new(
+        self, ip_to_mac: Dict[str, str], local_ips: set, router_ip: str
+    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        dns_out: List[Dict[str, Any]] = []
+        flows_out: List[Dict[str, Any]] = []
+
+        for tset in self._tailers:
+            # 1. Zeek dns.log
+            for obj in tset["dns"].read_objects(120):
+                query = str(obj.get("query") or "").strip().rstrip(".").lower()
+                client_ip = str(obj.get("id.orig_h") or "").strip()
+                if not query or not client_ip:
+                    continue
+                answers_raw = obj.get("answers")
+                if isinstance(answers_raw, list):
+                    ans = ", ".join(str(a) for a in answers_raw[:3])
+                else:
+                    ans = str(answers_raw or "")
+                item: Dict[str, Any] = {
+                    "at": self._zeek_ts(obj.get("ts")),
+                    "client_ip": client_ip,
+                    "domain": query,
+                    "qtype": str(obj.get("qtype_name") or "A").upper()[:16],
+                    "rcode": str(obj.get("rcode_name") or "NOERROR")[:24],
+                    "answer": ans[:128],
+                    "source": "zeek-dns",
+                }
+                mac = ip_to_mac.get(client_ip)
+                if mac:
+                    item["client_mac"] = mac
+                dns_out.append(item)
+
+            # 2. Zeek ssl.log (TLS SNI — reveals exact HTTPS domain even with DoH!)
+            for obj in tset["ssl"].read_objects(120):
+                sni = str(obj.get("server_name") or "").strip().lower()
+                uid = str(obj.get("uid") or "")
+                if sni:
+                    self._remember_sni(uid, sni)
+                client_ip = str(obj.get("id.orig_h") or "").strip()
+                dst_ip = str(obj.get("id.resp_h") or "").strip()
+                dst_port = parse_int(obj.get("id.resp_p")) or 443
+                if not client_ip or not dst_ip or not sni:
+                    continue
+                if not _is_interesting_remote_ip(dst_ip, local_ips, router_ip, dst_port):
+                    continue
+                fl: Dict[str, Any] = {
+                    "at": self._zeek_ts(obj.get("ts")),
+                    "client_ip": client_ip,
+                    "dst_ip": dst_ip,
+                    "dst_port": dst_port,
+                    "proto": "TCP",
+                    "sni_or_host": sni,
+                    "bytes_tx": 0,
+                    "bytes_rx": 0,
+                    "packets": 0,
+                    "source": "zeek-ssl",
+                }
+                mac = ip_to_mac.get(client_ip)
+                if mac:
+                    fl["client_mac"] = mac
+                flows_out.append(fl)
+
+            # 3. Zeek http.log
+            for obj in tset["http"].read_objects(80):
+                host = str(obj.get("host") or "").strip().lower()
+                uid = str(obj.get("uid") or "")
+                if host:
+                    self._remember_sni(uid, host)
+                client_ip = str(obj.get("id.orig_h") or "").strip()
+                dst_ip = str(obj.get("id.resp_h") or "").strip()
+                dst_port = parse_int(obj.get("id.resp_p")) or 80
+                if not client_ip or not dst_ip or not host:
+                    continue
+                if not _is_interesting_remote_ip(dst_ip, local_ips, router_ip, dst_port):
+                    continue
+                fl = {
+                    "at": self._zeek_ts(obj.get("ts")),
+                    "client_ip": client_ip,
+                    "dst_ip": dst_ip,
+                    "dst_port": dst_port,
+                    "proto": "TCP",
+                    "sni_or_host": host,
+                    "bytes_tx": parse_int(obj.get("request_body_len")) or 0,
+                    "bytes_rx": parse_int(obj.get("response_body_len")) or 0,
+                    "packets": 0,
+                    "source": "zeek-http",
+                }
+                mac = ip_to_mac.get(client_ip)
+                if mac:
+                    fl["client_mac"] = mac
+                flows_out.append(fl)
+
+            # 4. Zeek conn.log (full byte/packet flow records enriched with SNI)
+            for obj in tset["conn"].read_objects(120):
+                client_ip = str(obj.get("id.orig_h") or "").strip()
+                dst_ip = str(obj.get("id.resp_h") or "").strip()
+                dst_port = parse_int(obj.get("id.resp_p")) or 0
+                proto = str(obj.get("proto") or "TCP").upper()
+                if not client_ip or not dst_ip or dst_port <= 0 or proto not in ("TCP", "UDP"):
+                    continue
+                if not _is_interesting_remote_ip(dst_ip, local_ips, router_ip, dst_port):
+                    continue
+                uid = str(obj.get("uid") or "")
+                sni = self._sni_cache.get(uid, "")
+                b_tx = parse_int(obj.get("orig_ip_bytes")) or parse_int(obj.get("orig_bytes")) or 0
+                b_rx = parse_int(obj.get("resp_ip_bytes")) or parse_int(obj.get("resp_bytes")) or 0
+                pkts = (parse_int(obj.get("orig_pkts")) or 0) + (parse_int(obj.get("resp_pkts")) or 0)
+                fl = {
+                    "at": self._zeek_ts(obj.get("ts")),
+                    "client_ip": client_ip,
+                    "dst_ip": dst_ip,
+                    "dst_port": dst_port,
+                    "proto": proto,
+                    "sni_or_host": sni,
+                    "bytes_tx": b_tx,
+                    "bytes_rx": b_rx,
+                    "packets": pkts,
+                    "source": "zeek-conn",
+                }
+                mac = ip_to_mac.get(client_ip)
+                if mac:
+                    fl["client_mac"] = mac
+                flows_out.append(fl)
+
+        return dns_out, flows_out
+
+
+# ---------------------------------------------------------------------------
 # Main Collector Orchestrator
 # ---------------------------------------------------------------------------
 
@@ -1533,6 +1917,13 @@ class NetmonCollector:
         self.dns_listen = os.environ.get("NETMON_DNS_LISTEN", "").strip()
         self.dns_upstream_raw = os.environ.get("NETMON_DNS_UPSTREAM", "1.1.1.1:53").strip()
         self.dns_log_file = os.environ.get("NETMON_DNS_LOG_FILE", "").strip()
+        self.adguard_url = os.environ.get("NETMON_ADGUARD_URL", "").strip()
+        self.adguard_user = os.environ.get("NETMON_ADGUARD_USER", "admin").strip()
+        self.adguard_pass = os.environ.get("NETMON_ADGUARD_PASS", "").strip()
+        self.zeek_log_dir = os.environ.get("NETMON_ZEEK_LOG_DIR", "").strip()
+        self.hotspot_leases = os.environ.get("NETMON_HOTSPOT_LEASES", "").strip()
+        self.hotspot_iface = os.environ.get("NETMON_HOTSPOT_IFACE", "").strip()
+        self.hotspot_ssid = os.environ.get("NETMON_HOTSPOT_SSID", "Kirtan-Monitored").strip()
         self.syslog_listen = os.environ.get("NETMON_SYSLOG_LISTEN", "").strip()
         self.dry_run = bool(args.dry_run)
         self.once = bool(args.once)
@@ -1554,8 +1945,16 @@ class NetmonCollector:
         self.syslog_lock = threading.Lock()
 
         self.dns_forwarder: Optional[DNSForwarder] = None
+        self.adguard_poller: Optional[AdGuardApiPoller] = (
+            AdGuardApiPoller(self.adguard_url, self.adguard_user, self.adguard_pass)
+            if self.adguard_url
+            else None
+        )
         self.dns_tailer: Optional[DNSLogTailer] = (
-            DNSLogTailer(self.dns_log_file) if self.dns_log_file else None
+            DNSLogTailer(self.dns_log_file) if (self.dns_log_file and not self.adguard_poller) else None
+        )
+        self.zeek_tailer: Optional[ZeekLogTailer] = (
+            ZeekLogTailer(self.zeek_log_dir) if self.zeek_log_dir else None
         )
         self.syslog_listener: Optional[SyslogListener] = None
 
@@ -1655,14 +2054,32 @@ class NetmonCollector:
 
         local_ifaces = discover_local_interfaces()
         neighbors = discover_lan_neighbors()
+        hotspot_clients = (
+            discover_hotspot_clients(self.hotspot_leases, self.hotspot_iface, self.hotspot_ssid)
+            if (self.hotspot_leases or self.hotspot_iface)
+            else []
+        )
         devices, ip_to_mac = merge_devices(
             scraped["clts"],
-            scraped["wifi_clients"],
+            scraped["wifi_clients"] + [c for c in hotspot_clients if c.get("online")],
             neighbors,
             local_ifaces,
             self.router_ip,
             self.local_hostname,
         )
+        # Ensure hotspot DHCP leases (IP + hostname) enrich merged devices & ip_to_mac
+        dev_by_mac = {d["mac"]: d for d in devices}
+        for hc in hotspot_clients:
+            if hc.get("ip"):
+                ip_to_mac[hc["ip"]] = hc["mac"]
+            if hc["mac"] in dev_by_mac:
+                if hc.get("ip"):
+                    dev_by_mac[hc["mac"]]["ip"] = hc["ip"]
+                if hc.get("hostname") and not dev_by_mac[hc["mac"]].get("hostname"):
+                    dev_by_mac[hc["mac"]]["hostname"] = hc["hostname"]
+            elif len(devices) < MAX_DEVICES_PER_POST:
+                devices.append(hc)
+                dev_by_mac[hc["mac"]] = hc
         active_devices = sum(1 for d in devices if d.get("online"))
 
         router_payload: Dict[str, Any] = {
@@ -1696,8 +2113,24 @@ class NetmonCollector:
         dns_events = self._drain_queue(
             self.dns_queue, self.dns_lock, MAX_DNS_PER_POST * MAX_CHUNKS_PER_POLL
         )
+        if self.adguard_poller:
+            dns_events.extend(self.adguard_poller.read_new(MAX_DNS_PER_POST * 2))
         if self.dns_tailer:
             dns_events.extend(self.dns_tailer.read_new(MAX_DNS_PER_POST * 2))
+
+        if self.zeek_tailer:
+            local_ips = {iface["ip"] for iface in local_ifaces if iface.get("ip")}
+            z_dns, z_flows = self.zeek_tailer.read_new(ip_to_mac, local_ips, self.router_ip)
+            # Prefer AdGuard Home for DNS when active, but add Zeek DNS if AdGuard isn't logging them
+            if not (self.dns_tailer or self.adguard_poller):
+                dns_events.extend(z_dns)
+            else:
+                seen_dns = {(e.get("client_ip"), e.get("domain")) for e in dns_events}
+                for zd in z_dns:
+                    if (zd.get("client_ip"), zd.get("domain")) not in seen_dns:
+                        dns_events.append(zd)
+            # Prepend rich Zeek SNI/conn flows ahead of basic ss host flows
+            flows = z_flows + flows
 
         syslog_events = self._drain_queue(
             self.syslog_queue,
@@ -1713,6 +2146,10 @@ class NetmonCollector:
                 "router_model": meta.get("router_model", ""),
                 "firmware": meta.get("firmware", ""),
                 "dns_proxy": bool(self.dns_forwarder is not None),
+                "adguard": bool(self.adguard_poller is not None or self.dns_tailer is not None),
+                "zeek": bool(self.zeek_tailer is not None),
+                "hotspot": bool(self.hotspot_iface),
+                "syslog": bool(self.syslog_listener is not None),
             },
         }
         if meta.get("wan_gateway"):

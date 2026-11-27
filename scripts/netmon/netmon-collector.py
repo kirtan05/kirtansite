@@ -1382,7 +1382,10 @@ class DNSLogTailer:
         events: List[Dict[str, Any]] = []
         recent_by_domain: Dict[str, Dict[str, Any]] = {}
         try:
-            for line in fh:
+            while True:
+                line = fh.readline()
+                if not line:
+                    break
                 s = line.strip()
                 if not s:
                     continue
@@ -1613,7 +1616,10 @@ class _JsonFileTailer:
             else:
                 fh.seek(self._offset)
 
-            for line in fh:
+            while True:
+                line = fh.readline()
+                if not line:
+                    break
                 s = line.strip()
                 if not s or not s.startswith("{"):
                     continue
